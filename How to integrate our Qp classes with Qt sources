@@ -1,0 +1,26 @@
+How to integrate our Qp classes with Qt sources.
+
+1. create qp directory into ...\QtSources\4.8.1\src\gui\itemviews\
+    for exapmle we have D:\QtSDK1.2.1\QtSources\4.8.1\src\gui\itemviews\qp
+    copy to this directiory files from our folder qp :
+      qp_common.h
+      qp_tableview.h
+      qp_tableview_p.h
+      qp_tableview.cpp
+      qp_horheaderview.h
+      qp_horheaderview_p.h
+      qp_horheaderview.cpp
+      qp_vertheaderview.h
+      qp_vertheaderview_p.h
+      qp_vertheaderview.cpp
+
+2. create qp directory into ...\QtSources\4.8.1\include\QtGui\private\
+    for exapmle we have D:\QtSDK1.2.1\QtSources\4.8.1\include\QtGui\private\qp
+    copy to this directiory files from our folder qp_private:
+      qp_horheaderview_p.h
+      qp_tableview_p.h
+      qp_vertheaderview_p.h
+
+3. Rebuilding gui.pro from sources.
+
+
