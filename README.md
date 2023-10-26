@@ -11,5 +11,6 @@
 Чтобы воспользоваться нашими новыми классами QpTableView, QpHorHeaderView и QpVertHeaderView на сегодняшний день придется эти классы добавить в исходники самого Qt и пересобрать заново ветку исходников gui. По другому пока не получится.
 инструкция как это сделать прилагается https://github.com/PavelDorofeev/How-to-create-own-QTableView-with-new-capabilities/blob/master/How%20to%20integrate%20our%20Qp%20classes%20with%20Qt%20sources.
 
-Первое ознакомительное видео по горячим следам (первая бета версия 1.0.0) на ютьюб 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/zgqkdXJhbpc?si=2yBfl4_OEhvIXVVe" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+Первое ознакомительное видео по горячим следам (первая бета версия 1.0.0) на ютьюб : https://youtu.be/zgqkdXJhbpc?si=sXNdRZAOUsB56D8h
+
+
