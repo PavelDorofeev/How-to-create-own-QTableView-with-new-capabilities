@@ -13,4 +13,7 @@
 
 Первое ознакомительное видео по горячим следам (первая бета версия 1.0.0) на ютьюб : https://youtu.be/zgqkdXJhbpc?si=sXNdRZAOUsB56D8h
 
+Есть еще ресурс на нашем сайте https://kkmspb.ru/development/Qt/layouts-and-widgets/QTableView/developing/row-in-two-lines/ 
+
+Habr https://habr.com/ru/articles/761530/
 
