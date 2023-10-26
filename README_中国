@@ -2,6 +2,7 @@
 今天我们提出一个开放项目：如何制作自己的带有新功能的QTableView。
 由于需要根据某种模式显示带有部分的表行，因此提示我们这样做。
 也就是如下图所示：
+
 ![image](https://github.com/PavelDorofeev/How-to-create-own-QTableView-with-new-capabilities/assets/13850002/be731312-aa0b-4d14-ad42-832ab513857f)
 
 为了实现我们的 QpTableView，我们花了大约 5 周的时间来研究和更改 QTableView 代码，但这是值得的，因为我们最终必须了解渲染在 Qt 中的工作原理。
