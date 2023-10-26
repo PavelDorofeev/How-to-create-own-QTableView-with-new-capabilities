@@ -6,5 +6,6 @@
 То есть как примерно на картинке ниже:
 
 Чтобы реализовать свой QpTableView мы потратили примерно 5 недель на  изучение и изменение кода QTableView.
+![image](https://github.com/PavelDorofeev/How-to-create-own-QTableView-with-new-capabilities/assets/13850002/be731312-aa0b-4d14-ad42-832ab513857f)
 (Qp это префикс названий наших файлов и классов) 
 
