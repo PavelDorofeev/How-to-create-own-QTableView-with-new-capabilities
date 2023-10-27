@@ -120,6 +120,8 @@ public:
     int xNum_count( ) const; // !!
     int visualIndexAt_end(int x) const;
 
+    void clear_sections_template( );
+
     bool init_sections_template( const Qp_SECTION_TMPL & matrix );
 
     //int logicalIndexAt(int position) const;

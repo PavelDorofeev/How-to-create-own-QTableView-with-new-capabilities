@@ -29,11 +29,12 @@ QT_BEGIN_NAMESPACE
 
 
 const bool QpHorHeaderView::debug = false;
-const bool QpHorHeaderView::debug_paint = false;
-const bool QpHorHeaderView::debug_selection = false;
+const bool QpHorHeaderView::debug_paint = true;
+const bool QpHorHeaderView::debug_selection = true;
 const bool QpHorHeaderView::debug_scroll = false;
 const bool QpHorHeaderView::debug_resize = false;
 const bool QpHorHeaderView::debug_init = true;
+
 const int QpHorHeaderView::default_section_width = 150;
 
 const bool QpHorHeaderViewPrivate::debug = false;
@@ -599,7 +600,7 @@ int QpHorHeaderView::get_section_line( int y ) const
 
     int count = d->offsets_y.count() - 1;
 
-    if( count == 0)
+    if( count <= 0)
         return -1; // visual matrix is not initialized a while
 
     int last = count ;
@@ -3279,10 +3280,13 @@ void QpHorHeaderView::paintSection(QPainter *painter, const QRect &rect, int log
         else if (d->highlightSelected)
         {
 
-            if (d->sectionIntersectsSelection( logicalIndex ))
-            {
-                state |= QStyle::State_On;
-            }
+//            if ( d->sectionIntersectsSelection( logicalIndex ))
+//            {
+                // ---------------------------------------------------
+                //            this is only for vertical and horizontal selection together
+                // ---------------------------------------------------
+//                state |= QStyle::State_On;
+//            }
 
 
             if (d->isSectionSelected(logicalIndex))
@@ -3385,18 +3389,13 @@ void QpHorHeaderView::paintSection(QPainter *painter, const QRect &rect, int log
     // ---------------------------------------
 
 
-    if( logicalIndex == 4)
-    {
-        //opt.selectedPosition = QStyleOptionHeader::NotAdjacent;
-        //painter->setFont( QFont( "Segoe UI" , painter->font().pointSize() , 50 , false));
-    }
-
     if ( debug_paint )
     {
         qDebug() << "----------------------------------------------------------";
         qDebug() << "QpHorHeaderView::paintSection() CE_Header ";
         qDebug() << "       logicalIndex " << logicalIndex;
         qDebug() << "       opt.text " << opt.text << opt.state;
+        qDebug() << "       opt.rect " << opt.rect;
         //qDebug() << "       opt " << opt;
         //qDebug() << "       opt.selectedPosition " << dbg::toStr_SelectedPosition( opt.selectedPosition );
         //qDebug() << "       opt.position " << dbg::toStr_SectionPosition( opt.position ) << opt.position;
@@ -3611,6 +3610,17 @@ bool QpHorHeaderView::isIndexHidden(const QModelIndex &) const
 }
 
 
+void QpHorHeaderView::clear_sections_template(  )
+{
+    Q_D(QpHorHeaderView);
+
+    d->visual_matrix.clear();
+    d->map.clear();
+    d->offsets_x.clear();
+    d->offsets_y.clear();
+    d->sectionHidden.clear();
+}
+
 bool QpHorHeaderView::init_sections_template( const Qp_SECTION_TMPL &matrix )
 {
     Q_D(QpHorHeaderView);
@@ -3624,11 +3634,7 @@ bool QpHorHeaderView::init_sections_template( const Qp_SECTION_TMPL &matrix )
 line0     0      1      2      2     5
 line1     0      1      3      4     5
 */
-    d->visual_matrix.clear();
-    d->map.clear();
-    d->offsets_x.clear();
-    d->offsets_y.clear();
-    d->sectionHidden.clear();
+    clear_sections_template();
 
     d->visual_matrix = matrix ;
 
@@ -3641,13 +3647,63 @@ line1     0      1      3      4     5
 
     int line=0;
 
+    int colCount = d->model->columnCount();
+
+    bool wrong_length = false;
+    int line_lenght= -1;
+
     foreach( QList<int> lst , matrix)
     {
-        if( lst.count() > d->model->columnCount())
+        // ------------------------------------------------------
+        //  protect unequal length of lines
+        // ------------------------------------------------------
+
+        if( line_lenght != lst.count() && line_lenght != -1)
         {
-            qWarning() << "sections template is wrong: count of sections "<< lst.count() << " (in line " << line<< ") is more then model column count (" << d->model->columnCount() << ")";
+            QString err = QString("sections template is wrong: not equal fields number int lines");
+
+            QMessageBox::warning( this,
+                                  "error",
+                                  err);
+            qWarning() << err ;
 
             return false;
+        }
+        // ------------------------------------------------------
+
+        line_lenght = lst.count();
+
+        foreach( int fldNumber, lst)
+        {
+            if( fldNumber > colCount - 1)
+            {
+                QString err = QString("sections template is wrong: field number %1 (in line %2) is more then model column count (%3)")
+                        .arg( fldNumber )
+                        .arg(line)
+                        .arg(d->model->columnCount());
+
+                QMessageBox::warning( this,
+                                      "error",
+                                      err);
+                qWarning() << err ;
+
+                return false;
+            }
+
+            if(  fldNumber < 0 )
+            {
+                QString err = QString("sections template is wrong: field number %1 (in line %2) is less then 0)")
+                        .arg( fldNumber )
+                        .arg(line)
+                        .arg(d->model->columnCount());
+
+                QMessageBox::warning( this,
+                                      "error",
+                                      err);
+                qWarning() << err ;
+
+                return false;
+            }
         }
 
         if( section_count_in_line >= 0 )
@@ -3681,7 +3737,7 @@ line1     0      1      3      4     5
 
     for( int line=0; line <= matrix.count(); line++ )
     {
-        d->offsets_y << line*50;
+        d->offsets_y << line * 50;
     }
 
     if( debug_init) qDebug() << "offsets_y " << d->offsets_y;
@@ -3695,18 +3751,16 @@ line1     0      1      3      4     5
     }
     //-----------------------------------------------------------------------
 
-    d->visualColumnCount   = 5;
-
 
     int num =0;
-
-    //int left    = visual_matrix [ line ] [ num ];
 
     // ---------------------------------------------------------------------
     // initializing d->map
     // ---------------------------------------------------------------------
+
     while( num < d->offsets_x.count() - 1 )
     {
+        qDebug() << "num: " << num;
 
         int line = 0;
 
@@ -3714,8 +3768,49 @@ line1     0      1      3      4     5
         {
             int val = d->visual_matrix [ line ] [ num ];
 
+            qDebug() << "   line: " << line << " val:" << val;
+
             if( d->map.contains( val ))
             {
+                qp::CELL_NODES cl = d->map[ val ];
+
+                if( num >= cl.right )
+                {
+                    QMessageBox::warning( this ,
+                                          QString("error"),
+                                          QString("uncorrect template: please look to field number %1 field number %1")
+                                          .arg(val)
+//                                          .arg(cl.left)
+//                                          .arg(cl.right)
+//                                          .arg(cl.bottom)
+//                                          .arg(cl.bottom)
+                                          );
+
+                    clear_sections_template();
+
+                    return false;
+                }
+
+                if( line >= cl.bottom )
+                {
+                    QMessageBox::warning( this ,
+                                          QString("error"),
+                                          QString("uncorrect template: please look to field number %1")
+                                          .arg(val)
+//                                          .arg(cl.left)
+//                                          .arg(cl.right)
+//                                          .arg(cl.bottom)
+//                                          .arg(cl.bottom)
+                                          );
+
+                    clear_sections_template();
+
+                    return false;
+                }
+
+
+                //qDebug() << "               continue val:" << val << " cell left:"<<cl.left<<" right:"<<cl.right<<" top:"<<cl.top<<" bottom:"<<cl.bottom;
+
                 line++;
                 continue;
             }
@@ -3743,16 +3838,37 @@ line1     0      1      3      4     5
                 nn++;
             }
 
-            if( d->map.contains( val ))
+            // ------------------------------------
+            // test if a area is not the rectangle form
+            // ------------------------------------
+
+            for( int y= cell.top; y < cell.bottom ; y++ )
             {
 
-                QMessageBox::warning( 0 ,
-                                      QString("error"),
-                                      QString("visual index %1 already exists in section template")
-                                      .arg(val)
-                                      );
+                for( int x= cell.left; x < cell.right ; x++ )
+                {
 
+                    if( val != d->visual_matrix [ y ] [ x ])
+                    {
+                        QMessageBox::warning( this ,
+                                              QString("error"),
+                                              QString("section template is wrong: please look to field number %1")
+                                              .arg(val)
+//                                              .arg(d->visual_matrix [ y ] [ x ])
+//                                              .arg(x)
+//                                              .arg(y)
+                                              );
+
+                        clear_sections_template();
+
+                        return false;
+
+                    }
+                }
             }
+
+
+            qDebug() << "           insert val:" << val << " cell left:"<<cell.left<<" right:"<<cell.right<<" top:"<<cell.top<<" bottom:"<<cell.bottom;
 
             d->map.insert( val , cell );
 
@@ -3765,17 +3881,19 @@ line1     0      1      3      4     5
 
 
     if ( debug_init )  qDebug() << "init visual_matrix : ";
-
-    for( int line =0 ; line < d->visual_matrix.count(); ++line)
     {
-        QString str;
-        for( int xNum =0 ; xNum < d->visual_matrix[ line].count(); ++xNum)
+        for( int line =0 ; line < d->visual_matrix.count(); ++line)
         {
-            str.append( QString::number( d->visual_matrix[ line] [ xNum] ) ).append(" ");
+            QString str;
+
+            for( int xNum =0 ; xNum < d->visual_matrix[ line].count(); ++xNum)
+            {
+                str.append( QString::number( d->visual_matrix[ line] [ xNum] ) ).append(" ");
+            }
+
+            if ( debug_init )qDebug() << "line : " << line  << " : " << str;
+
         }
-
-        if ( debug_init )qDebug() << "line : " << line  << " : " << str;
-
     }
 
     if ( debug_init )qDebug() << "init map : ";

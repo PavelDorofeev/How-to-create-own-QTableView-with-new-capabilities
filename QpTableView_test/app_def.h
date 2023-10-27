@@ -37,6 +37,8 @@ public:
 
     static const QString REESTR_ORGANIZATION_NAME;
     static const QString REESTR_APPLICATION_NAME;
+    static const QString TBL_TEST_NAME;
+    static const QString DB_TEST_NAME;
 
     static const char * const IN_OS_WIN_PROGRAMMDATA_OUR_PROG_NAME_DIR;
     static const char * const PROGRAM_NAME;

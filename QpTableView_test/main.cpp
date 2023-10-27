@@ -33,8 +33,6 @@ int main(int argc, char *argv[])
 
     bool ll = logging_System::init(
 
-                appDef::OS_WIN_ProgramData_DIR+"\\"+
-                appDef::IN_OS_WIN_PROGRAMMDATA_OUR_PROG_NAME_DIR+"\\"+
                 logging_System::LOGS_DIR,
 
                 logging_System::LOG_FILE_NAME,
@@ -84,6 +82,8 @@ int main(int argc, char *argv[])
     app.setStyleSheet( st );
 
     qDebug() << app.styleSheet();
+
+
 
     Dialog w;
 

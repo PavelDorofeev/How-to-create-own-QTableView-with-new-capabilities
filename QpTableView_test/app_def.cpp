@@ -7,11 +7,13 @@
 
 
 
-const char * const appDef::IN_OS_WIN_PROGRAMMDATA_OUR_PROG_NAME_DIR     = "QTableView_Cells";
-const char * const appDef::PROGRAM_NAME                                 = "QTableView Cells";
+const char * const appDef::IN_OS_WIN_PROGRAMMDATA_OUR_PROG_NAME_DIR     = "QpTableView_test";
+const char * const appDef::PROGRAM_NAME                                 = "QpTableView test";
 
 const QString appDef::REESTR_ORGANIZATION_NAME           = "BIT Ltd";
 const QString appDef::REESTR_APPLICATION_NAME           = "BIT Sale";
+const QString appDef::TBL_TEST_NAME                     = "goods";
+const QString appDef::DB_TEST_NAME                     = "test_db.db";
 
 QString appDef::midlight                                     = "";
 QString appDef::light                                     = "";

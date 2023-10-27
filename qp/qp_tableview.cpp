@@ -808,7 +808,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
                     if ( ! index.isValid())
                     {
-                        qDebug() << "! index.isValid() index " << index <<  d->model->data( index).toString() << "  line " << line << " numY " << numY << " numX " << numX;
+                        qDebug() << "! index.isValid() index " << index <<  d->model->data( index).toString() << "  line " << line << " logicalIndex " << logicalIndex << " numX " << numX;
                         continue;
                     }
 
@@ -2629,6 +2629,9 @@ void QpTableView::columnMoved(int, int oldIndex, int newIndex)
 void QpTableView::selectRow(int row)
 {
     Q_D(QpTableView);
+
+    //horizontalHeader()->clearSelection(); //!!
+
     d->selectRow(row, true);
 }
 

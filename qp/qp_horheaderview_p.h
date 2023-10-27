@@ -327,7 +327,7 @@ public:
     int sectionCount;
 
     //int visualSectionCnt; // !!
-    int visualColumnCount; // !!
+    //int visualColumnCount; // !!
 
     bool movableSections;
     bool clickableSections;

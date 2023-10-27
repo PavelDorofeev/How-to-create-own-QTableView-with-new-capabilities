@@ -35,7 +35,7 @@ DEFINES +=MY_DEBUG
 
 include(../../my_lib/logging_system/logging_system.pri)
 
-include(views/views.pri)
+#include(views/views.pri)
 
 SOURCES += main.cpp\
     app_def.cpp \
@@ -51,3 +51,35 @@ HEADERS  += \
 
 FORMS    += \
     dialog.ui
+
+#message ( COPY_DIR = $(COPY_DIR))
+message ( PWD = $$PWD)
+message ( OUT_PWD = $$OUT_PWD)
+
+#copydata.commands = $(COPY_DIR) $$shell_path($$PWD/db)) $$OUT_PWD
+#first.depends = $(first) copydata
+#export(first.depends)
+#export(copydata.commands)
+#QMAKE_EXTRA_TARGETS += first copydata
+
+PWD_WIN = $${PWD}/db
+#CONFIG(release, debug|release): DESTDIR_WIN = $$OUT_PWD/release
+#CONFIG(debug, debug|release): DESTDIR_WIN = $$OUT_PWD/debug
+DESTDIR_WIN = $$OUT_PWD
+
+
+PWD_WIN ~= s,/,\\,g
+DESTDIR_WIN ~= s,/,\\,g
+
+copyfiles.commands = $$quote(cmd /c xcopy /S /I /Y $$PWD_WIN $$DESTDIR_WIN)
+message ( copyfiles.commands = $$copyfiles.commands)
+
+QMAKE_EXTRA_TARGETS += copyfiles
+
+PRE_TARGETDEPS += copyfiles
+
+
+
+
+
+
