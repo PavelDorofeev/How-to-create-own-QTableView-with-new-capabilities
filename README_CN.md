@@ -15,3 +15,5 @@ YouTube 上首个热追介绍视频（第一个测试版 1.0.0）：https://yout
 我们的网站上还有一个资源 https://kkmspb.ru/development/Qt/layouts-and-widgets/QTableView/developing/row-in-two-lines/
 
 哈布尔 https://habr.com/ru/articles/761530/
+
+
