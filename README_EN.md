@@ -2,7 +2,7 @@ Hello everyone, dear program developers!
 Today we present an open project: how to make your own QTableView with new features.
 We were prompted to do this by the need to display table rows with sections according to a certain pattern.
 That is, like in the picture below:
-![image](https://github.com/PavelDorofeev/How-to-create-own-QTableView-with-new-capabilities/assets/13850002/be731312-aa0b-4d14-ad42-832ab513857f)
+![image](https://github.com/PavelDorofeev/How-to-create-own-QTableView-with-new-capabilities/assets/13850002/bef1b0ad-3fed-4a04-8eed-4029994e3b68)
 
 To implement our QpTableView, we spent about 5 weeks studying and changing the QTableView code, but it was worth it because we finally had to understand how rendering works in Qt.
 (Qp is the prefix for the names of our files and classes)
