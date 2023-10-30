@@ -632,9 +632,9 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
     int num_y_cnt =  model()->rowCount()  * lines_count;
 
-    int num_x_cnt =  horizontalHeader->count_of_section() ;
+    int num_x_cnt =  horizontalHeader->model()->columnCount() ;
 
-    int sz = num_y_cnt * num_x_cnt;
+    int sz = num_y_cnt * num_x_cnt ;
 
     int lgcl_max_num = horizontalHeader->lastLogicalNum() + 1;
 

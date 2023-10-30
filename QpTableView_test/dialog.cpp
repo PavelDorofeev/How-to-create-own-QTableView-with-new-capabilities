@@ -7,7 +7,7 @@
 #include <QMessageBox>
 #include <QSqlError>
 #include <QDir>
-#include "pbltableview/combobox_delegate.h"
+#include "delegates/combobox_delegate.h"
 #include "app_def.h"
 
 

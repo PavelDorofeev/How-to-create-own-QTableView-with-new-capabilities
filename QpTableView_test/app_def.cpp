@@ -3,8 +3,6 @@
 #include <QProcessEnvironment>
 #include <QDebug>
 #include <QSettings>
-#include "db/reestr.h"
-
 
 
 const char * const appDef::IN_OS_WIN_PROGRAMMDATA_OUR_PROG_NAME_DIR     = "QpTableView_test";
@@ -28,7 +26,7 @@ QString appDef::em3                                     = "48";
 QString appDef::em4                                     = "64";
 
 
-Reestr *appDef::reestr = new Reestr( QSettings::UserScope, appDef::REESTR_ORGANIZATION_NAME, appDef::REESTR_APPLICATION_NAME ) ;
+QSettings *appDef::reestr = new QSettings( QSettings::UserScope, appDef::REESTR_ORGANIZATION_NAME, appDef::REESTR_APPLICATION_NAME ) ;
 
 
 

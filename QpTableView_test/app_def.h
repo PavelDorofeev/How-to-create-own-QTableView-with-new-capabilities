@@ -5,10 +5,10 @@
 #include <QStringList>
 #include <QVariantMap>
 #include <QVariantList>
-#include "db/reestr.h"
+#include <QSettings>
 
 
-class Reestr;
+class QSettings;
 
 class appDef
 {
@@ -24,7 +24,7 @@ public:
     static QString        mid;
     static QString        btn_back;
 
-    static Reestr         *reestr;
+    static QSettings         *reestr;
 
     static QString        em1;
     static QString        em2;
