@@ -16,26 +16,12 @@ MOC_DIR         = tmp\\moc\\$$out_dir
 RCC_DIR         = tmp\\rcc\\$$out_dir
 UI_DIR          = ui
 
-
-#INCLUDEPATH += D:\\QtSDK1.2.1\\QtSources\\4.8.1\\src\\gui\\itemviews
-#DEPENDPATH  += D:\\QtSDK1.2.1\\QtSources\\4.8.1\\src\\gui\\itemviews
-
-INCLUDEPATH += ../../my_lib
-DEPENDPATH += ../../my_lib
-
-
 INCLUDEPATH += $$PWD
 DEPENDPATH += $$PWD
-INCLUDEPATH += ../../
-DEPENDPATH += ../../
-INCLUDEPATH += views
-DEPENDPATH += views
 
 DEFINES +=MY_DEBUG
 
 include(logging_system/logging_system.pri)
-
-#include(views/views.pri)
 
 SOURCES += main.cpp\
     app_def.cpp \

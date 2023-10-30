@@ -6,9 +6,6 @@
 #include <QSqlTableModel>
 #include <QItemDelegate>
 
-
-#include "pbltableview/PblSqlRelationalTableModel.h"
-
 class ComboBoxDelegate  : public QStyledItemDelegate
 {
     Q_OBJECT
