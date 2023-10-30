@@ -10,7 +10,7 @@ HEADERS  += \
 
 SOURCES +=\
     delegates/checkbox_delegate.cpp \
-    delegates/combobox_delegate.h \
+    delegates/combobox_delegate.cpp \
     delegates/icon_styleditemdelegate.cpp \
     delegates/date_delegate.cpp \
     delegates/empty_delegate.cpp \
