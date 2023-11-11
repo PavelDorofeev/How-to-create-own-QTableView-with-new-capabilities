@@ -1,6 +1,6 @@
 /******************************************************************************
 **
-** Contact: BIT Ltd Company (p@kkmspb.ru) Individual Taxpayer Number (ITN Russia) 7826152874
+** Contact: BIT Ltd Company (p@kkmspb.ru) Individual Taxpayer Number (ITN) 7826152874
 **
 ** This file is not part of the Qt Sources.
 ** This is a little convenient fork of QTableView (Qt 4.8.1) version 4.0
@@ -23,6 +23,7 @@
 ** http://www.gnu.org/copyleft/gpl.html.
 
 *******************************************************************************/
+
 #include "qp_tableview.h"
 
 #ifndef QT_NO_TABLEVIEW
@@ -38,8 +39,8 @@
 #include <qscrollbar.h>
 #include <qabstractbutton.h>
 #include <QStyledItemDelegate>
-//#include "private/QStyledItemDelegatePrivate>
 #include <private/qp_private/qp_tableview_p.h>
+#include <private/qabstractitemview_p.h>
 #ifndef QT_NO_ACCESSIBILITY
 #include <qaccessible.h>
 #endif
@@ -51,17 +52,17 @@ QT_BEGIN_NAMESPACE
 const int QpTableView::defaultRowHeight = 60;
 
 const bool QpTableView::debug = false;
-const bool QpTableView::debug_paint = false;
+const bool QpTableView::debug_paint = true;
 const bool QpTableView::debug_init = false;
 const bool QpTableView::debug_event = false;
-const bool QpTableView::debug_paint_region = false;
-const bool QpTableView::debug_paint_row_col = false;
+const bool QpTableView::debug_paint_region = true;
+const bool QpTableView::debug_paint_row_col = true;
 const bool QpTableView::debug_paint_border = false;
-const bool QpTableView::debug_selection = false;
+const bool QpTableView::debug_selection = true;
 const bool QpTableView::debug_scroll = false;
 const bool QpTableViewPrivate::debug = false;
-const bool QpTableViewPrivate::debug_init = false;
-const bool QpTableViewPrivate::debug_selection = false;
+const bool QpTableViewPrivate::debug_init = true;
+const bool QpTableViewPrivate::debug_selection = true;
 
 const int QpTableView::correct_width_minus_1 = -1;
 const int QpTableView::correct_height_minus_1 = -1;
@@ -247,13 +248,14 @@ void QpTableViewPrivate::drawCell(QPainter *painter, const QStyleOptionViewItemV
 
     if (selectionModel && selectionModel->isSelected(index))
     {
+
         opt.state |= QStyle::State_Selected;
     }
 
-    if (index == hover)
-    {
-        opt.state |= QStyle::State_MouseOver;
-    }
+//    if (index == hover)
+//    {
+//        opt.state |= QStyle::State_MouseOver;
+//    }
 
     if (option.state & QStyle::State_Enabled)
     {
@@ -271,49 +273,6 @@ void QpTableViewPrivate::drawCell(QPainter *painter, const QStyleOptionViewItemV
         opt.palette.setCurrentColorGroup(cg);
     }
 
-
-    // ---------------------------------------------------------
-    //  new styles algorithm
-    // ---------------------------------------------------------
-
-    bool painterChanged = false;
-
-    int col = index.column();
-
-    if( stls.contains( col ) )
-    {
-        painter->save();
-
-        painterChanged = true;
-
-
-        QFont fnt = painter->font();
-
-        if( index.column() ==5 && index.row() ==0 )
-        {
-//            qDebug() << "1 drawCell opt.font " << opt.font;
-//            qDebug() << "1 drawCell painter->font() " << painter->font();
-//            qDebug() << "1 drawCell stls[ col ].fnt " << stls.value( col ).fnt;
-        }
-
-        QFontMetrics fntMtr = painter->fontMetrics();
-
-        correctStyle( stls[ col ], fnt , opt);
-
-        painter->setFont( fnt ); // this is set font size
-
-        if( opt.font != fnt )
-            opt.font = fnt; // here set font size ()
-
-        if( index.column() ==5 && index.row() ==0 )
-        {
-//            qDebug() << "2 drawCell opt.font " << opt.font;
-//            qDebug() << "2 drawCell painter->font() " << painter->font();
-//            qDebug() << "2 drawCell stls[ col ].fnt " << stls.value( col ).fnt;
-        }
-
-    }
-
     if (index == q->currentIndex())
     {
         const bool focus = (q->hasFocus() || viewport->hasFocus()) && q->currentIndex().isValid();
@@ -322,11 +281,16 @@ void QpTableViewPrivate::drawCell(QPainter *painter, const QStyleOptionViewItemV
             opt.state |= QStyle::State_HasFocus;
     }
 
-    q->itemDelegate(index)->paint( painter, opt, index ); // this paints text
 
-    if ( painterChanged )
-        painter->restore();
+    if ( debug_selection ) qDebug() << "QpTableViewPrivate::drawCell row :"<< index.row()<<":" <<index.column() << " opt " << opt ;
 
+    q->style()->drawPrimitive(QStyle::PE_PanelItemViewRow, &opt, painter, q); // what is this?
+
+    if ( debug_selection )qDebug() <<"                    QpTableViewPrivate::drawCell  drawControl  opt.text:"<< opt.text << " index " << index;
+    if ( debug_selection )qDebug() <<"                        opt.state " << opt.state;
+    //qDebug() <<"                        widget " << widget;
+
+    q->itemDelegate(index)->paint(painter, opt, index); // this paints text
 }
 
 
@@ -367,35 +331,35 @@ QpTableView::~QpTableView()
 }
 
 
-void QpTableView::setModel (QAbstractItemModel *model , const Qp_SECTION_TMPL & matrix)
+void QpTableView::setModel (QAbstractItemModel *mdl , const Qp_SECTION_TMPL & matrix)
 {
     Q_D(QpTableView);
 
 
-    if (model == d->model)
+    if (mdl == model())
         return;
 
 
     //let's disconnect from the old model
-    if (d->model && d->model != QAbstractItemModelPrivate::staticEmptyModel())
+    if (model() && model() != QAbstractItemModelPrivate::staticEmptyModel())
     {
-        disconnect(d->model, SIGNAL(rowsInserted(QModelIndex,int,int)),
+        disconnect(model(), SIGNAL(rowsInserted(QModelIndex,int,int)),
                    this, SLOT(slot_rowsInserted(QModelIndex,int,int)));
 
-        //                disconnect(d->model, SIGNAL(rowsInserted(QModelIndex,int,int)),
+        //                disconnect(model(), SIGNAL(rowsInserted(QModelIndex,int,int)),
         //                           this, SLOT(_q_updateSpanInsertedRows(QModelIndex,int,int)));
-        //                disconnect(d->model, SIGNAL(columnsInserted(QModelIndex,int,int)),
+        //                disconnect(model(), SIGNAL(columnsInserted(QModelIndex,int,int)),
         //                           this, SLOT(_q_updateSpanInsertedColumns(QModelIndex,int,int)));
-        //                disconnect(d->model, SIGNAL(rowsRemoved(QModelIndex,int,int)),
+        //                disconnect(model(), SIGNAL(rowsRemoved(QModelIndex,int,int)),
         //                           this, SLOT(_q_updateSpanRemovedRows(QModelIndex,int,int)));
-        //                disconnect(d->model, SIGNAL(columnsRemoved(QModelIndex,int,int)),
+        //                disconnect(model(), SIGNAL(columnsRemoved(QModelIndex,int,int)),
         //                           this, SLOT(_q_updateSpanRemovedColumns(QModelIndex,int,int)));
     }
-    if (model)
+    if (mdl)
     { //and connect to the new one
         qDebug() << "QpTableView::setModel";
 
-        connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)),
+        connect(mdl, SIGNAL(rowsInserted(QModelIndex,int,int)),
                 this, SLOT(slot_rowsInserted(QModelIndex,int,int)));
 
         //                connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)),
@@ -408,12 +372,12 @@ void QpTableView::setModel (QAbstractItemModel *model , const Qp_SECTION_TMPL & 
         //                        this, SLOT(_q_updateSpanRemovedColumns(QModelIndex,int,int)));
     }
 
-    d->horizontalHeader->setModel( model , matrix); // !!
+    d->horizontalHeader->setModel( mdl , matrix); // !!
 
 
-    d->verticalHeader->setModel( model );
+    d->verticalHeader->setModel( mdl );
 
-    QAbstractItemView::setModel(model);
+    QAbstractItemView::setModel(mdl);
 }
 
 /*!
@@ -423,7 +387,7 @@ void QpTableView::setRootIndex(const QModelIndex &index)
 {
     Q_D(QpTableView);
 
-    if (index == d->root)
+    if (index == rootIndex())
     {
         viewport()->update();
         return;
@@ -441,22 +405,16 @@ void QpTableView::setRootIndex(const QModelIndex &index)
 void QpTableView::doItemsLayout()
 {
     Q_D(QpTableView);
-
     QAbstractItemView::doItemsLayout();
 
     if( debug_scroll) qDebug() << "QpTableView::doItemsLayout() verticalScrollBar()->value()" << verticalScrollBar()->value();
 
     if (verticalScrollMode() == QAbstractItemView::ScrollPerItem)
-
         d->verticalHeader->setOffsetToSectionPosition(verticalScrollBar()->value());
-
     else
-
         d->verticalHeader->setOffset(verticalScrollBar()->value());
 
-
     if (!d->verticalHeader->updatesEnabled())
-
         d->verticalHeader->setUpdatesEnabled(true);
 }
 
@@ -509,7 +467,7 @@ void QpTableView::setHorizontalHeader(QpHorHeaderView *header)
 
     if ( !d->horizontalHeader->model())
     {
-        d->horizontalHeader->setModel( d->model , horizontalHeader()->get_matrix());
+        d->horizontalHeader->setModel( model() , horizontalHeader()->get_matrix());
 
         if (d->selectionModel)
             d->horizontalHeader->setSelectionModel(d->selectionModel);
@@ -556,7 +514,7 @@ void QpTableView::setVerticalHeader(QpVertHeaderView *header)
 
     if (!d->verticalHeader->model())
     {
-        d->verticalHeader->setModel( d->model ) ;
+        d->verticalHeader->setModel(model());
 
         if (d->selectionModel)
             d->verticalHeader->setSelectionModel(d->selectionModel);
@@ -590,7 +548,7 @@ void QpTableView::scrollContentsBy(int dx, int dy)
 
     if( debug_scroll ) qDebug() << "QpTableView::scrollContentsBy dx " << dx << " dy " <<dy;
 
-    d->delayedAutoScroll.stop(); // auto scroll was canceled by the user scrolling
+    //!!d->delayedAutoScroll.stop(); // auto scroll was canceled by the user scrolling
 
     //dx = isRightToLeft() ? -dx : dx;
 
@@ -656,24 +614,27 @@ void QpTableView::scrollContentsBy(int dx, int dy)
         }
     }
 
-    d->scrollContentsBy(dx, dy);
+    d->scrollContentsBy(dx, dy); // inline
 
     if (d->showGrid)
     {
         //we need to update the first line of the previous top item in the view
         //because it has the grid drawn if the header is invisible.
         //It is strictly related to what's done at then end of the paintEvent
-        if (dy > 0 && d->horizontalHeader->isHidden() && d->verticalScrollMode == ScrollPerItem)
+        if (dy > 0 && d->horizontalHeader->isHidden() && verticalScrollMode() == ScrollPerItem)
         {
-            d->viewport->update(0, dy, d->viewport->width(), dy);
+            viewport()->update(0, dy, viewport()->width(), dy);
         }
-        if (dx > 0 && d->verticalHeader->isHidden() && d->horizontalScrollMode == ScrollPerItem)
+        if (dx > 0 && d->verticalHeader->isHidden() && horizontalScrollMode() == ScrollPerItem)
         {
-            d->viewport->update(dx, 0, dx, d->viewport->height());
+            viewport()->update(dx, 0, dx, viewport()->height());
         }
     }
 }
 
+/*!
+  \reimp
+*/
 QStyleOptionViewItem QpTableView::viewOptions() const
 {
     QStyleOptionViewItem option = QAbstractItemView::viewOptions();
@@ -683,6 +644,9 @@ QStyleOptionViewItem QpTableView::viewOptions() const
     return option;
 }
 
+/*!
+    Paints the table on receipt of the given paint event \a event.
+*/
 void QpTableView::paintEvent(QPaintEvent *event)
 {
     Q_D(QpTableView);
@@ -690,13 +654,12 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
     if( debug ) qDebug()<<"\n---------------------------------------------------------------------------------------------\n                QpTableView::paintEvent \n---------------------------------------------------------------------------------------------\n";
 
-    QStyleOptionViewItemV4 option = d->viewOptionsV4();
+    QStyleOptionViewItemV4 option = viewOptions();// d->viewOptionsV4();
 
-    QPainter painter( d->viewport );
-
-    const QPoint offset = d->scrollDelayOffset;
+    const QPoint offset = dirtyRegionOffset();// d->scrollDelayOffset;
 
     const bool showGrid = d->showGrid;
+
 
     const int gridSize = showGrid ? 1 : 0;
 
@@ -713,12 +676,13 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
     const QpHorHeaderView *horizontalHeader = d->horizontalHeader;
 
-    const bool alternate = d->alternatingColors;
+    const bool alternate = alternatingRowColors();//d->alternatingColors;
 
     const bool rightToLeft = isRightToLeft();
 
+    QPainter painter(viewport());
 
-    if (horizontalHeader->count() == 0 || verticalHeader->count() == 0 || ! d->itemDelegate)
+    if (horizontalHeader->count() == 0 || verticalHeader->count() == 0 || ! d->delegateForIndex(QModelIndex()))// !!d->itemDelegate) //??
         return;
 
     uint x = horizontalHeader->length();
@@ -755,7 +719,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
     int lastVisualRow = verticalHeader->visualIndexAt(verticalHeader->viewport()->height() );
 
     if (lastVisualRow == -1)
-        lastVisualRow = d->model->rowCount(d->root) - 1;
+        lastVisualRow = model()->rowCount(rootIndex()) - 1;
 
     // ------------------------------------------------------------------------
 
@@ -785,7 +749,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
     QBitArray drawn( sz );
 
-     if ( debug_paint ) qDebug() << "QBitArray drawn " << drawn.size() << " num_y_cnt:"<<num_y_cnt << " num_x_cnt:"<<num_x_cnt;
+    qDebug() << "QBitArray drawn " << drawn.size() << " num_y_cnt:"<<num_y_cnt << " num_x_cnt:"<<num_x_cnt;
 
     //drawn.resize( );
 
@@ -855,7 +819,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
         //----------------------------------------------------
 
         //QPen old = painter.pen();
-        QPainter painterGrid (d->viewport);
+        QPainter painterGrid (viewport());
 
         painterGrid.setPen(gridPen);
 
@@ -929,7 +893,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
                         if( rowSel )
                         {
-                             if ( debug_paint ) qDebug() <<"        rowSel " << rowSel << " row "<< row;
+                            qDebug() <<"        rowSel " << rowSel << " row "<< row;
                         }
 
                         if( debug_paint_row_col ) qDebug() << "               numX:"  << numX << "  label : "<< var.toString().toUtf8();
@@ -970,7 +934,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
                         if ( ! rect.isValid() )
                         {
-                             qDebug() << "wrong rect for logicalIndex:"<<logicalIndex;
+                            qDebug() << "wrong rect for logicalIndex:"<<logicalIndex;
                             continue;
                         }
 
@@ -983,12 +947,12 @@ void QpTableView::paintEvent(QPaintEvent *event)
                         rect.setRight(  x2 - gridSize + correct_width_minus_1 );
 
 
-                        const QModelIndex index = d->model->index( row, logicalIndex , d->root);
+                        const QModelIndex index = model()->index( row, logicalIndex , rootIndex());
 
 
                         if ( ! index.isValid())
                         {
-                            qDebug() << "! index.isValid() index " << index <<  d->model->data( index).toString() << "  line " << line << " logicalIndex " << logicalIndex << " numX " << numX;
+                            qDebug() << "! index.isValid() index " << index <<  model()->data( index).toString() << "  line " << line << " logicalIndex " << logicalIndex << " numX " << numX;
                             continue;
                         }
 
@@ -1006,7 +970,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
                         }
 
                         if( debug_paint_row_col )
-                            qDebug() << "                   option.rect " << option.rect <<  d->model->data( index).toString();
+                            qDebug() << "                   option.rect " << option.rect <<  model()->data( index).toString();
 
 
                         //-------------------------------------------------------------
@@ -1131,7 +1095,7 @@ QModelIndex QpTableView::indexAt(const QPoint &pos) const
     //    this is called from user interactive actions only
     // ------------------------------------------------------
 
-    d->executePostedLayout();
+    d->executePostedLayout(); // !!
 
     int row = rowAt( pos.y()); // ok
 
@@ -1148,7 +1112,7 @@ QModelIndex QpTableView::indexAt(const QPoint &pos) const
 
     if (row >= 0 && col >= 0)
     {
-        QModelIndex idx = d->model->index(row, col, d->root);
+        QModelIndex idx = model()->index(row, col, rootIndex());
 
         if( debug_selection ) qDebug() << "   TableView2::indexAt pos "<<pos << " idx " << idx;
 
@@ -1202,12 +1166,12 @@ QModelIndex QpTableView::moveCursor(CursorAction cursorAction, Qt::KeyboardModif
 
     qDebug() << "QpTableView::moveCursor cursorAction: " <<  cursorAction;
 
-    int bottom = d->model->rowCount(d->root) - 1;
+    int bottom = model()->rowCount(rootIndex()) - 1;
     // make sure that bottom is the bottommost *visible* row
     while (bottom >= 0 && isRowHidden(d->logicalRow(bottom)))
         --bottom;
 
-    int right = d->model->columnCount(d->root) - 1;
+    int right = model()->columnCount(rootIndex()) - 1;
 
     while (right >= 0 && isColumnHidden(d->logicalColumn(right)))
         --right;
@@ -1230,7 +1194,7 @@ QModelIndex QpTableView::moveCursor(CursorAction cursorAction, Qt::KeyboardModif
 
         d->visualCursor = QPoint(column, row);
 
-        return d->model->index(d->logicalRow(row), d->logicalColumn(column), d->root);
+        return model()->index(d->logicalRow(row), d->logicalColumn(column), rootIndex());
     }
 
     // Update visual cursor if current index has changed.
@@ -1448,25 +1412,25 @@ QModelIndex QpTableView::moveCursor(CursorAction cursorAction, Qt::KeyboardModif
             visualRow = bottom;
         break;
     case MovePageUp: {
-        int newRow = rowAt(visualRect(current).top() - d->viewport->height());
+        int newRow = rowAt(visualRect(current).top() - viewport()->height());
         if (newRow == -1)
             newRow = d->logicalRow(0);
-        return d->model->index(newRow, current.column(), d->root);
+        return model()->index(newRow, current.column(), rootIndex());
     }
     case MovePageDown: {
-        int newRow = rowAt(visualRect(current).bottom() + d->viewport->height());
+        int newRow = rowAt(visualRect(current).bottom() + viewport()->height());
         if (newRow == -1)
             newRow = d->logicalRow(bottom);
-        return d->model->index(newRow, current.column(), d->root);
+        return model()->index(newRow, current.column(), rootIndex());
     }}
 
     d->visualCursor = QPoint(visualColumn, visualRow);
     int logicalRow = d->logicalRow(visualRow);
     int logicalColumn = d->logicalColumn(visualColumn);
-    if (!d->model->hasIndex(logicalRow, logicalColumn, d->root))
+    if (!model()->hasIndex(logicalRow, logicalColumn, rootIndex()))
         return QModelIndex();
 
-    QModelIndex result = d->model->index(logicalRow, logicalColumn, d->root);
+    QModelIndex result = model()->index(logicalRow, logicalColumn, rootIndex());
     if (!d->isRowHidden(logicalRow) && !d->isColumnHidden(logicalColumn) && d->isIndexEnabled(result))
         return result;
 
@@ -1517,7 +1481,7 @@ void QpTableView::setSelection(const QRect &rect, QItemSelectionModel::Selection
             for (int vertical = top; vertical <= bottom; ++vertical)
             {
                 int row = d->logicalRow(vertical);
-                QModelIndex index = d->model->index(row, column, d->root);
+                QModelIndex index = model()->index(row, column, rootIndex());
                 selection.append(QItemSelectionRange(index));
             }
         }
@@ -1531,8 +1495,8 @@ void QpTableView::setSelection(const QRect &rect, QItemSelectionModel::Selection
         for (int visual = left; visual <= right; ++visual)
         {
             int column = d->logicalColumn(visual);
-            QModelIndex topLeft = d->model->index(tl.row(), column, d->root);
-            QModelIndex bottomRight = d->model->index(br.row(), column, d->root);
+            QModelIndex topLeft = model()->index(tl.row(), column, rootIndex());
+            QModelIndex bottomRight = model()->index(br.row(), column, rootIndex());
             selection.append(QItemSelectionRange(topLeft, bottomRight));
         }
     }
@@ -1544,15 +1508,15 @@ void QpTableView::setSelection(const QRect &rect, QItemSelectionModel::Selection
         for (int visual = top; visual <= bottom; ++visual)
         {
             int row = d->logicalRow(visual);
-            QModelIndex topLeft = d->model->index(row, tl.column(), d->root);
-            QModelIndex bottomRight = d->model->index(row, br.column(), d->root);
+            QModelIndex topLeft = model()->index(row, tl.column(), rootIndex());
+            QModelIndex bottomRight = model()->index(row, br.column(), rootIndex());
             selection.append(QItemSelectionRange(topLeft, bottomRight));
         }
     }
     else
     { // nothing moved
 
-        d->setHoverIndex( QModelIndex()); // !!?? lifehack
+        //d->setHoverIndex( QModelIndex()); // !!?? lifehack
 
         QItemSelectionRange range(tl, br);
 
@@ -1586,7 +1550,7 @@ QRegion QpTableView::visualRegionForSelection(const QItemSelection &selection) c
 
     QRegion selectionRegion;
 
-    const QRect &viewportRect = d->viewport->rect();
+    const QRect &viewportRect = viewport()->rect();
     bool verticalMoved = verticalHeader()->sectionsMoved();
     bool horizontalMoved = horizontalHeader()->sectionsMoved();
 
@@ -1595,12 +1559,12 @@ QRegion QpTableView::visualRegionForSelection(const QItemSelection &selection) c
         for (int i = 0; i < selection.count(); ++i)
         {
             QItemSelectionRange range = selection.at(i);
-            if (range.parent() != d->root || !range.isValid())
+            if (range.parent() != rootIndex() || !range.isValid())
                 continue;
             for (int r = range.top(); r <= range.bottom(); ++r)
                 for (int c = range.left(); c <= range.right(); ++c)
                 {
-                    const QRect &rangeRect = visualRect(d->model->index(r, c, d->root));
+                    const QRect &rangeRect = visualRect(model()->index(r, c, rootIndex()));
                     if (viewportRect.intersects(rangeRect))
                         selectionRegion += rangeRect;
                 }
@@ -1611,7 +1575,7 @@ QRegion QpTableView::visualRegionForSelection(const QItemSelection &selection) c
         for (int i = 0; i < selection.count(); ++i)
         {
             QItemSelectionRange range = selection.at(i);
-            if (range.parent() != d->root || !range.isValid())
+            if (range.parent() != rootIndex() || !range.isValid())
                 continue;
             int top = rowViewportPosition(range.top());
             int bottom = rowViewportPosition(range.bottom()) + rowHeight(range.bottom());
@@ -1631,7 +1595,7 @@ QRegion QpTableView::visualRegionForSelection(const QItemSelection &selection) c
         {
             QItemSelectionRange range = selection.at(i);
 
-            if (range.parent() != d->root || !range.isValid())
+            if (range.parent() != rootIndex() || !range.isValid())
                 continue;
 
             int left = columnViewportPosition(range.left());
@@ -1661,7 +1625,7 @@ QRegion QpTableView::visualRegionForSelection(const QItemSelection &selection) c
 
             if( debug_selection ) qDebug()<< i << "    selection  range: " <<range;
 
-            if (range.parent() != d->root || !range.isValid())
+            if (range.parent() != rootIndex() || !range.isValid())
                 continue;
 
             d->trimHiddenSelections(&range);
@@ -1748,7 +1712,7 @@ QModelIndexList QpTableView::selectedIndexes() const
     {
         QModelIndex index = modelSelected.at(i);
 
-        if (!isIndexHidden(index) && index.parent() == d->root)
+        if (!isIndexHidden(index) && index.parent() == rootIndex())
             viewSelected.append(index);
     }
 
@@ -1784,7 +1748,7 @@ void QpTableView::columnCountChanged(int, int)
         d->horizontalHeader->setOffsetToSectionPosition(horizontalScrollBar()->value());
     else
         d->horizontalHeader->setOffset(horizontalScrollBar()->value());
-    d->viewport->update();
+    viewport()->update();
 }
 
 /*!
@@ -1807,47 +1771,43 @@ void QpTableView::updateGeometries()
 
     int width = 0;
 
-    if ( !d->verticalHeader->isHidden())
+    if (!d->verticalHeader->isHidden())
     {
         width = qMax(d->verticalHeader->minimumWidth(), d->verticalHeader->sizeHint().width());
 
         width = qMin(width, d->verticalHeader->maximumWidth());
     }
 
-    int height = d->horizontalHeader->row_height();
+    int height = 0;
 
-    if (! d->horizontalHeader->isHidden())
+    if (!d->horizontalHeader->isHidden())
     {
-        height = qMax( d->horizontalHeader->minimumHeight(), height );
+        height = qMax( d->horizontalHeader->minimumHeight(), d->horizontalHeader->sizeHint().height() );
 
         height = qMin( height, d->horizontalHeader->maximumHeight() );
-
-        qDebug() << " setViewportMargins width:" << width << " height:" << height << " maximumHeight(): " << d->horizontalHeader->maximumHeight() << " minimumHeight():" <<d->horizontalHeader->minimumHeight();
     }
 
-    setViewportMargins( width, height, 0, 0);
-
+    setViewportMargins(width, height, 0, 0);
 
     // update headers
 
-    QRect vg = d->viewport->geometry();
+    QRect vg = viewport()->geometry();
 
     int verticalLeft = vg.left() - width;
 
-    d->verticalHeader->setGeometry( verticalLeft, vg.top(), width, vg.height());
+    d->verticalHeader->setGeometry(verticalLeft, vg.top(), width, vg.height());
 
     if (d->verticalHeader->isHidden())
         QMetaObject::invokeMethod(d->verticalHeader, "updateGeometries");
 
     int horizontalTop = vg.top() - height;
 
-    d->horizontalHeader->setGeometry( vg.left(), horizontalTop, vg.width(), height);
+    d->horizontalHeader->setGeometry(vg.left(), horizontalTop, vg.width(), height);
 
     if (d->horizontalHeader->isHidden())
         QMetaObject::invokeMethod(d->horizontalHeader, "updateGeometries");
 
     // update cornerWidget
-
     if (d->horizontalHeader->isHidden() || d->verticalHeader->isHidden())
     {
         d->cornerWidget->setHidden(true);
@@ -1861,7 +1821,7 @@ void QpTableView::updateGeometries()
     // update scroll bars
 
     // ### move this block into the if
-    QSize vsize = d->viewport->size();
+    QSize vsize = viewport()->size();
     QSize max = maximumViewportSize();
     uint horizontalLength = d->horizontalHeader->length();
     uint verticalLength = d->verticalHeader->length();
@@ -1896,10 +1856,22 @@ void QpTableView::updateGeometries()
 
     int xNumsInViewport = 0;
 
+    //if( debug ) qDebug() << "QpTableView::updateGeometries";
+
     int width_ = 0;
 
     for ( int xNum = first_xNum; xNum <= last_xNum; xNum++)
     {
+        //        int logical = d->horizontalHeader->logicalIndex( xNum );
+
+        //        if( logical == -1)
+        //            continue;
+
+        //        if ( d->horizontalHeader->isSectionHidden( logical ) )
+        //            continue;
+
+        //width += d->horizontalHeader->sectionSize( logical );
+
         int ww = d->horizontalHeader->xNum_size( xNum );
 
         width_ += ww;
@@ -1991,6 +1963,20 @@ void QpTableView::updateGeometries()
     QAbstractItemView::updateGeometries();
 }
 
+/*!
+                    Returns the size hint for the given \a row's height or -1 if there
+                    is no model.
+
+                    If you need to set the height of a given row to a fixed value, call
+                    QpHorHeaderView::resizeSection() on the table's vertical header.
+
+                    If you reimplement this function in a subclass, note that the value you
+                    return is only used when resizeRowToContents() is called. In that case,
+                    if a larger row height is required by either the vertical header or
+                    the item delegate, that width will be used instead.
+
+                    \sa QWidget::sizeHint, verticalHeader()
+                */
 int QpTableView::sizeHintForRow(int row) const
 {
     Q_D(const QpTableView);
@@ -2004,6 +1990,21 @@ int QpTableView::sizeHintForRow(int row) const
 
 }
 
+/*!
+                    Returns the size hint for the given \a column's width or -1 if
+                    there is no model.
+
+                    If you need to set the width of a given column to a fixed value, call
+                    QpHorHeaderView::resizeSection() on the table's horizontal header.
+
+                    If you reimplement this function in a subclass, note that the value you
+                    return will be used when resizeColumnToContents() or
+                    QpHorHeaderView::resizeSections() is called. If a larger column width is
+                    required by either the horizontal header or the item delegate, the larger
+                    width will be used instead.
+
+                    \sa QWidget::sizeHint, horizontalHeader()
+                */
 int QpTableView::sizeHintForColumn(int column) const
 {
     Q_D(const QpTableView);
@@ -2017,12 +2018,12 @@ int QpTableView::sizeHintForColumn(int column) const
 
     int top = qMax(0, d->verticalHeader->visualIndexAt(0));
 
-    int bottom = d->verticalHeader->visualIndexAt(d->viewport->height());
+    int bottom = d->verticalHeader->visualIndexAt(viewport()->height());
 
     if (!isVisible() || bottom == -1) // the table don't have enough rows to fill the viewport
-        bottom = d->model->rowCount(d->root) - 1;
+        bottom = model()->rowCount(rootIndex()) - 1;
 
-    QStyleOptionViewItemV4 option = d->viewOptionsV4();
+    QStyleOptionViewItemV4 option = viewOptions();//d->viewOptionsV4();
 
     int hint = 0;
     QModelIndex index;
@@ -2031,7 +2032,7 @@ int QpTableView::sizeHintForColumn(int column) const
         int logicalRow = d->verticalHeader->logicalIndex(row);
         if (d->verticalHeader->isSectionHidden(logicalRow))
             continue;
-        index = d->model->index(logicalRow, column, d->root);
+        index = model()->index(logicalRow, column, rootIndex());
 
         QWidget *editor = d->editorForIndex(index).widget.data();
         if (editor && d->persistent.contains(editor)) {
@@ -2041,7 +2042,7 @@ int QpTableView::sizeHintForColumn(int column) const
             hint = qBound(min, hint, max);
         }
 
-        hint = qMax(hint, itemDelegate(index)->sizeHint(option, index).width());
+        hint = qMax(hint, itemDelegate( index )->sizeHint(option, index).width());
     }
 
     hint = d->showGrid ? hint + 1 : hint;
@@ -2087,7 +2088,7 @@ int QpTableView::rowAt(int y) const
 
 void QpTableView::setLineHeightInRow(int line, int height) const
 {
-    Q_D(const QpTableView);
+   Q_D(const QpTableView);
 
     horizontalHeader()->setLineHeightInRow( line , height);
 }
@@ -2163,9 +2164,6 @@ int QpTableView::columnAt( int x , int y) const
     //int gggg= viewport()->yoffset;
 
     int rowH = d->horizontalHeader->row_height();
-
-    if( rowH == qp::UNKNOWN_VALUE )
-        return rowH;
 
     int incomplete_first_visible_row = viewport_top %  rowH;
 
@@ -2304,7 +2302,7 @@ void QpTableView::setShowBetweenRowBorder(bool show)
     if ( d->showBetweenRowsBorder != show)
     {
         d->showBetweenRowsBorder = show;
-        d->viewport->update();
+        viewport()->update();
     }
 
     //horizontalHeader()->setGridWidth( 1 );
@@ -2318,7 +2316,7 @@ void QpTableView::setShowGrid(bool show)
     if ( d->showGrid != show)
     {
         d->showGrid = show;
-        d->viewport->update();
+        viewport()->update();
     }
 
     horizontalHeader()->setGridWidth( 1 );
@@ -2345,7 +2343,7 @@ void QpTableView::setRowGridStyle(Qt::PenStyle style)
     if (d->gridStyle != style)
     {
         d->gridStyle = style;
-        d->viewport->update();
+        viewport()->update();
     }
 }
 
@@ -2356,7 +2354,7 @@ void QpTableView::setGridStyle(Qt::PenStyle style)
     if (d->gridStyle != style)
     {
         d->gridStyle = style;
-        d->viewport->update();
+        viewport()->update();
     }
 }
 
@@ -2404,7 +2402,7 @@ QRect QpTableView::visualRect(const QModelIndex &index) const
     Q_D(const QpTableView);
 
     if ( ! d->isIndexValid(index)
-         || index.parent() != d->root
+         || index.parent() != rootIndex()
          || isIndexHidden(index) )
 
         return QRect();
@@ -2432,12 +2430,6 @@ QRect QpTableView::visualRect(const QModelIndex &index) const
     return rect;
 }
 
-/*!
-                    \internal
-
-                    Makes sure that the given \a item is visible in the table view,
-                    scrolling if necessary.
-                */
 void QpTableView::scrollTo(const QModelIndex &index, ScrollHint hint)
 {
     Q_D(QpTableView);
@@ -2445,23 +2437,21 @@ void QpTableView::scrollTo(const QModelIndex &index, ScrollHint hint)
     if( debug_scroll ) qDebug() << "QpTableView::scrollTo " << index << " ScrollHint hint " << hint;
 
     // check if we really need to do anything
+
     if (!d->isIndexValid(index)
-            || (d->model->parent(index) != d->root)
+            || (model()->parent(index) != rootIndex())
             || isRowHidden(index.row()) || isColumnHidden(index.column()))
         return;
 
     // Adjust horizontal position
 
-    int viewportWidth = d->viewport->width();
+    int viewportWidth = viewport()->width();
     int horizontalOffset = d->horizontalHeader->offset();
 
     int horizontalPosition = d->horizontalHeader->sectionPosition2(index.column()).x(); //!!
 
     int horizontalIndex = d->horizontalHeader->visualIndex(index.column());
 
-    //    int cellWidth = d->hasSpans()
-    //            ? d->columnSpanWidth(index.column(), span.width())
-    //            : d->horizontalHeader->sectionSize(index.column());
     int cellWidth =  d->horizontalHeader->sectionSize(index.column());
 
     if (horizontalScrollMode() == QAbstractItemView::ScrollPerItem)
@@ -2518,7 +2508,7 @@ void QpTableView::scrollTo(const QModelIndex &index, ScrollHint hint)
 
     // Adjust vertical position
 
-    int viewportHeight = d->viewport->height();
+    int viewportHeight = viewport()->height();
     int verticalOffset = d->verticalHeader->offset();
     int verticalPosition = d->verticalHeader->sectionPosition(index.row());
     int verticalIndex = d->verticalHeader->visualIndex(index.row());
@@ -2663,8 +2653,8 @@ void QpTableView::timerEvent(QTimerEvent *event)
         d->columnResizeTimerID = 0;
 
         QRect rect;
-        int viewportHeight = d->viewport->height();
-        int viewportWidth = d->viewport->width();
+        int viewportHeight = viewport()->height();
+        int viewportWidth = viewport()->width();
 
 
         for (int i = d->columnsToUpdate.size()-1; i >= 0; --i)
@@ -2677,7 +2667,7 @@ void QpTableView::timerEvent(QTimerEvent *event)
         }
 
 
-        d->viewport->update(rect.normalized());
+        viewport()->update(rect.normalized());
         d->columnsToUpdate.clear();
     }
 
@@ -2689,8 +2679,8 @@ void QpTableView::timerEvent(QTimerEvent *event)
         killTimer(d->rowResizeTimerID);
         d->rowResizeTimerID = 0;
 
-        int viewportHeight = d->viewport->height();
-        int viewportWidth = d->viewport->width();
+        int viewportHeight = viewport()->height();
+        int viewportWidth = viewport()->width();
         int top;
 
         top = viewportHeight;
@@ -2700,7 +2690,7 @@ void QpTableView::timerEvent(QTimerEvent *event)
             top = qMin(top, y);
         }
 
-        d->viewport->update(QRect(0, top, viewportWidth, viewportHeight - top));
+        viewport()->update(QRect(0, top, viewportWidth, viewportHeight - top));
 
         d->rowsToUpdate.clear();
     }
@@ -2710,7 +2700,6 @@ void QpTableView::timerEvent(QTimerEvent *event)
         if( debug_selection | debug_event ) qDebug() << "QpTableView::timerEvent delayed_Repaint_tmr";
 
         killTimer( delayed_Repaint_tmr);
-
         delayed_Repaint_tmr = 0;
 
         d->horizontalHeader->viewport()->updateGeometry();
@@ -2719,14 +2708,9 @@ void QpTableView::timerEvent(QTimerEvent *event)
         d->verticalHeader->viewport()->updateGeometry();
         d->verticalHeader->viewport()->update();
 
-        qDebug() << "offset:"<< verticalHeader()->offset() ;
-
-        //verticalHeader()->setOffset( 100 );
-
-        //qDebug() << "offset:"<< verticalHeader()->offset() ;
-
-        updateGeometries();
-        update();
+        //clearSelection();
+        //updateGeometries();
+        viewport()->update();
 
     }
 
@@ -2748,12 +2732,6 @@ void QpTableView::rowMoved(int, int oldIndex, int newIndex)
     int logicalOldIndex = d->verticalHeader->logicalIndex(oldIndex);
     int logicalNewIndex = d->verticalHeader->logicalIndex(newIndex);
 
-    //    if (d->hasSpans())
-    //    {
-    //        d->viewport->update();
-    //    }
-    //    else
-    //    {
     int oldTop = rowViewportPosition(logicalOldIndex);
     int newTop = rowViewportPosition(logicalNewIndex);
     int oldBottom = oldTop + rowHeight(logicalOldIndex);
@@ -2761,8 +2739,7 @@ void QpTableView::rowMoved(int, int oldIndex, int newIndex)
     int top = qMin(oldTop, newTop);
     int bottom = qMax(oldBottom, newBottom);
     int height = bottom - top;
-    d->viewport->update(0, top, d->viewport->width(), height);
-    //    }
+    viewport()->update(0, top, viewport()->width(), height); //!!
 }
 
 /*!
@@ -2787,8 +2764,7 @@ void QpTableView::columnMoved(int, int oldIndex, int newIndex)
     int left = qMin(oldLeft, newLeft);
     int right = qMax(oldRight, newRight);
     int width = right - left;
-
-    d->viewport->update(left, 0, width, d->viewport->height());
+    viewport()->update(left, 0, width, viewport()->height()); //!!
 }
 
 void QpTableView::selectRow(int row)
@@ -2796,7 +2772,6 @@ void QpTableView::selectRow(int row)
     Q_D(QpTableView);
 
     //horizontalHeader()->clearSelection(); //!!
-
     d->selectRow(row, true);
 }
 
@@ -2841,10 +2816,6 @@ void QpTableView::resizeRowToContents(int row)
     d->verticalHeader->resizeSection(row, qMax(content, header));
 }
 
-/*!
-                    Resizes all rows based on the size hints of the delegate
-                    used to render each item in the rows.
-                */
 void QpTableView::resizeRowsToContents()
 {
     Q_D(QpTableView);
@@ -2863,20 +2834,37 @@ void QpTableView::resizeColumnToContents(int column)
     d->horizontalHeader->resizeSection(column, qMax(content, header));
 }
 
+/*!
+                    Resizes all columns based on the size hints of the delegate
+                    used to render each item in the columns.
+                */
 void QpTableView::resizeColumnsToContents()
 {
     Q_D(QpTableView);
     d->horizontalHeader->resizeSections(QpHorHeaderView::ResizeToContents);
 }
 
+/*!
+                  \obsolete
+                  \overload
+
+                  Sorts the model by the values in the given \a column.
+                */
 void QpTableView::sortByColumn(int column)
 {
     Q_D(QpTableView);
     if (column == -1)
         return;
-    d->model->sort(column, d->horizontalHeader->sortIndicatorOrder());
+    model()->sort(column, d->horizontalHeader->sortIndicatorOrder());
 }
 
+/*!
+                  \since 4.2
+
+                  Sorts the model by the values in the given \a column in the given \a order.
+
+                  \sa sortingEnabled
+                 */
 void QpTableView::sortByColumn(int column, Qt::SortOrder order)
 {
     Q_D(QpTableView);
@@ -2884,6 +2872,9 @@ void QpTableView::sortByColumn(int column, Qt::SortOrder order)
     sortByColumn(column);
 }
 
+/*!
+                    \internal
+                */
 void QpTableView::verticalScrollbarAction(int action)
 {
     if( debug_scroll) qDebug() << "QpTableView::verticalScrollbarAction";
@@ -2891,6 +2882,9 @@ void QpTableView::verticalScrollbarAction(int action)
     QAbstractItemView::verticalScrollbarAction(action); // NOTHING
 }
 
+/*!
+                    \internal
+                */
 void QpTableView::horizontalScrollbarAction(int action)
 {
     if( debug_scroll) qDebug() << "QpTableView::horizontalScrollbarAction " << action;
@@ -2898,14 +2892,19 @@ void QpTableView::horizontalScrollbarAction(int action)
     QAbstractItemView::horizontalScrollbarAction(action);
 }
 
+/*!
+                  \reimp
+                */
 bool QpTableView::isIndexHidden(const QModelIndex &index) const
 {
     Q_D(const QpTableView);
     Q_ASSERT(d->isIndexValid(index));
-
     if (isRowHidden(index.row()) || isColumnHidden(index.column()))
         return true;
-
+    //    if (d->hasSpans()) {
+    //        QSpanCollection2::Span span = d->span(index.row(), index.column());
+    //        return !((span.top() == index.row()) && (span.left() == index.column()));
+    //    }
     return false;
 }
 
@@ -3132,6 +3131,20 @@ void QpTableView::selectionChanged(const QItemSelection &selected,
     QAbstractItemView::selectionChanged(selected, deselected);
 }
 
+//void QpTableView::update()
+//{
+//    qDebug() << "QpTableView::update";
+
+//    QWidget::update();
+//}
+
+//void QpTableView::update(const QRect &rect)
+//{
+//    qDebug() << "QpTableView::update(rect" << rect <<")";
+
+//    QWidget::update( rect );
+//}
+
 void QpTableView::updateGeometry()
 {
     qDebug() << "QpTableView::updateGeometry";
@@ -3144,116 +3157,6 @@ int QpTableView::visualIndex(const QModelIndex &index) const
     return index.row();
 }
 
-QFont QpTableView::get_section_font( int mdlfldNum ) const
-{
-    Q_D( const QpTableView);
-
-    //QPainter painter( d->viewport );
-
-    QStyleOptionViewItemV4 opt = d->viewOptionsV4();
-
-    return opt.font;
-}
-
-void QpTableViewPrivate::correctStyle( const qp::LABEL_STYLE &stls,
-                                       QFont &fnt ,
-                                       QStyleOptionViewItemV4 &opt)
-{
-    //QPainter painter( viewport );
-
-    //QStyleOptionViewItemV4 option = d->viewOptionsV4();
-    //opt = viewOptionsV4();
-
-    if( fnt != stls.fnt)
-    {
-        fnt = stls.fnt;
-
-        qDebug() << "correctStyle fnt" << fnt;
-
-    }
-
-    if( stls.color.isValid() && stls.color != opt.palette.color( QPalette::Text ) )
-    {
-        opt.palette.setColor( QPalette::Text,  stls.color );
-    }
-
-    if( stls.align != opt.displayAlignment )
-        opt.displayAlignment =  stls.align;
-
-}
-
-QPair<qp::LABEL_STYLE,qp::LABEL_STYLE> QpTableView::get_section_style( int mdlfldNum )
-{
-    Q_D( QpTableView);
-
-    QStyleOptionViewItemV4 opt = d->viewOptionsV4();
-
-    QPair<qp::LABEL_STYLE,qp::LABEL_STYLE> pp;
-
-
-    //QFont fnt = painter.font() ;
-    QFont fnt = opt.font ;
-
-
-    pp.first.fnt = opt.font;
-    pp.first.align = opt.displayAlignment;
-    pp.first.color = opt.palette.color( QPalette::Text );
-
-    pp.second = pp.first;
-
-    qDebug() << "get_section_style first opt.font " << opt.font;
-
-    if( d->stls.contains( mdlfldNum ))
-    {
-        d->correctStyle( d->stls[  mdlfldNum ] , fnt ,  opt );
-
-        pp.second.fnt = fnt;
-        pp.second.align = opt.displayAlignment;
-        pp.second.color = opt.palette.color( QPalette::Text );
-    }
-    else
-    {
-    }
-
-    qDebug() << "get_section_style second fnt " << fnt;
-
-
-    return pp;
-}
-
-bool QpTableView::set_section_style( int mdlfldNum, const qp::LABEL_STYLE &st )
-{
-    Q_D(QpTableView);
-
-    d->stls[ mdlfldNum ] = st;
-
-    qDebug() << "QpTableView::set_section_style : " << d->stls[ mdlfldNum ].fnt;
-
-    return true;
-}
-
-
-Qt::Alignment QpTableView::get_section_align( int mdlfldNum ) const
-{
-    Q_D( const QpTableView);
-
-    if( d->stls.contains( mdlfldNum ))
-        return d->stls.value( mdlfldNum ).align ;
-
-    return Qt::AlignCenter;
-}
-
-bool QpTableView::set_section_align( int mdlfldNum, Qt::Alignment align )
-{
-    Q_D(QpTableView);
-
-    d->stls[ mdlfldNum ].align = align;
-
-    qDebug() << "QpTableView::set_align_section : " << d->stls[ mdlfldNum ].align;
-
-    return true;
-}
-
 bool QpTableView::init_template( const Qp_SECTION_TMPL &matrix )
 {
     //reset();
@@ -3262,17 +3165,19 @@ bool QpTableView::init_template( const Qp_SECTION_TMPL &matrix )
     horizontalScrollBar()->setValue( 0 ); //!!
     verticalScrollBar()->setValue( 0 ); //!!
 
-    clearSelection();
+    //selectRow( 0 );
 
     if( horizontalHeader()->init_sections_template( model(), matrix ) )
     {
+        doItemsLayout();
 
-        horizontalHeader()->updateGeometry();
-        verticalHeader()->updateGeometry();
         updateGeometry(); //!!
 
+        //repaint();
+
         delayed_Repaint();//!!
-        //doItemsLayout();
+
+        clearSelection();
 
         return true;
     }
@@ -3280,7 +3185,7 @@ bool QpTableView::init_template( const Qp_SECTION_TMPL &matrix )
     return false;
 }
 
-void QpTableView::slot_rowsInserted( const QModelIndex &parent, int first, int last)
+void QpTableView::slot_rowsInserted(const QModelIndex &parent, int first, int last)
 {
     if( debug ) qDebug() << "QpTableView::slot_rowsInserted first " << first << " last " <<last;
     //qDebug() << "    rowHeight   " << rowHeight( );
@@ -3291,6 +3196,7 @@ void QpTableView::delayed_Repaint()
 {
     if (delayed_Repaint_tmr == 0)
         delayed_Repaint_tmr = startTimer(0);
+
 }
 
 QT_END_NAMESPACE

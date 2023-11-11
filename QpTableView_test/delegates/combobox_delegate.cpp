@@ -3,7 +3,7 @@
 #include <QDebug>
 #include <QApplication>
 #include <QStyledItemDelegate>
-#include "private/qstylesheetstyle_p.h"
+//#include "private/qstylesheetstyle_p.h"
 #include <QPainter>
 #include <QPalette>
 #include <QApplication>

@@ -6,7 +6,7 @@
 #include <QStandardItemModel>
 #include <QSqlDatabase>
 #include <QSqlTableModel>
-#include <QtGui/qp_horheaderview.h>
+#include <QtGui/qp/qp_horheaderview.h>
 
 namespace Ui {
 class Dialog;
@@ -28,7 +28,12 @@ public:
 
     QSqlDatabase db;
 
+
 private slots:
+
+    void slot_aaa(const QModelIndex& idx);
+
+    void slot_settinggs_edit(const QPoint& pp);
 
     void on_btn_Update_clicked();
 
@@ -41,6 +46,18 @@ private slots:
     void on_btn_sqltableModel_On_clicked();
 
     void on_btn_QStandardItemModel_On_clicked();
+
+    void on_chk_grid_on_clicked(bool checked);
+
+
+    void on_btn_logFile_clicked();
+
+    void on_cmb_SelectionBehavoir_activated(int index);
+
+
+    void on_cmb_SelectionMode_activated(int index);
+
+    void on_chk_betweenRowsBorder_clicked(bool checked);
 
 private:
     Ui::Dialog *ui;

@@ -1,6 +1,6 @@
 /******************************************************************************
 **
-** Contact: BIT Ltd Company (p@kkmspb.ru) Individual Taxpayer Number (ITN Russia) 7826152874
+** Contact: BIT Ltd Company (p@kkmspb.ru) Individual Taxpayer Number (ITN) 7826152874
 **
 ** This file is not part of the Qt Sources.
 ** This is a little convenient fork of QTableView (Qt 4.8.1) version 4.0
@@ -75,7 +75,6 @@ public:
     //--------------------------------------------------------
 
     static const bool debug ;
-    static const bool debug_line_numX ;
     static const bool debug_paint ;
     static const bool debug_init ;
     static const bool debug_selection ;

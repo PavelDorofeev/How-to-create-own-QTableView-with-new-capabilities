@@ -39,7 +39,7 @@ typedef struct CELL_NODES{
           top( num1 ),
           right( num1 ),
           bottom( num1 ),
-          visible( true )
+                  visible( true )
     {
 
     }
@@ -81,36 +81,15 @@ typedef struct CELL_NODES{
 
 };
 
-typedef struct FONT_PARS{
-
-    int weight;
-    int pointSize;
-    int pixelSize;
-
-
-    FONT_PARS()
-        :
-          weight( QFont::Normal ),
-          pointSize( -1 ),
-          pixelSize( -1 )
-    {
-
-    }
-
-};
-
 typedef struct LABEL_STYLE
 {
     Qt::Alignment align;
-
-    QFont fnt;
-
     QColor color;
 
     LABEL_STYLE()
         :
           align( Qt::AlignCenter ),
-          color(QColor())
+          color( Qt::gray )
     {
 
     }
@@ -120,7 +99,6 @@ typedef enum FIELD_TYPE
 {
     LABEL_FLD=-2,
     UNDEFINED_FLD=-1,
-    UNKNOWN_VALUE = UNDEFINED_FLD
 };
 }
 QT_END_NAMESPACE

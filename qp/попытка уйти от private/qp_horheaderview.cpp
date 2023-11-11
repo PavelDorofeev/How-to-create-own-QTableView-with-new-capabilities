@@ -1,6 +1,6 @@
 /******************************************************************************
 **
-** Contact: BIT Ltd Company (p@kkmspb.ru) Individual Taxpayer Number (ITN Russia) 7826152874
+** Contact: BIT Ltd Company (p@kkmspb.ru) Individual Taxpayer Number (ITN) 7826152874
 **
 ** This file is not part of the Qt Sources.
 ** This is a little convenient fork of QTableView (Qt 4.8.1) version 4.0
@@ -54,12 +54,11 @@ QT_BEGIN_NAMESPACE
 
 
 const bool QpHorHeaderView::debug = false;
-const bool QpHorHeaderView::debug_line_numX = false;
 const bool QpHorHeaderView::debug_paint = false;
 const bool QpHorHeaderView::debug_selection = false;
 const bool QpHorHeaderView::debug_scroll = false;
 const bool QpHorHeaderView::debug_resize = false;
-const bool QpHorHeaderView::debug_init = false;
+const bool QpHorHeaderView::debug_init = true;
 
 const int QpHorHeaderView::default_section_width = 150;
 
@@ -429,8 +428,7 @@ int QpHorHeaderView::sectionSizeHint(int logicalIndex) const
 
     if( debug )        qDebug() << "QpHorHeaderView::sectionSizeHint size: " << size << "  hint " << hint;
 
-    return qMax( minimumSectionSize(), hint);
-
+    return qMax(minimumSectionSize(), hint);
 }
 
 
@@ -2038,24 +2036,14 @@ void QpHorHeaderViewPrivate::setLines(int Lines)
     lines = Lines;
 }
 
-const int QpHorHeaderViewPrivate::row_height() const
+int QpHorHeaderViewPrivate::row_height() const
 {
     int count = offsets_y.count();
 
-    if( count <= 0)
-        return qp::UNKNOWN_VALUE;
+    if( count == 0)
+        return -1;
 
-    int max_Num = count - 1;
-
-//    if( offsets_y.count() )
-//    {
-//        qDebug() << "QpHorHeaderViewPrivate::row_height offsets_y:"<<offsets_y;
-
-
-//        return qp::UNKNOWN_VALUE;
-//    }
-
-    return offsets_y.at( max_Num );
+    return offsets_y.at( count - 1 );
 }
 
 qp::CELL_NODES QpHorHeaderViewPrivate::get_nodes( int logicalIndex )
@@ -3568,8 +3556,6 @@ void QpHorHeaderView::clear_sections_template(  )
 {
     Q_D(QpHorHeaderView);
 
-    //d->clear();
-
     d->visual_matrix.clear();
     d->map.clear();
     d->offsets_x.clear();
@@ -3622,7 +3608,6 @@ line1     0      1      3      4     5
     int colCount = mdl->columnCount(); // this important for own model
 
     bool wrong_length = false;
-
     int line_lenght= -1;
 
     foreach( QList< QVariant > lst , matrix)
@@ -3631,7 +3616,7 @@ line1     0      1      3      4     5
         //  protect unequal length of lines
         // ------------------------------------------------------
 
-        if ( debug_init ) qDebug() << "line: " << line;
+        qDebug() << "line: " << line;
 
         if( line_lenght != lst.count() && line_lenght != -1)
         {
@@ -3650,7 +3635,7 @@ line1     0      1      3      4     5
 
         foreach( QVariant var, lst)
         {
-            if ( debug_init ) qDebug() << "       var:" << var << var.typeName()<< var.type();
+            qDebug() << "       var:" << var << var.typeName()<< var.type();
 
 
             if( var.type() == QVariant::Int &&  var.toInt() > colCount - 1)
@@ -3738,7 +3723,7 @@ line1     0      1      3      4     5
 
     while( num < d->offsets_x.count() - 1 )
     {
-        if( debug_line_numX ) qDebug() << "num: " << num;
+        qDebug() << "num: " << num;
 
         int line = 0;
 
@@ -3747,7 +3732,7 @@ line1     0      1      3      4     5
 
             QVariant var = d->visual_matrix [ line ] [ num ];
 
-            if( debug_line_numX ) qDebug() << "------- line: " << line << " var:" << var;
+            qDebug() << "------- line: " << line << " var:" << var;
 
             if( var.isValid() && var.type() == QVariant::String )
             {
@@ -3793,7 +3778,7 @@ line1     0      1      3      4     5
                 continue;
             }
 
-            if( debug_line_numX ) qDebug() << "       " << var.typeName() ;
+            qDebug() << "       " << var.typeName() ;
 
             if( d->map.contains( var.toInt() ))
             {
@@ -3880,7 +3865,7 @@ line1     0      1      3      4     5
             }
 
 
-            if( debug_init )  qDebug() << "           insert val:" << var << " cell left:"<<cell.left<<" right:"<<cell.right<<" top:"<<cell.top<<" bottom:"<<cell.bottom;
+            qDebug() << "           insert val:" << var << " cell left:"<<cell.left<<" right:"<<cell.right<<" top:"<<cell.top<<" bottom:"<<cell.bottom;
 
             d->map.insert( var.toInt() , cell );
 
@@ -3953,10 +3938,6 @@ yy
 
     d->length_x = d->offsets_x [ d->offsets_x.count() - 1 ];
 
-    QSize sz = minimumSize();
-
-    setMinimumSize( sz.width(), d->row_height());
-
     if ( debug_init ) qDebug() << "length " << d->length_x;
     if ( debug_init ) qDebug() << "d->map.count() " << d->map.count();
 
@@ -4024,7 +4005,7 @@ QRegion QpHorHeaderView::visualRegionForSelection(const QItemSelection &selectio
     if (logicalLeft < 0  || logicalLeft >= count() ||
             logicalRight < 0 || logicalRight >= count())
     {
-        qDebug() << "???? QpHorHeaderView::visualRegionForSelection count() " << count() << "  logicalLeft " << logicalLeft ;
+        qDebug() << "QpHorHeaderView::visualRegionForSelection count() " << count() << "  logicalLeft " << logicalLeft ;
         return QRegion();
     }
 
@@ -4067,6 +4048,7 @@ int QpHorHeaderViewPrivate::sectionHandleAt(const QPoint &pos, Qt::Orientation &
         return -1;
     }
 
+    //qDebug() << "pos " <<  pos << " visual="<< visual;
 
     int lgclIdx = logicalIndex( visual );
 
@@ -4096,6 +4078,8 @@ int QpHorHeaderViewPrivate::sectionHandleAt(const QPoint &pos, Qt::Orientation &
     int y2 = rect.y() + rect.height() - grip;
 
     bool atBottom = pos.y() > y2;
+
+    //qDebug() << "QpHorHeaderViewPrivate::sectionHandleAt pos.y() " << pos.y() << " line:"<< line <<" y1:"<<y1<< " rect.y():"<<rect.y() << " grip " <<grip << "  lgclIdx:"<<lgclIdx;
 
     if( atLeft)
         if ( debug_resize ) qDebug() << "atLeft";
@@ -4479,9 +4463,7 @@ void QpHorHeaderViewPrivate::resizeSections(QpHorHeaderView::ResizeMode globalMo
     if (numberOfStretchedSections > 0 && lengthToStrech > 0)
     { // we have room to stretch in
         int hintLengthForEveryStretchedSection = lengthToStrech / numberOfStretchedSections;
-
         stretchSectionLength = qMax(hintLengthForEveryStretchedSection, q->minimumSectionSize());
-
         pixelReminder = lengthToStrech % numberOfStretchedSections;
     }
 

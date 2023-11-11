@@ -13,6 +13,7 @@ const QString appDef::REESTR_APPLICATION_NAME           = "BIT Sale";
 const QString appDef::TBL_TEST_NAME                     = "goods";
 const QString appDef::DB_TEST_NAME                     = "test_db.db";
 
+
 QString appDef::midlight                                     = "";
 QString appDef::light                                     = "";
 QString appDef::background                                     = "";
@@ -27,7 +28,6 @@ QString appDef::em4                                     = "64";
 
 
 QSettings *appDef::reestr = new QSettings( QSettings::UserScope, appDef::REESTR_ORGANIZATION_NAME, appDef::REESTR_APPLICATION_NAME ) ;
-
 
 
 QString appDef::OS_WIN_ProgramData_DIR        = QProcessEnvironment::systemEnvironment().value( "ALLUSERSPROFILE" );

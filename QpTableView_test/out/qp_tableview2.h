@@ -1,6 +1,6 @@
 /******************************************************************************
 **
-** Contact: BIT Ltd Company (p@kkmspb.ru) Individual Taxpayer Number (ITN Russia) 7826152874
+** Contact: BIT Ltd Company (p@kkmspb.ru) Individual Taxpayer Number (ITN) 7826152874
 **
 ** This file is not part of the Qt Sources.
 ** This is a little convenient fork of QTableView (Qt 4.8.1) version 4.0
@@ -23,12 +23,12 @@
 ** http://www.gnu.org/copyleft/gpl.html.
 
 *******************************************************************************/
-
-#ifndef QP_TABLEVIEW_H
-#define QP_TABLEVIEW_H
+#ifndef QP_TABLEVIEW2_H
+#define QP_TABLEVIEW2_H
 
 #include <QtGui/qabstractitemview.h>
 #include <QtGui/qp/qp_horheaderview.h>
+#include "private/qabstractitemview_p.h"
 #include "QtCore/qbasictimer.h"
 
 
@@ -42,9 +42,9 @@ QT_MODULE(Gui)
 
 class QpHorHeaderView;
 class QpVertHeaderView;
-class QpTableViewPrivate;
+class QpTableView2Private;
 
-class Q_GUI_EXPORT QpTableView : public QAbstractItemView
+class __declspec(dllexport) QpTableView2 : public QAbstractItemView
 {
     Q_OBJECT
     Q_PROPERTY(bool showGrid READ showGrid WRITE setShowGrid)
@@ -54,8 +54,8 @@ class Q_GUI_EXPORT QpTableView : public QAbstractItemView
     Q_PROPERTY(bool cornerButtonEnabled READ isCornerButtonEnabled WRITE setCornerButtonEnabled)
 
 public:
-    explicit QpTableView( QWidget *parent = 0 , Qp_SECTION_TMPL *matrix=0);
-    ~QpTableView();
+    explicit QpTableView2( QWidget *parent = 0 , Qp_SECTION_TMPL *matrix=0);
+    ~QpTableView2();
 
     //static const int lines;
     //static const int col3;
@@ -74,12 +74,14 @@ public:
 
     int row_selected;
     void updateGeometry(); //!! debug
+    //    void update();
+    //    void update(const QRect &rect); //
     void delayed_Repaint(); //!
     //void mouseMoveEvent(QMouseEvent *event);//!!
 
     virtual void setModel(QAbstractItemModel *model, const Qp_SECTION_TMPL & matrix);
 
-    void setRootIndex(const QModelIndex &index);
+    virtual void setRootIndex(const QModelIndex &index);
     void setSelectionModel(QItemSelectionModel *selectionModel);
     void doItemsLayout();
 
@@ -92,12 +94,6 @@ public:
     void setHorizontalHeader(QpHorHeaderView *header);
 
     void setVerticalHeader(QpVertHeaderView *header);
-
-    QPair<qp::LABEL_STYLE,qp::LABEL_STYLE> get_section_style( int mdlfldNum ) ;
-    bool set_section_style( int mdlfldNum, const qp::LABEL_STYLE &st );
-
-    Qt::Alignment get_section_align( int mdlfldNum ) const;
-    bool set_section_align( int mdlfldNum, Qt::Alignment align );//!!
 
     int rowViewportPosition(int row) const;
     int rowAt(int y) const;
@@ -115,7 +111,6 @@ public:
     int columnViewportPosition(int column) const;
     QRect columnViewportPosition2(int logicalIndex ) const; // !!
     int columnAt(int x, int y) const; // !!
-    QFont get_section_font( int mdlfldNum ) const;
 
     void setColumnWidth(int column, int width);
     int columnWidth(int column) const;
@@ -179,7 +174,7 @@ protected Q_SLOTS:
     void columnResized_Y(); //!!
 
 protected:
-    QpTableView( QpTableViewPrivate &, Qp_SECTION_TMPL *matrix, QWidget *parent);
+    QpTableView2( QpTableView2Private &, Qp_SECTION_TMPL *matrix, QWidget *parent);
     void scrollContentsBy(int dx, int dy);
 
     QStyleOptionViewItem viewOptions() const;
@@ -214,8 +209,8 @@ private:
     friend class QAccessibleItemView;
     int visualIndex(const QModelIndex &index) const;
 
-    Q_DECLARE_PRIVATE(QpTableView)
-    Q_DISABLE_COPY(QpTableView)
+    Q_DECLARE_PRIVATE(QpTableView2)
+    Q_DISABLE_COPY(QpTableView2)
     Q_PRIVATE_SLOT(d_func(), void _q_selectRow(int))
     Q_PRIVATE_SLOT(d_func(), void _q_selectColumn(int))
     //    Q_PRIVATE_SLOT(d_func(), void _q_updateSpanInsertedRows(QModelIndex,int,int))
@@ -233,4 +228,4 @@ QT_END_NAMESPACE
 
 QT_END_HEADER
 
-#endif // QP_TABLEVIEW_H
+#endif // QP_TABLEVIEW2_H

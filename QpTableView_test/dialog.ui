@@ -13,41 +13,88 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
    <property name="margin">
-    <number>50</number>
+    <number>20</number>
    </property>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QGridLayout" name="gridLayout">
      <property name="margin">
       <number>5</number>
      </property>
-     <item>
+     <item row="0" column="0">
       <widget class="QPushButton" name="btn_sqltableModel_On">
        <property name="text">
         <string>QSqlTableModel</string>
        </property>
       </widget>
      </item>
-     <item>
+     <item row="0" column="1">
       <widget class="QPushButton" name="btn_QStandardItemModel_On">
        <property name="text">
         <string>QStandardItemModel</string>
        </property>
       </widget>
      </item>
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
+     <item row="0" column="4">
+      <widget class="QComboBox" name="cmb_SelectionBehavoir">
+       <property name="minimumSize">
         <size>
-         <width>40</width>
-         <height>20</height>
+         <width>100</width>
+         <height>0</height>
         </size>
        </property>
-      </spacer>
+       <item>
+        <property name="text">
+         <string>SelectItems</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>SelectRows</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>SelectColumns</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="0" column="5">
+      <widget class="QComboBox" name="cmb_SelectionMode">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>0</height>
+        </size>
+       </property>
+       <item>
+        <property name="text">
+         <string>NoSelection</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>SingleSelection</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>MultiSelection</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>ExtendedSelection</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>ContiguousSelection</string>
+        </property>
+       </item>
+      </widget>
      </item>
     </layout>
    </item>
@@ -57,7 +104,7 @@
       <number>5</number>
      </property>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,1,1,0">
        <property name="leftMargin">
         <number>5</number>
        </property>
@@ -68,7 +115,7 @@
         <number>5</number>
        </property>
        <property name="bottomMargin">
-        <number>100</number>
+        <number>30</number>
        </property>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -89,6 +136,12 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="maximumSize">
             <size>
              <width>16777215</width>
@@ -96,17 +149,50 @@
             </size>
            </property>
            <property name="plainText">
-            <string>0,1,2,2,5
-0,1,3,4,5</string>
+            <string>0,1,НАЛ:&gt;,2,3,5
+0,1,БН:&gt;^,4,3,5</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="btn_init_sections">
-           <property name="text">
-            <string>init</string>
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <property name="margin">
+            <number>5</number>
            </property>
-          </widget>
+           <item>
+            <spacer name="horizontalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btn_init_sections">
+             <property name="text">
+              <string>init</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
          </item>
         </layout>
        </item>
@@ -136,17 +222,50 @@
             </size>
            </property>
            <property name="plainText">
-            <string>1,1,2,2
-5,4,4,3</string>
+            <string>1,НАЛ:,2,2
+5,БН:,4,3</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="btn_init_sections_2">
-           <property name="text">
-            <string>init</string>
+          <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <property name="margin">
+            <number>5</number>
            </property>
-          </widget>
+           <item>
+            <spacer name="horizontalSpacer_4">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btn_init_sections_2">
+             <property name="text">
+              <string>init</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_5">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
          </item>
         </layout>
        </item>
@@ -182,9 +301,79 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="btn_init_sections_3">
+          <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <property name="leftMargin">
+            <number>5</number>
+           </property>
+           <property name="topMargin">
+            <number>5</number>
+           </property>
+           <property name="rightMargin">
+            <number>5</number>
+           </property>
+           <item>
+            <spacer name="horizontalSpacer_6">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btn_init_sections_3">
+             <property name="text">
+              <string>init</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_7">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_6">
+         <property name="margin">
+          <number>5</number>
+         </property>
+         <item>
+          <widget class="QCheckBox" name="chk_grid_on">
            <property name="text">
-            <string>init</string>
+            <string>show grid</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="chk_betweenRowsBorder">
+           <property name="text">
+            <string>show between rows border</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_logFile">
+           <property name="text">
+            <string>log file</string>
            </property>
           </widget>
          </item>
@@ -198,7 +387,11 @@
         <number>5</number>
        </property>
        <item>
-        <widget class="QpTableView" name="tableView"/>
+        <widget class="QpTableView" name="tableView">
+         <property name="contextMenuPolicy">
+          <enum>Qt::CustomContextMenu</enum>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
@@ -210,7 +403,7 @@
   <customwidget>
    <class>QpTableView</class>
    <extends>QTableView</extends>
-   <header location="global">qp_tableview.h</header>
+   <header location="global">qp/qp_tableview.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

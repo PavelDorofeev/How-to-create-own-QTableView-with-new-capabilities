@@ -1,11 +1,12 @@
-/******************************************************************************
+/****************************************************************************
 **
-** Contact: BIT Ltd Company (p@kkmspb.ru) Individual Taxpayer Number (ITN Russia) 7826152874
+** Copyright (C) 2012 Nokia Corporation and/or its subsidiary(-ies).
+** All rights reserved.
+** Contact: Nokia Corporation (qt-info@nokia.com)
 **
-** This file is not part of the Qt Sources.
-** This is a little convenient fork of QTableView (Qt 4.8.1) version 4.0
-** created by Pavel Dorofeev ( p@kkmspb.ru )
+** This file is part of the QtGui module of the Qt Toolkit.
 **
+** $QT_BEGIN_LICENSE:LGPL$
 ** GNU Lesser General Public License Usage
 ** This file may be used under the terms of the GNU Lesser General Public
 ** License version 2.1 as published by the Free Software Foundation and
@@ -14,6 +15,10 @@
 ** General Public License version 2.1 requirements will be met:
 ** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
+** In addition, as a special exception, Nokia gives you certain additional
+** rights. These rights are described in the Nokia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
 ** GNU General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU General
 ** Public License version 3.0 as published by the Free Software Foundation
@@ -21,8 +26,18 @@
 ** file. Please review the following information to ensure the GNU General
 ** Public License version 3.0 requirements will be met:
 ** http://www.gnu.org/copyleft/gpl.html.
-
-*******************************************************************************/
+**
+** Other Usage
+** Alternatively, this file may be used in accordance with the terms and
+** conditions contained in a signed written agreement between you and Nokia.
+**
+**
+**
+**
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
 
 #ifndef QPTABLEVIEW_P_H
 #define QPTABLEVIEW_P_H
@@ -89,12 +104,7 @@ public:
     static const bool debug_selection;
     mutable QBasicTimer delayed_Repaint; //!!
 
-    QHash< int , qp::LABEL_STYLE> stls; //!!
-
-
     void init( );
-
-    void correctStyle( const qp::LABEL_STYLE &stls, QFont &fnt1 , QStyleOptionViewItemV4 &opt ); //!
 
     void trimHiddenSelections(QItemSelectionRange *range) const;
 
@@ -102,19 +112,15 @@ public:
         return verticalHeader->isSectionHidden(row)
                 || horizontalHeader->isSectionHidden(col);
     }
-
     inline int visualRow(int logicalRow) const {
         return verticalHeader->visualIndex(logicalRow);
     }
-
     inline int visualColumn(int logicalCol) const {
         return horizontalHeader->visualIndex(logicalCol);
     }
-
     inline int logicalRow(int visualRow) const {
         return verticalHeader->logicalIndex(visualRow);
     }
-
     inline int logicalColumn(int visualCol) const {
         return horizontalHeader->logicalIndex(visualCol);
     }
@@ -143,30 +149,21 @@ public:
     bool geometryRecursionBlock;
     QPoint visualCursor;  // (Row,column) cell coordinates to track through span navigation.
 
-    inline bool isRowHidden(int row) const
-    {
+    inline bool isRowHidden(int row) const {
         return verticalHeader->isSectionHidden(row);
     }
-
-    inline bool isColumnHidden(int column) const
-    {
+    inline bool isColumnHidden(int column) const {
         return horizontalHeader->isSectionHidden(column);
     }
-
-    inline bool isCellEnabled(int row, int column) const
-    {
+    inline bool isCellEnabled(int row, int column) const {
         return isIndexEnabled(model->index(row, column, root));
     }
-
-    inline bool isVisualRowHiddenOrDisabled(int row, int column) const
-    {
+    inline bool isVisualRowHiddenOrDisabled(int row, int column) const {
         int r = logicalRow(row);
         int c = logicalColumn(column);
         return isRowHidden(r) || !isCellEnabled(r, c);
     }
-
-    inline bool isVisualColumnHiddenOrDisabled(int row, int column) const
-    {
+    inline bool isVisualColumnHiddenOrDisabled(int row, int column) const {
         int r = logicalRow(row);
         int c = logicalColumn(column);
         return isColumnHidden(c) || !isCellEnabled(r, c);

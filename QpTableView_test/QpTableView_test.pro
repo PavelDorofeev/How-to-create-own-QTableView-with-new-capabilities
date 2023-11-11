@@ -8,7 +8,7 @@ QT       += core gui sql
 
 CONFIG += windows
 
-TARGET = QpTableViewTest
+TARGET = QpTableViewTest2
 TEMPLATE = app
 
 OBJECTS_DIR     = tmp\\obj\\$$out_dir
@@ -22,19 +22,23 @@ DEPENDPATH += $$PWD
 DEFINES +=MY_DEBUG
 
 include(logging_system/logging_system.pri)
+include(out/out.pri)
 
 SOURCES += main.cpp\
     app_def.cpp \
     delegates/combobox_delegate.cpp \
-    dialog.cpp
+    dialog.cpp \
+    section_settings_dlg.cpp
 
 HEADERS  += \
     app_def.h \
     delegates/combobox_delegate.h \
-    dialog.h
+    dialog.h \
+    section_settings_dlg.h
 
 FORMS    += \
-    dialog.ui
+    dialog.ui \
+    section_settings_dlg.ui
 
 message ( PWD = $$PWD)
 message ( OUT_PWD = $$OUT_PWD)

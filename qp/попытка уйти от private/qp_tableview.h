@@ -1,6 +1,6 @@
 /******************************************************************************
 **
-** Contact: BIT Ltd Company (p@kkmspb.ru) Individual Taxpayer Number (ITN Russia) 7826152874
+** Contact: BIT Ltd Company (p@kkmspb.ru) Individual Taxpayer Number (ITN) 7826152874
 **
 ** This file is not part of the Qt Sources.
 ** This is a little convenient fork of QTableView (Qt 4.8.1) version 4.0
@@ -23,7 +23,6 @@
 ** http://www.gnu.org/copyleft/gpl.html.
 
 *******************************************************************************/
-
 #ifndef QP_TABLEVIEW_H
 #define QP_TABLEVIEW_H
 
@@ -74,6 +73,8 @@ public:
 
     int row_selected;
     void updateGeometry(); //!! debug
+    //    void update();
+    //    void update(const QRect &rect); //
     void delayed_Repaint(); //!
     //void mouseMoveEvent(QMouseEvent *event);//!!
 
@@ -93,12 +94,6 @@ public:
 
     void setVerticalHeader(QpVertHeaderView *header);
 
-    QPair<qp::LABEL_STYLE,qp::LABEL_STYLE> get_section_style( int mdlfldNum ) ;
-    bool set_section_style( int mdlfldNum, const qp::LABEL_STYLE &st );
-
-    Qt::Alignment get_section_align( int mdlfldNum ) const;
-    bool set_section_align( int mdlfldNum, Qt::Alignment align );//!!
-
     int rowViewportPosition(int row) const;
     int rowAt(int y) const;
 
@@ -115,7 +110,6 @@ public:
     int columnViewportPosition(int column) const;
     QRect columnViewportPosition2(int logicalIndex ) const; // !!
     int columnAt(int x, int y) const; // !!
-    QFont get_section_font( int mdlfldNum ) const;
 
     void setColumnWidth(int column, int width);
     int columnWidth(int column) const;

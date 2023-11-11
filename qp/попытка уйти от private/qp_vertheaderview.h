@@ -1,6 +1,6 @@
 /******************************************************************************
 **
-** Contact: BIT Ltd Company (p@kkmspb.ru) Individual Taxpayer Number (ITN Russia) 7826152874
+** Contact: BIT Ltd Company (p@kkmspb.ru) Individual Taxpayer Number (ITN) 7826152874
 **
 ** This file is not part of the Qt Sources.
 ** This is a little convenient fork of QTableView (Qt 4.8.1) version 4.0
@@ -23,13 +23,10 @@
 ** http://www.gnu.org/copyleft/gpl.html.
 
 *******************************************************************************/
-
-#ifndef QP_HORHEADERVIEW_H
-#define QP_HORHEADERVIEW_H
+#ifndef QP_VERTHEADERVIEW_H
+#define QP_VERTHEADERVIEW_H
 
 #include <QtGui/qabstractitemview.h>
-
-#include "qp_common.h"
 
 QT_BEGIN_HEADER
 
@@ -39,14 +36,11 @@ QT_MODULE(Gui)
 
 #ifndef QT_NO_ITEMVIEWS
 
-
-class QpHorHeaderViewPrivate;
+class QpVertHeaderViewPrivate;
 class QStyleOptionHeader;
+class QpHorHeaderView;
 
-typedef QList < QList< QVariant > >  Qp_SECTION_TMPL;
-
-
-class Q_GUI_EXPORT QpHorHeaderView : public QAbstractItemView
+class Q_GUI_EXPORT QpVertHeaderView : public QAbstractItemView
 {
     Q_OBJECT
     Q_PROPERTY(bool showSortIndicator READ isSortIndicatorShown WRITE setSortIndicatorShown)
@@ -69,31 +63,22 @@ public:
         Custom = Fixed
     };
 
-    explicit QpHorHeaderView(Qt::Orientation orientation, QWidget *parent = 0);
-    virtual ~QpHorHeaderView();
+    explicit QpVertHeaderView( const QpHorHeaderView &Horizontal,
+                          Qt::Orientation orientation,
+                          QWidget *parent = 0);
 
-    //--------------------------------------------------------
+    virtual ~QpVertHeaderView();
 
-    static const bool debug ;
-    static const bool debug_line_numX ;
-    static const bool debug_paint ;
-    static const bool debug_init ;
-    static const bool debug_selection ;
-    static const bool debug_scroll ;
-    static const bool debug_resize ;
+    //void setHorizontalConnect( QpHorHeaderView * Horizontal);
 
-    static const int default_section_width ;
+    void setModel(QAbstractItemModel *model);
 
-    //--------------------------------------------------------
+    static const bool  debug_paint;
+    static const bool  debug_select;
+    //void  set_row_heigth(int rowHeigth);
+    //int row_heigth() const;
 
-    virtual void setModel(QAbstractItemModel *model , const Qp_SECTION_TMPL &matrix); //!!
-
-    int row_height() const; // !!
-    int line_height( int line ); //!!
-
-    int lastLogicalNum( ) const;
-    int leftTopVisualNumX( ) const;
-    //int rightBtmLogicalNum( ) const;
+    int is_rowSelected( int row ) const;
 
     Qt::Orientation orientation() const;
     int offset() const;
@@ -101,56 +86,21 @@ public:
     QSize sizeHint() const;
     int sectionSizeHint(int logicalIndex) const;
 
-    int visualIndexAt(int x,  int y) const;
-    int visual_xNum_At(int x ) const; // !!
-    int xNum_count( ) const; // !!
-    int visualIndexAt_end(int x) const;
 
-    const Qp_SECTION_TMPL & get_matrix() const;
+    int visualIndexAt(int position) const;
+    int logicalIndexAt(int position) const;
 
-    void clear_sections_template( );
+    inline int logicalIndexAt(int x, int y) const;
+    inline int logicalIndexAt(const QPoint &pos) const;
 
-    bool init_sections_template( QAbstractItemModel *model, const Qp_SECTION_TMPL & matrix );
+    int sectionSize(int logicalIndex) const;
+    int sectionPosition(int logicalIndex) const;
+    int sectionViewportPosition(int logicalIndex) const;
 
-    const qp::LABEL_STYLE get_label_style( int line, int numX ) const;//!!
-
-    //int logicalIndexAt(int position) const;
-
-//    inline int logicalIndexAt(int x, int y) const;
-//    inline int logicalIndexAt(const QPoint &pos) const;
-
-    virtual int sectionSize(int logicalIndex) const;
-
-    //virtual int column_size(int col) const; //!!
-    virtual int xNum_size(int col) const; //!!
-
-    int get_section_line( int y ) const ;//!!
-    int get_section_num( int x ) const ;//!!
-
-    const int lines_count() const;
-
-
-    //virtual int sectionPosition(int logicalIndex) const;
-    virtual const QRect sectionPosition2( int logicalIndex) const;
-    virtual const QRect cellPosition( int line, int num_x ) const;
-    virtual const QVariant cellLabelValue( int line, int num_x ) const;
-
-    const qp::CELL_NODES get_logicalIdex_nodes(int logicalIndex) const;
-
-    //virtual int sectionViewportPosition(int logicalIndex) const;
-    virtual QRect sectionViewportPosition2(int logicalIndex) const;
-
-
-    void setGridWidth( int x ); //!!
-    int gridWidth(  ) const; //!!
-
-    //QPoint lastCursor;
-
+    void moveSection(int from, int to);
+    void swapSections(int first, int second);
     void resizeSection(int logicalIndex, int size);
-
-    void resizeSection_Y(int logical, int newSize);//!!
-
-    void resizeSections(QpHorHeaderView::ResizeMode mode);
+    void resizeSections(QpVertHeaderView::ResizeMode mode);
 
     bool isSectionHidden(int logicalIndex) const;
     void setSectionHidden(int logicalIndex, bool hide);
@@ -160,12 +110,8 @@ public:
     inline void showSection(int logicalIndex);
 
     int count() const;
-    int count_of_section() const; //!!
-    int left_common_border_x( int logicalIndex ) const; //!!
-
     int visualIndex(int logicalIndex) const;
     int logicalIndex(int visualIndex) const;
-    int logicalIndex_atNum_x_line(int num_x, int num_y) const;//!!
 
     void setMovable(bool movable);
     bool isMovable() const;
@@ -207,14 +153,6 @@ public:
     bool sectionsMoved() const;
     bool sectionsHidden() const;
 
-    int logicalIndexAt(int ax, int line) const;     // !!
-    int logicalIndexAt(const QPoint &apos) const;   // !!
-
-    void setSectionSize( int logical, int newSize); //!!
-    void setLineHeightInRow( int line, int newHeight); //!!
-
-    int minimumLineHeight(); // !!
-
 #ifndef QT_NO_DATASTREAM
     QByteArray saveState() const;
     bool restoreState(const QByteArray &state);
@@ -237,10 +175,9 @@ Q_SIGNALS:
     void sectionDoubleClicked(int logicalIndex);
     void sectionCountChanged(int oldCount, int newCount);
     void sectionHandleDoubleClicked(int logicalIndex);
-    void sectionAutoResize(int logicalIndex, QpHorHeaderView::ResizeMode mode);
+    void sectionAutoResize(int logicalIndex, QpVertHeaderView::ResizeMode mode);
     void geometriesChanged();
     void sortIndicatorChanged(int logicalIndex, Qt::SortOrder order);
-    void sectionResized_Y();
 
 protected Q_SLOTS:
     void updateSection(int logicalIndex);
@@ -249,7 +186,7 @@ protected Q_SLOTS:
     void sectionsAboutToBeRemoved(const QModelIndex &parent, int logicalFirst, int logicalLast);
 
 protected:
-    QpHorHeaderView(QpHorHeaderViewPrivate &dd, Qt::Orientation orientation, QWidget *parent = 0);
+    QpVertHeaderView(QpVertHeaderViewPrivate &dd, Qt::Orientation orientation, QWidget *parent = 0);
     void initialize();
 
     void initializeSections();
@@ -268,11 +205,9 @@ protected:
     virtual QSize sectionSizeFromContents(int logicalIndex) const;
 
     int horizontalOffset() const;
-    int verticalOffset() const; // only horizontal
+    int verticalOffset() const;
     void updateGeometries();
     void scrollContentsBy(int dx, int dy);
-
-
 
     void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight);
     void rowsInserted(const QModelIndex &parent, int start, int end);
@@ -291,21 +226,23 @@ protected:
 private:
     Q_PRIVATE_SLOT(d_func(), void _q_sectionsRemoved(const QModelIndex &parent, int logicalFirst, int logicalLast))
     Q_PRIVATE_SLOT(d_func(), void _q_layoutAboutToBeChanged())
-    Q_DECLARE_PRIVATE(QpHorHeaderView)
-    Q_DISABLE_COPY(QpHorHeaderView)
+    Q_DECLARE_PRIVATE(QpVertHeaderView)
+    Q_DISABLE_COPY(QpVertHeaderView)
 };
 
-
-inline void QpHorHeaderView::hideSection(int alogicalIndex)
+inline int QpVertHeaderView::logicalIndexAt(int ax, int ay) const
 {
-    setSectionHidden(alogicalIndex, true);
+    return logicalIndexAt(ay);
 }
 
-inline void QpHorHeaderView::showSection(int alogicalIndex)
-{
-    setSectionHidden(alogicalIndex, false);
-}
+inline int QpVertHeaderView::logicalIndexAt(const QPoint &apos) const
+{ return logicalIndexAt(apos.x(), apos.y()); }
 
+inline void QpVertHeaderView::hideSection(int alogicalIndex)
+{ setSectionHidden(alogicalIndex, true); }
+
+inline void QpVertHeaderView::showSection(int alogicalIndex)
+{ setSectionHidden(alogicalIndex, false); }
 
 #endif // QT_NO_ITEMVIEWS
 
@@ -313,4 +250,4 @@ QT_END_NAMESPACE
 
 QT_END_HEADER
 
-#endif // QP_HORHEADERVIEW_H
+#endif // QP_VERTHEADERVIEW_H

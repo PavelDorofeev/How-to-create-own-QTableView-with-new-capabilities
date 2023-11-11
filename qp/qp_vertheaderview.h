@@ -49,8 +49,10 @@ public:
     void setModel(QAbstractItemModel *model);
 
     static const bool  debug_paint;
-    //void  set_row_heigth(int rowHeigth);
+    static const bool  debug_select;
     //int row_heigth() const;
+
+    int is_rowSelected( int row ) const;
 
     Qt::Orientation orientation() const;
     int offset() const;

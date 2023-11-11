@@ -7,8 +7,13 @@
 #include <QMessageBox>
 #include <QSqlError>
 #include <QDir>
+#include <QUrl>
+#include <QDesktopServices>
 #include "delegates/combobox_delegate.h"
 #include "app_def.h"
+#include "logging_system/logging_system.h"
+#include "qp/qp_tableview.h"
+#include "section_settings_dlg.h"
 
 
 Dialog::Dialog(QWidget *parent) :
@@ -21,7 +26,31 @@ Dialog::Dialog(QWidget *parent) :
 
     setWindowTitle( QString::fromUtf8("QpTableView с шаблоном расположения секций"));
 
+
+    ui->tableView->setSelectionBehavior( (QAbstractItemView::SelectionBehavior )ui->cmb_SelectionBehavoir->currentIndex());
+
+    ui->cmb_SelectionMode->setCurrentIndex(QAbstractItemView::MultiSelection );
+
+    ui->tableView->setSelectionMode( (QAbstractItemView::SelectionMode )ui->cmb_SelectionMode->currentIndex());
+
+    ui->tableView->setGridStyle( Qt::DotLine);
+
+    Q_ASSERT ( connect( ui->tableView, SIGNAL( clicked(QModelIndex)),
+                        this, SLOT(slot_aaa(QModelIndex))) == true);
+
+    Q_ASSERT ( connect( ui->tableView, SIGNAL( customContextMenuRequested(QPoint)),
+                        this, SLOT(slot_settinggs_edit(QPoint))) == true);
+
     init_StandardItemModel();
+    //init_sql_model();
+
+
+    ui->chk_betweenRowsBorder->setChecked( true );
+
+    ui->chk_grid_on->setChecked( true );
+
+
+
 }
 
 Dialog::~Dialog()
@@ -85,6 +114,7 @@ bool Dialog::init_sql_db()
     return true;
 
 }
+
 bool Dialog::init_sql_model()
 {
     if( mdl_sql !=0 )
@@ -92,11 +122,11 @@ bool Dialog::init_sql_model()
 
     mdl_sql = new QSqlTableModel( this , db);
 
-    Qp_SECTION_TMPL matrix = prepare_matrix( *ui->txt3);
+    Qp_SECTION_TMPL matrix = prepare_matrix( *ui->txt1);
 
     mdl_sql->setTable( appDef::TBL_TEST_NAME);
 
-    if ( !mdl_sql->select())
+    if ( ! mdl_sql->select())
     {
         QMessageBox::warning( this,
                               QString::fromUtf8("Ошибка"),
@@ -111,8 +141,6 @@ bool Dialog::init_sql_model()
     ui->tableView->setModel( mdl_sql , matrix );
 
 
-
-    ui->tableView->setShowGrid( true );
 
     qDebug() << " model2->rowCount() : " << mdl_sql->rowCount();
     qDebug() << " model2->columnCount() : " << mdl_sql->columnCount();
@@ -194,36 +222,24 @@ void Dialog::init_StandardItemModel()
 
     QStringList lst;
 
-    lst << "aaaa"<<"bbbbb"<<"ccccc";
+    lst << "cmb1"<<"cmb2"<<"cmb3";
 
     ComboBoxDelegate *cmbd = new ComboBoxDelegate( lst , this);
 
     ui->tableView->setItemDelegateForColumn( 3 , cmbd );
 
 
-    //    QList< QList<int> > cells_tmpl;
+    Qp_SECTION_TMPL matrix = prepare_matrix( *ui->txt1);
 
-    //    cells_tmpl.append(  QList<int>() << 0 << 1 << 2 << 2 << 5  );
-    //    cells_tmpl.append(  QList<int>() << 0 << 1 << 3 << 4 << 5  );
-    //lst.append(  QList<int>() << 3 << 3 << 3 << 4 << 5  );
-
-    Qp_SECTION_TMPL matrix = prepare_matrix( *ui->txt3);
 
     ui->tableView->setModel( mdl_standart , matrix );
 
-    //on_btn_init_sections_3_clicked();
-
-    //    ui->tableView->horizontalHeader()->init( cells_tmpl );
-
-    //    ui->tableView->setModel( model );
-
-    ui->tableView->setShowGrid( true );
 
     qDebug() << " model->rowCount() : " << mdl_standart->rowCount();
     qDebug() << " model->columnCount() : " << mdl_standart->columnCount();
     //    qDebug() << " ui->tableView->selectionBehavior : " << ui->tableView->selectionBehavior();
 
-    ui->tableView->setMouseTracking( false );
+    ui->btn_QStandardItemModel_On->setFocus();
 }
 
 
@@ -269,11 +285,17 @@ Qp_SECTION_TMPL Dialog::prepare_matrix( const QPlainTextEdit & txt )
     {
         QStringList lst1 = str.split(",");
 
-        QList < int > lst;
+        QList < QVariant > lst;
 
-        foreach( QString nn, lst1)
+        foreach( QVariant var, lst1)
         {
-            lst.append( nn.toInt() );
+            bool ok;
+            int logicalIndex = var.toInt( &ok );
+
+            if( ok  )
+                lst.append( logicalIndex );
+            else
+                lst.append( var );
         }
 
         matrix.append( lst );
@@ -282,6 +304,7 @@ Qp_SECTION_TMPL Dialog::prepare_matrix( const QPlainTextEdit & txt )
     return matrix;
 
 }
+
 
 void Dialog::on_btn_sqltableModel_On_clicked()
 {
@@ -294,3 +317,76 @@ void Dialog::on_btn_QStandardItemModel_On_clicked()
 {
     init_StandardItemModel();
 }
+
+
+void Dialog::on_chk_grid_on_clicked(bool checked)
+{
+    ui->tableView->setShowGrid( checked );
+}
+
+void Dialog::on_btn_logFile_clicked()
+{
+    qDebug() << "QDir::currentPath(): " << QDir::currentPath();
+
+    QString file = QDir::currentPath() + "/" + logging_System::LOGS_DIR +"/"+logging_System::LOG_FILE_NAME;
+
+    if ( ! QDesktopServices::openUrl( QUrl::fromLocalFile( file )))
+    {
+        qCritical() << "ERROR OPEN  file : " << file;
+        return ;
+    }
+
+}
+
+void Dialog::on_cmb_SelectionBehavoir_activated(int index)
+{
+    ui->tableView->clearSelection();
+
+    ui->tableView->setSelectionBehavior( (QAbstractItemView::SelectionBehavior )index);
+
+}
+
+
+void Dialog::on_cmb_SelectionMode_activated(int index)
+{
+    ui->tableView->clearSelection();
+
+    ui->tableView->setSelectionMode( (QAbstractItemView::SelectionMode )index);
+
+}
+
+void Dialog::on_chk_betweenRowsBorder_clicked(bool checked)
+{
+    ui->tableView->clearSelection();
+    ui->tableView->setShowBetweenRowBorder( checked );
+}
+
+void Dialog::slot_aaa(const QModelIndex& idx)
+{
+
+}
+
+void Dialog::slot_settinggs_edit(const QPoint& pp)
+{
+
+    QModelIndex idx = ui->tableView->indexAt( pp );
+
+    //QFont fnt = ui->tableView->get_section_font( idx.column() );
+
+    QPair<qp::LABEL_STYLE,qp::LABEL_STYLE> pair = ui->tableView->get_section_style( idx.column() ) ;
+
+    qDebug() << "slot_bbb pair.first.fnt " << pair.first.fnt;
+    qDebug() << "        pair.second.fnt " << pair.second.fnt;
+    qDebug() << "       pair.second.color " << pair.second.color;
+    qDebug() << "       pair.first.color " << pair.first.color;
+
+    SectionSettingsDlg dlg ( pair , this );
+
+    if ( dlg.exec() == QDialog::Rejected)
+        return;
+
+    qDebug() << "slot_bbb : dlg.align: " << dlg.currStyles.align;
+
+    ui->tableView->set_section_style( idx.column() , dlg.currStyles );
+}
+

@@ -7,6 +7,7 @@
 #include <QVariantList>
 #include <QSettings>
 
+//#include "equipment/abstract_kkt/a_kkt.h"
 
 class QSettings;
 
@@ -43,6 +44,8 @@ public:
     static const char * const IN_OS_WIN_PROGRAMMDATA_OUR_PROG_NAME_DIR;
     static const char * const PROGRAM_NAME;
     static const QString const PROGRAM_NAME_RU;
+
+
 
 
 public:

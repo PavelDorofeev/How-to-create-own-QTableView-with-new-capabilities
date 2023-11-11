@@ -1,6 +1,6 @@
 /******************************************************************************
 **
-** Contact: BIT Ltd Company (p@kkmspb.ru) Individual Taxpayer Number (ITN Russia) 7826152874
+** Contact: BIT Ltd Company (p@kkmspb.ru) Individual Taxpayer Number (ITN) 7826152874
 **
 ** This file is not part of the Qt Sources.
 ** This is a little convenient fork of QTableView (Qt 4.8.1) version 4.0
@@ -55,14 +55,12 @@ QT_BEGIN_NAMESPACE
 
 
 const  bool QpVertHeaderView::debug_paint = false;
-const  bool QpVertHeaderView::debug_select = false;
-const  bool QpVertHeaderViewPrivate::debug_select = false;
+const  bool QpVertHeaderView::debug_select = true;
+const  bool QpVertHeaderViewPrivate::debug_select = true;
 const  bool QpVertHeaderViewPrivate::debug = false;
 
 
-QpVertHeaderView::QpVertHeaderView( const QpHorHeaderView &Horizontal,
-                                    Qt::Orientation orientation,
-                                    QWidget *parent)
+QpVertHeaderView::QpVertHeaderView( const QpHorHeaderView &Horizontal, Qt::Orientation orientation, QWidget *parent)
     :
       QAbstractItemView(*new QpVertHeaderViewPrivate( Horizontal), parent)
 {
@@ -103,7 +101,6 @@ void QpVertHeaderView::initialize()
     d->viewport->setMouseTracking(true);
     d->viewport->setBackgroundRole(QPalette::Button);
     d->textElideMode = Qt::ElideNone;
-
     delete d->itemDelegate;
 }
 
@@ -1623,14 +1620,14 @@ void QpVertHeaderView::paintEvent(QPaintEvent *e)
             continue;
 
         painter.save();
-
         logical = logicalIndex(i);
 
         currentSectionRect.setRect(0, sectionViewportPosition(logical), width, sectionSize(logical));
 
         currentSectionRect.translate(offset);
 
-        QVariant variant = d->model->headerData(logical, Qt::Vertical, Qt::FontRole);
+        QVariant variant = d->model->headerData(logical, Qt::Vertical,
+                                                Qt::FontRole);
 
         if (variant.isValid() && variant.canConvert<QFont>())
         {
@@ -2100,7 +2097,6 @@ void QpVertHeaderView::paintSection(QPainter *painter, const QRect &rect, int ro
         opt.palette.setBrush(QPalette::ButtonText, qvariant_cast<QBrush>(foregroundBrush));
 
     QPointF oldBO = painter->brushOrigin();
-
     QVariant backgroundBrush = d->model->headerData(row, Qt::Vertical,
                                                     Qt::BackgroundRole);
     if (backgroundBrush.canConvert<QBrush>())
@@ -2111,6 +2107,7 @@ void QpVertHeaderView::paintSection(QPainter *painter, const QRect &rect, int ro
 
     }
 
+    //if( debug_paint ) qDebug() << "QpVertHeaderView::paintSection backgroundBrush:" << backgroundBrush << " logicalIndex " << row << " foregroundBrush:"<<foregroundBrush << " opt "<<opt;
     if( debug_paint ) qDebug() << "QpVertHeaderView::paintSection row " << row << " opt "<<opt;
 
     // the section position
@@ -3133,9 +3130,6 @@ int QpVertHeaderViewPrivate::headerVisualIndexAt(int y) const
 
     // y - coordinate from 0 ( mot from viewport)
     int height = hrzntl.row_height();
-
-    if(height == qp::UNKNOWN_VALUE)
-        return height;
 
     int row = y / height;// defaultSectionSize;
 
