@@ -19,10 +19,13 @@ UI_DIR          = ui
 INCLUDEPATH += $$PWD
 DEPENDPATH += $$PWD
 
+INCLUDEPATH += $$PWD/../..
+DEPENDPATH += $$PWD/../..
+
 DEFINES +=MY_DEBUG
 
 include(logging_system/logging_system.pri)
-include(out/out.pri)
+include(qp/tableview/qp_tableview.pri)
 
 SOURCES += main.cpp\
     app_def.cpp \

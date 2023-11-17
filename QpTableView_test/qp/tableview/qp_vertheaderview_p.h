@@ -27,18 +27,18 @@
 #ifndef QP_VERTHEADERVIEW_P_H
 #define QP_VERTHEADERVIEW_P_H
 
-#include "private/qabstractitemview_p.h"
+#include "qp/tableview/qp_abstractitemview_p.h"
 
 #ifndef QT_NO_ITEMVIEWS
 
 #include "QtCore/qbitarray.h"
 #include "QtGui/qapplication.h"
 #include "QtGui/qlabel.h"
-#include "QtGui/qp/qp_horheaderview.h"
+#include "qp/tableview/qp_horheaderview.h"
 
 QT_BEGIN_NAMESPACE
 
-class QpVertHeaderViewPrivate: public QAbstractItemViewPrivate
+class QpVertHeaderViewPrivate: public QpAbstractItemViewPrivate
 {
     Q_DECLARE_PUBLIC(QpVertHeaderView)
 
@@ -46,6 +46,7 @@ public:
     enum StateVersion { VersionMarker = 0xff };
 
     static const  bool debug ;
+    static const  bool debug_size ;
     static const  bool debug_select ;
 
     QpVertHeaderViewPrivate( const QpHorHeaderView &Horizontal ) //!!
@@ -62,7 +63,7 @@ public:
           pressed(-1),
           hover(-1),
           length(0),
-          sectionCount(0),
+          section_Count(0),
           movableSections(false),
           clickableSections(false),
           highlightSelected(false),
@@ -96,118 +97,134 @@ public:
 
     bool isSectionSelected(int section) const;
 
-    inline bool rowIntersectsSelection(int row) const {
+    inline bool rowIntersectsSelection(int row) const
+    {
         return (selectionModel ? selectionModel->rowIntersectsSelection(row, root) : false);
     }
 
-    inline bool columnIntersectsSelection(int column) const {
+    inline bool columnIntersectsSelection(int column) const
+    {
         return (selectionModel ? selectionModel->columnIntersectsSelection(column, root) : false);
     }
 
-    inline bool sectionIntersectsSelection(int logical) const {
-        return (orientation == Qt::Horizontal ? columnIntersectsSelection(logical) : rowIntersectsSelection(logical));
+    inline bool sectionIntersectsSelection(int logical) const
+    {
+        return rowIntersectsSelection(logical);
     }
 
-    inline bool isRowSelected(int row) const {
+    inline bool isRowSelected(int row) const
+    {
         return (selectionModel ? selectionModel->isRowSelected(row, root) : false);
     }
 
-//    inline bool isColumnSelected(int column) const {
-//        return (selectionModel ? selectionModel->isColumnSelected(column, root) : false);
-//    }
-
-    inline void prepareSectionSelected() {
+    inline void prepareSectionSelected()
+    {
         if (!selectionModel || !selectionModel->hasSelection())
             sectionSelected.clear();
-        else if (sectionSelected.count() != sectionCount * 2)
-            sectionSelected.fill(false, sectionCount * 2);
+        else if (sectionSelected.count() != section_Count * 2)
+            sectionSelected.fill(false, section_Count * 2);
         else sectionSelected.fill(false);
     }
 
-    inline bool reverse() const {
-        return orientation == Qt::Horizontal && q_func()->isRightToLeft();
+    inline bool reverse() const
+    {
+        return false; //orientation == Qt::Horizontal && q_func()->isRightToLeft();
     }
 
-    inline int logicalIndex(int visualIndex) const {
+    inline int logicalIndex(int visualIndex) const
+    {
         return logicalIndices.isEmpty() ? visualIndex : logicalIndices.at(visualIndex);
     }
 
-    inline int visualIndex(int logicalIndex) const {
+    inline int visualIndex(int logicalIndex) const
+    {
         return visualIndices.isEmpty() ? logicalIndex : visualIndices.at(logicalIndex);
     }
 
     inline void setDefaultValues()
     { //!!
-        defaultSectionSize = qMax(q_func()->minimumSectionSize(), 30);
+        defaultSectionSize = qMax(q_func()->minimumSectionSize(), 55);
 
         defaultAlignment = Qt::AlignLeft|Qt::AlignVCenter;
     }
 
-    inline bool isVisualIndexHidden(int visual) const {
+    inline bool isVisualIndexHidden(int visual) const
+    {
         return !sectionHidden.isEmpty() && sectionHidden.at(visual);
     }
 
-    inline void setVisualIndexHidden(int visual, bool hidden) {
+    inline void setVisualIndexHidden(int visual, bool hidden)
+    {
         if (!sectionHidden.isEmpty()) sectionHidden.setBit(visual, hidden);
     }
 
-    inline bool hasAutoResizeSections() const {
+    inline bool hasAutoResizeSections() const
+    {
         return stretchSections || stretchLastSection || contentsSections;
     }
 
     QStyleOptionHeader getStyleOption() const;
 
-    inline void invalidateCachedSizeHint() const {
+    inline void invalidateCachedSizeHint() const
+    {
         cachedSizeHint = QSize();
     }
 
-    inline void initializeIndexMapping() const {
-        if (visualIndices.count() != sectionCount
-            || logicalIndices.count() != sectionCount) {
-            visualIndices.resize(sectionCount);
-            logicalIndices.resize(sectionCount);
-            for (int s = 0; s < sectionCount; ++s) {
+    inline void initializeIndexMapping() const
+    {
+        if (visualIndices.count() != section_Count
+            || logicalIndices.count() != section_Count)
+        {
+            visualIndices.resize(section_Count);
+            logicalIndices.resize(section_Count);
+
+            for (int s = 0; s < section_Count; ++s)
+            {
                 visualIndices[s] = s;
                 logicalIndices[s] = s;
             }
         }
     }
 
-    inline void clearCascadingSections() {
-        firstCascadingSection = sectionCount;
+    inline void clearCascadingSections()
+    {
+        firstCascadingSection = section_Count;
         lastCascadingSection = 0;
         cascadingSectionSize.clear();
     }
 
-    inline void saveCascadingSectionSize(int visual, int size) {
-        if (!cascadingSectionSize.contains(visual)) {
+    inline void saveCascadingSectionSize(int visual, int size)
+    {
+        if (!cascadingSectionSize.contains(visual))
+        {
             cascadingSectionSize.insert(visual, size);
             firstCascadingSection = qMin(firstCascadingSection, visual);
             lastCascadingSection = qMax(lastCascadingSection, visual);
         }
     }
 
-    inline bool sectionIsCascadable(int visual) const {
+    inline bool sectionIsCascadable(int visual) const
+    {
         return headerSectionResizeMode(visual) == QpVertHeaderView::Interactive;
     }
 
-    inline int modelSectionCount() const {
-        return (orientation == Qt::Horizontal
-                ? model->columnCount(root)
-                : model->rowCount(root));
-    }
+    int modelSectionCount() const;
 
-    inline bool modelIsEmpty() const {
+    inline bool modelIsEmpty() const
+    {
         return (model->rowCount(root) == 0 || model->columnCount(root) == 0);
     }
 
-    inline void doDelayedResizeSections() {
+    inline void doDelayedResizeSections()
+    {
         if (!delayedResize.isActive())
             delayedResize.start(0, q_func());
     }
 
-    inline void executePostedResize() const {
-        if (delayedResize.isActive() && state == NoState) {
+    inline void executePostedResize() const
+    {
+        if (delayedResize.isActive() && state == NoState)
+        {
             const_cast<QpVertHeaderView*>(q_func())->resizeSections();
         }
     }
@@ -245,7 +262,7 @@ public:
     int hover;
 
     int length;
-    int sectionCount;
+    int section_Count;
     bool movableSections;
     bool clickableSections;
     bool highlightSelected;
@@ -281,44 +298,45 @@ public:
 #endif
     };
 
-    QVector<SectionSpan> sectionSpans;
+//    //QVector<SectionSpan> sectionSpans;
 
-    void createSectionSpan(int start, int end, int size, QpVertHeaderView::ResizeMode mode);
-    void removeSectionsFromSpans(int start, int end);
-    void resizeSectionSpan(int visualIndex, int oldSize, int newSize);
+//    void createSectionSpan(int start, int end, int size, QpVertHeaderView::ResizeMode mode);
+//    void removeSectionsFromSpans(int start, int end);
+//    void resizeSectionSpan(int visualIndex, int oldSize, int newSize);
     void setDefaultSectionSize(int size);
 
-    inline int headerSectionCount() const { // for debugging
+    inline int headerSectionCount() const
+    { // for debugging
         int count = 0;
-        for (int i = 0; i < sectionSpans.count(); ++i)
-            count += sectionSpans.at(i).count;
+//        for (int i = 0; i < sectionSpans.count(); ++i)
+//            count += sectionSpans.at(i).count;
         return count;
     }
 
     inline int headerLength() const { // for debugging
         int len = 0;
-        for (int i = 0; i < sectionSpans.count(); ++i)
-            len += sectionSpans.at(i).size;
+//        for (int i = 0; i < sectionSpans.count(); ++i)
+//            len += sectionSpans.at(i).size;
         return len;
     }
 
-    inline void removeSpans(const QList<int> &spans) {
-        for (int i = spans.count() - 1; i >= 0; --i) {
-            length -= sectionSpans.at(spans.at(i)).size;
-            sectionSpans.remove(spans.at(i));
-        }
-    }
+//    inline void removeSpans(const QList<int> &spans) {
+//        for (int i = spans.count() - 1; i >= 0; --i) {
+//            length -= sectionSpans.at(spans.at(i)).size;
+//            sectionSpans.remove(spans.at(i));
+//        }
+//    }
 
-    inline int sectionSpanIndex(int visual) const {
-        int section_start = 0;
-        for (int i = 0; i < sectionSpans.count(); ++i) {
-            int section_end = section_start + sectionSpans.at(i).count - 1;
-            if (visual >= section_start && visual <= section_end)
-                return i;
-            section_start = section_end + 1;
-        }
-        return -1;
-    }
+//    inline int sectionSpanIndex(int visual) const {
+//        int section_start = 0;
+//        for (int i = 0; i < sectionSpans.count(); ++i) {
+//            int section_end = section_start + sectionSpans.at(i).count - 1;
+//            if (visual >= section_start && visual <= section_end)
+//                return i;
+//            section_start = section_end + 1;
+//        }
+//        return -1;
+//    }
 
     int headerSectionSize(int visual) const;
     int headerSectionPosition(int visual) const;

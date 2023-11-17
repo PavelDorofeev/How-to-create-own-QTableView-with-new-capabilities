@@ -3,7 +3,8 @@
 
 #include <QDialog>
 #include <QRadioButton>
-#include <qp/qp_copmmon.h>
+#include <QIntValidator>
+#include "qp/tableview/qp_common.h"
 
 namespace Ui {
 class SectionSettingsDlg;

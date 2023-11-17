@@ -27,8 +27,8 @@
 #ifndef QP_TABLEVIEW_H
 #define QP_TABLEVIEW_H
 
-#include <QtGui/qabstractitemview.h>
-#include <QtGui/qp/qp_horheaderview.h>
+#include "qp/tableview/qp_abstractitemview.h"
+#include "qp/tableview/qp_horheaderview.h"
 #include "QtCore/qbasictimer.h"
 
 
@@ -44,7 +44,7 @@ class QpHorHeaderView;
 class QpVertHeaderView;
 class QpTableViewPrivate;
 
-class Q_GUI_EXPORT QpTableView : public QAbstractItemView
+class __declspec(dllexport) QpTableView : public QpAbstractItemView
 {
     Q_OBJECT
     Q_PROPERTY(bool showGrid READ showGrid WRITE setShowGrid)
@@ -64,6 +64,7 @@ public:
     static const bool debug_paint;
     static const bool debug_event;
     static const bool debug_init;
+    static const bool debug_geometry;
     static const bool debug_paint_row_col;
     static const bool debug_paint_region;
     static const bool debug_paint_border;
@@ -106,6 +107,8 @@ public:
 
     void setLineHeightInRow(int line, int height) const; //!
 
+    int get_section_at( const QPoint & pos);
+
     int rowHeight(int row) const;
 
     bool is_RowSelected(int row); //!!
@@ -147,7 +150,7 @@ public:
 
     void scrollTo(const QModelIndex &index, ScrollHint hint = EnsureVisible);
 
-    QModelIndex indexAt(const QPoint &p) const;
+    qp::SECTION indexAt(const QPoint &p) const;
 
 
     void sortByColumn(int column, Qt::SortOrder order);
@@ -177,6 +180,7 @@ protected Q_SLOTS:
     void rowCountChanged(int oldCount, int newCount);
     void columnCountChanged(int oldCount, int newCount);
     void columnResized_Y(); //!!
+    void slot_clicked( const QModelIndex & idx );
 
 protected:
     QpTableView( QpTableViewPrivate &, Qp_SECTION_TMPL *matrix, QWidget *parent);
@@ -209,6 +213,8 @@ protected:
                           const QItemSelection &deselected);
     void currentChanged(const QModelIndex &current,
                         const QModelIndex &previous);
+
+    void mousePressEvent(QMouseEvent *event);
 
 private:
     friend class QAccessibleItemView;

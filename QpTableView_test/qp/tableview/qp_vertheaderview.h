@@ -1,7 +1,8 @@
 #ifndef QP_VERTHEADERVIEW_H
 #define QP_VERTHEADERVIEW_H
 
-#include <QtGui/qabstractitemview.h>
+#include "qp/tableview/qp_abstractitemview.h"
+#include "qp/tableview/qp_common.h"
 
 QT_BEGIN_HEADER
 
@@ -15,7 +16,7 @@ class QpVertHeaderViewPrivate;
 class QStyleOptionHeader;
 class QpHorHeaderView;
 
-class Q_GUI_EXPORT QpVertHeaderView : public QAbstractItemView
+class __declspec(dllexport) QpVertHeaderView : public QpAbstractItemView
 {
     Q_OBJECT
     Q_PROPERTY(bool showSortIndicator READ isSortIndicatorShown WRITE setSortIndicatorShown)
@@ -49,12 +50,14 @@ public:
     void setModel(QAbstractItemModel *model);
 
     static const bool  debug_paint;
+    static const bool  debug_size;
+    static const bool  debug_init;
     static const bool  debug_select;
     //int row_heigth() const;
 
     int is_rowSelected( int row ) const;
 
-    Qt::Orientation orientation() const;
+    //Qt::Orientation orientation() const;
     int offset() const;
     int length() const;
     QSize sizeHint() const;
@@ -189,7 +192,7 @@ protected:
     QRect visualRect(const QModelIndex &index) const;
     void scrollTo(const QModelIndex &index, ScrollHint hint);
 
-    QModelIndex indexAt(const QPoint &p) const;
+    qp::SECTION indexAt(const QPoint &p) const;
     bool isIndexHidden(const QModelIndex &index) const;
 
     QModelIndex moveCursor(CursorAction, Qt::KeyboardModifiers);

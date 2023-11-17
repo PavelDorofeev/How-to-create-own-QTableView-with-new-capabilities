@@ -1,7 +1,7 @@
 #ifndef QP_COMMON_H
 #define QP_COMMON_H
 
-#include <QtGui/qabstractitemview.h>
+#include <QModelIndex>
 
 QT_BEGIN_HEADER
 
@@ -81,23 +81,23 @@ typedef struct CELL_NODES{
 
 };
 
-typedef struct FONT_PARS{
+//typedef struct FONT_PARS{
 
-    int weight;
-    int pointSize;
-    int pixelSize;
+//    int weight;
+//    int pointSize;
+//    int pixelSize;
 
 
-    FONT_PARS()
-        :
-          weight( QFont::Normal ),
-          pointSize( -1 ),
-          pixelSize( -1 )
-    {
+//    FONT_PARS()
+//        :
+//          weight( QFont::Normal ),
+//          pointSize( -1 ),
+//          pixelSize( -1 )
+//    {
 
-    }
+//    }
 
-};
+//};
 
 typedef struct LABEL_STYLE
 {
@@ -122,6 +122,27 @@ typedef enum FIELD_TYPE
     UNDEFINED_FLD=-1,
     UNKNOWN_VALUE = UNDEFINED_FLD
 };
+
+typedef enum SECTION_TYPE
+{
+    MODEL_FIELD =1,
+    LABEL_FIELD
+};
+
+typedef struct SECTION
+{
+    SECTION_TYPE type;
+    QModelIndex idx;
+
+    SECTION() :
+          type(MODEL_FIELD),
+          idx(QModelIndex())
+    {
+
+    }
+
+};
+
 }
 QT_END_NAMESPACE
 

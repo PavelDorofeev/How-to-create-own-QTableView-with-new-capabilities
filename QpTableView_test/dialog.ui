@@ -150,7 +150,7 @@
            </property>
            <property name="plainText">
             <string>0,1,НАЛ:&gt;,2,3,5
-0,1,БН:&gt;^,4,3,5</string>
+0,1,БН:&gt;,4,3,5</string>
            </property>
           </widget>
          </item>

@@ -41,9 +41,9 @@
 #include <qvarlengtharray.h>
 #include <qabstractitemdelegate.h>
 #include <qvariant.h>
-#include <private/qp_private/qp_horheaderview_p.h>
+#include "qp/tableview/qp_horheaderview_p.h"
 #include <private/qabstractitemmodel_p.h>
-#include <QpTableView>
+//#include "QtGui/qp/qp_tableview.h"
 #include "my_lib/common/dbg.h"
 
 #ifndef QT_NO_DATASTREAM
@@ -56,6 +56,8 @@ QT_BEGIN_NAMESPACE
 const bool QpHorHeaderView::debug = false;
 const bool QpHorHeaderView::debug_line_numX = false;
 const bool QpHorHeaderView::debug_paint = false;
+const bool QpHorHeaderView::debug_offset = false;
+const bool QpHorHeaderView::debug_size = false;
 const bool QpHorHeaderView::debug_selection = false;
 const bool QpHorHeaderView::debug_scroll = false;
 const bool QpHorHeaderView::debug_resize = false;
@@ -69,7 +71,7 @@ const bool QpHorHeaderViewPrivate::debug_resize = false;
 const int qp::CELL_NODES::NODE_UNDEFINED  = -1;
 
 QpHorHeaderView::QpHorHeaderView(Qt::Orientation orientation, QWidget *parent)
-    : QAbstractItemView(*new QpHorHeaderViewPrivate, parent)
+    : QpAbstractItemView(*new QpHorHeaderViewPrivate, parent)
 
 {
     Q_D(QpHorHeaderView);
@@ -82,7 +84,7 @@ QpHorHeaderView::QpHorHeaderView(Qt::Orientation orientation, QWidget *parent)
 */
 QpHorHeaderView::QpHorHeaderView(QpHorHeaderViewPrivate &dd,
                                  Qt::Orientation orientation, QWidget *parent)
-    : QAbstractItemView(dd, parent)
+    : QpAbstractItemView(dd, parent)
 {
     Q_D(QpHorHeaderView);
     d->setDefaultValues(orientation);
@@ -134,6 +136,8 @@ void QpHorHeaderView::setModel(QAbstractItemModel *model , const Qp_SECTION_TMPL
 
     if (d->model && d->model != QAbstractItemModelPrivate::staticEmptyModel())
     {
+        if ( debug_init )  qDebug() << "QpHorHeaderView::setModel QObject::disconnect";
+
         QObject::disconnect(d->model, SIGNAL(columnsInserted(QModelIndex,int,int)),
                             this, SLOT(sectionsInserted(QModelIndex,int,int)));
 
@@ -152,6 +156,8 @@ void QpHorHeaderView::setModel(QAbstractItemModel *model , const Qp_SECTION_TMPL
 
     if (model && model != QAbstractItemModelPrivate::staticEmptyModel())
     {
+        if ( debug_init )  qDebug() << "QpHorHeaderView::setModel QObject::connect";
+
         QObject::connect(model, SIGNAL(columnsInserted(QModelIndex,int,int)),
                          this, SLOT(sectionsInserted(QModelIndex,int,int)));
 
@@ -169,7 +175,7 @@ void QpHorHeaderView::setModel(QAbstractItemModel *model , const Qp_SECTION_TMPL
 
     d->state = QpHorHeaderViewPrivate::NoClear;
 
-    QAbstractItemView::setModel( model );
+    QpAbstractItemView::setModel( model );
 
     d->state = QpHorHeaderViewPrivate::NoState;
 
@@ -205,6 +211,9 @@ Qt::Orientation QpHorHeaderView::orientation() const
 int QpHorHeaderView::offset() const
 {
     Q_D(const QpHorHeaderView);
+
+    if ( debug_offset )  qDebug() << " QpHorHeaderView::offset() : " << d->offset;
+
     return d->offset;
 }
 
@@ -248,22 +257,21 @@ void QpHorHeaderView::setOffset(int newOffset)
 
 
 
-int QpHorHeaderView::logicalIndexAt(int x, int line) const
+int QpHorHeaderView::logicalIndex_at(int x, int line) const
 {
     Q_D(const QpHorHeaderView);
 
     // x - coordinate in viewport
 
-    int visualIdx = d->headerVisualIndexAt2 ( x, line);
+    int logicalIdx = d->headerLogicalIndex_at ( x, line);
 
-    int logicalIdx = logicalIndex ( visualIdx );
 
     return  logicalIdx;
 
     //return logicalIndexAt(ax , line) ; // !!
 }
 
-int QpHorHeaderView::logicalIndexAt(const QPoint &pos) const
+int QpHorHeaderView::logicalIndexAt_xy(const QPoint &pos) const
 {
     // pos - coordinate in viewport
 
@@ -278,11 +286,11 @@ int QpHorHeaderView::logicalIndexAt(const QPoint &pos) const
     const int line = get_section_line( y );
 
     if(line <0 )
-        return -1;
+        return qp::UNKNOWN_VALUE;
 
     int xx = pos.x();
 
-    const int logicalIdx = logicalIndexAt( xx , line );
+    const int logicalIdx = logicalIndex_at( xx , line );
 
     return logicalIdx;
 }
@@ -326,7 +334,7 @@ int QpHorHeaderView::length() const
     if(count == 0 )
         return -1;
 
-    //qDebug() << "QpHorHeaderView::length() " << d->offsets_x.at( count - 1) ;
+    if( debug_resize ) qDebug() << "QpHorHeaderView::length() " << d->offsets_x.at( count - 1) ;
 
     return d->offsets_x.at( count - 1);
 }
@@ -342,12 +350,12 @@ QSize QpHorHeaderView::sizeHint() const
 
     d->cachedSizeHint = QSize(0, 0); //reinitialize the cached size hint
 
-    if( d->offsets_y.count()<=0 )
+//    if( d->offsets_y.count()<=0 )
 
-        return QSize ( 60 , 60 );
+//        return QSize ( 60 , 60 );
 
 
-    int y_max  = d->offsets_y[ d->offsets_y.count() -1 ];
+    int y_max  = d->row_height();
 
     int width_max=0;
 
@@ -363,6 +371,7 @@ QSize QpHorHeaderView::sizeHint() const
         width_max = qMax( width_max , width );
 
     }
+
 
     d->cachedSizeHint = QSize( width_max , y_max );
 
@@ -401,7 +410,7 @@ QSize QpHorHeaderView::sizeHint() const
     //        d->cachedSizeHint = d->cachedSizeHint.expandedTo(hint);
     //    }
 
-    if ( debug )  qDebug() << " QpHorHeaderView::sizeHint() d->cachedSizeHint " << d->cachedSizeHint;
+    if ( debug_size )  qDebug() << " QpHorHeaderView::sizeHint() " << d->cachedSizeHint;
 
     return d->cachedSizeHint;
 }
@@ -502,7 +511,7 @@ int QpHorHeaderView::visualIndexAt(int x, int y) const
     if( line == -1)
         return -1;
 
-    int visual = d->headerVisualIndexAt2( vposition , line );
+    int visual = d->headerLogicalIndex_at( vposition , line );
 
     if (visual < 0)
     {
@@ -560,7 +569,7 @@ int QpHorHeaderView::visualIndexAt_end(int x) const
 
     for( int line=0; line < d->offsets_y.count() - 1; line++)
     {
-        visual_max_idx_into_section = qMax( visual_max_idx_into_section , d->headerVisualIndexAt2( vposition , line )) ;
+        visual_max_idx_into_section = qMax( visual_max_idx_into_section , d->headerLogicalIndex_at( vposition , line )) ;
     }
 
     if (visual_max_idx_into_section < 0)
@@ -705,7 +714,7 @@ int QpHorHeaderView::xNum_size( int xNum ) const
 
     if( xNum < 0 || xNum > d->offsets_x.count()-2 )
     {
-        qDebug() <<  d->offsets_x;
+        if( debug ) qDebug() <<  " offsets_x " << d->offsets_x;
         return 0;
     }
 
@@ -1134,6 +1143,14 @@ void QpHorHeaderView::setLineHeightInRow( int line, int newHeight)
 
     d->set_line_height( line, newHeight );
 
+    int cnt = d->offsets_y.count();
+
+    if( cnt > 0)
+    {
+        int hh = d->offsets_y.value( cnt );
+        setMinimumHeight( hh);
+    }
+
 }
 
 void QpHorHeaderView::setSectionHidden(int logicalIndex, bool hide)
@@ -1310,10 +1327,6 @@ int QpHorHeaderView::logicalIndex(int visualIndex) const
 
     return visualIndex;
 
-    //    if (visualIndex < 0 || visualIndex >= d->sectionCount)
-    //        return -1;
-
-    //    return d->logicalIndex(visualIndex);
 }
 
 int QpHorHeaderView::logicalIndex_atNum_x_line(int num_x, int line) const
@@ -1736,7 +1749,7 @@ void QpHorHeaderView::setDefaultAlignment(Qt::Alignment alignment)
 void QpHorHeaderView::doItemsLayout()
 {
     initializeSections();
-    QAbstractItemView::doItemsLayout();
+    QpAbstractItemView::doItemsLayout();
 }
 
 /*!
@@ -1824,7 +1837,7 @@ bool QpHorHeaderView::restoreState(const QByteArray &state)
 */
 void QpHorHeaderView::reset()
 {
-    QAbstractItemView::reset();
+    QpAbstractItemView::reset();
     // it would be correct to call clear, but some apps rely
     // on the header keeping the sections, even after calling reset
     //d->clear();
@@ -2288,6 +2301,8 @@ void QpHorHeaderView::initializeSections()
     const int oldCount = d->sectionCount;
     const int newCount = d->modelSectionCount();
 
+    if ( debug_init ) qDebug() << "QpHorHeaderView::initializeSections() d->sectionCount " << d->sectionCount;
+
     if (newCount <= 0)
     {
         d->clear();
@@ -2446,7 +2461,7 @@ bool QpHorHeaderView::event(QEvent *e)
 
         QHoverEvent *he = static_cast<QHoverEvent*>(e);
 
-        d->hover = logicalIndexAt( he->pos());
+        d->hover = logicalIndexAt_xy( he->pos());
 
         if (d->hover != -1)
             updateSection(d->hover);
@@ -2470,7 +2485,7 @@ bool QpHorHeaderView::event(QEvent *e)
 
         int oldHover = d->hover;
 
-        d->hover = logicalIndexAt( he->pos() );
+        d->hover = logicalIndexAt_xy( he->pos() );
 
         if (d->hover != oldHover)
         {
@@ -2498,7 +2513,7 @@ bool QpHorHeaderView::event(QEvent *e)
     default:
         break;
     }
-    return QAbstractItemView::event(e);
+    return QpAbstractItemView::event(e);
 }
 
 
@@ -2695,7 +2710,7 @@ void QpHorHeaderView::mousePressEvent(QMouseEvent *e)
 
     if (handle == -1)
     {
-        d->pressed = logicalIndexAt( e->pos()  );
+        d->pressed = logicalIndexAt_xy( e->pos()  );
 
         if ( debug )
             qDebug() << "       d->pressed " << d->pressed;
@@ -2904,7 +2919,7 @@ void QpHorHeaderView::mouseMoveEvent(QMouseEvent *e)
     }
     case QpHorHeaderViewPrivate::SelectSections:
     {
-        int logical = logicalIndexAt( e->pos() );
+        int logical = logicalIndexAt_xy( e->pos() );
 
         if (logical == d->pressed)
             return; // nothing to do
@@ -2997,7 +3012,7 @@ void QpHorHeaderView::mouseReleaseEvent(QMouseEvent *e)
 
         if (!d->clickableSections)
         {
-            int section = logicalIndexAt( e->pos() );
+            int section = logicalIndexAt_xy( e->pos() );
 
             updateSection(section);
         }
@@ -3007,7 +3022,7 @@ void QpHorHeaderView::mouseReleaseEvent(QMouseEvent *e)
 
         if (d->clickableSections)
         {
-            int section = logicalIndexAt( e->pos() );
+            int section = logicalIndexAt_xy( e->pos() );
 
             if (section != -1 && section == d->pressed)
             {
@@ -3078,7 +3093,7 @@ void QpHorHeaderView::mouseDoubleClickEvent(QMouseEvent *e)
     }
     else
     {
-        emit sectionDoubleClicked(logicalIndexAt(e->pos()));
+        emit sectionDoubleClicked(logicalIndexAt_xy(e->pos()));
     }
 }
 
@@ -3096,7 +3111,7 @@ bool QpHorHeaderView::viewportEvent(QEvent *e)
     case QEvent::ToolTip:
     {
         QHelpEvent *he = static_cast<QHelpEvent*>(e);
-        int logical = logicalIndexAt(he->pos());
+        int logical = logicalIndexAt_xy(he->pos());
 
         if (logical != -1)
         {
@@ -3114,7 +3129,7 @@ bool QpHorHeaderView::viewportEvent(QEvent *e)
     case QEvent::QueryWhatsThis:
     {
         QHelpEvent *he = static_cast<QHelpEvent*>(e);
-        int logical = logicalIndexAt(he->pos());
+        int logical = logicalIndexAt_xy(he->pos());
 
         if (logical != -1
                 && d->model->headerData(logical, Qt::Horizontal, Qt::WhatsThisRole).isValid())
@@ -3124,7 +3139,7 @@ bool QpHorHeaderView::viewportEvent(QEvent *e)
     case QEvent::WhatsThis:
     {
         QHelpEvent *he = static_cast<QHelpEvent*>(e);
-        int logical = logicalIndexAt(he->pos());
+        int logical = logicalIndexAt_xy(he->pos());
 
         if (logical != -1)
         {
@@ -3143,7 +3158,7 @@ bool QpHorHeaderView::viewportEvent(QEvent *e)
     case QEvent::StatusTip:
     {
         QHelpEvent *he = static_cast<QHelpEvent*>(e);
-        int logical = logicalIndexAt(he->pos());
+        int logical = logicalIndexAt_xy(he->pos());
 
         if (logical != -1)
         {
@@ -3181,7 +3196,7 @@ bool QpHorHeaderView::viewportEvent(QEvent *e)
     default:
         break;
     }
-    return QAbstractItemView::viewportEvent(e);
+    return QpAbstractItemView::viewportEvent(e);
 }
 
 void QpHorHeaderView::paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const
@@ -3552,9 +3567,9 @@ void QpHorHeaderView::scrollTo(const QModelIndex &, ScrollHint)
 }
 
 
-QModelIndex QpHorHeaderView::indexAt(const QPoint &) const
+qp::SECTION QpHorHeaderView::indexAt(const QPoint &) const
 {
-    return QModelIndex();
+    return qp::SECTION();
 }
 
 
@@ -3631,7 +3646,7 @@ line1     0      1      3      4     5
         //  protect unequal length of lines
         // ------------------------------------------------------
 
-        if ( debug_init ) qDebug() << "line: " << line;
+        if ( debug_line_numX ) qDebug() << "line: " << line;
 
         if( line_lenght != lst.count() && line_lenght != -1)
         {
@@ -3957,8 +3972,11 @@ yy
 
     setMinimumSize( sz.width(), d->row_height());
 
+    //setMinimumHeight
+
     if ( debug_init ) qDebug() << "length " << d->length_x;
     if ( debug_init ) qDebug() << "d->map.count() " << d->map.count();
+
 
     return true;
 
@@ -3978,7 +3996,7 @@ void QpHorHeaderView::setSelection(const QRect&, QItemSelectionModel::SelectionF
 QRegion QpHorHeaderView::visualRegionForSelection(const QItemSelection &selection) const
 {
 
-    //QAbstractItemView::visualRegionForSelection()
+    //QpAbstractItemView::visualRegionForSelection()
 
     Q_D(const QpHorHeaderView);
 
@@ -4404,7 +4422,7 @@ void QpHorHeaderViewPrivate::resizeSections(QpHorHeaderView::ResizeMode globalMo
     Q_Q(QpHorHeaderView);
 
 
-    if ( debug )        qDebug() << "QpHorHeaderViewPrivate::resizeSections globalMode:"<<globalMode<< "  useGlobalMode:"<<useGlobalMode ;
+    if ( debug_resize )        qDebug() << "QpHorHeaderViewPrivate::resizeSections globalMode:"<<globalMode<< "  useGlobalMode:"<<useGlobalMode ;
 
     //  stop the timer in case it is delayed
     delayedResize.stop();
@@ -4558,6 +4576,13 @@ void QpHorHeaderViewPrivate::resizeSections(QpHorHeaderView::ResizeMode globalMo
     viewport->update();
 }
 
+
+int QpHorHeaderViewPrivate::modelSectionCount() const
+{
+    //if ( debug_resize ) qDebug() << "Hor  modelSectionCount() " << model->rowCount( root );
+
+    return  model->columnCount(root);
+}
 
 void QpHorHeaderViewPrivate::clear()
 {
@@ -4980,7 +5005,7 @@ const QRect QpHorHeaderViewPrivate::headerSectionPosition2(int logicalColNum) co
 //}
 
 
-int QpHorHeaderViewPrivate::headerVisualIndexAt2(int x , int line) const
+int QpHorHeaderViewPrivate::headerLogicalIndex_at( int x , int line) const
 {
     // x - coordinate in viewport
 
@@ -5016,11 +5041,11 @@ int QpHorHeaderViewPrivate::headerVisualIndexAt2(int x , int line) const
 
             else if( visual_matrix [ line ] [ col - 1 ].type() == QVariant::String )
 
-                return qp::UNDEFINED_FLD;
+                return qp::LABEL_FLD;
         }
     }
 
-    return -1;
+    return qp::UNDEFINED_FLD;
 }
 
 void QpHorHeaderViewPrivate::setHeaderSectionResizeMode(int visual, QpHorHeaderView::ResizeMode mode)
@@ -5046,7 +5071,7 @@ void QpHorHeaderViewPrivate::setGlobalHeaderResizeMode(QpHorHeaderView::ResizeMo
 
 int QpHorHeaderViewPrivate::viewSectionSizeHint(int logical) const
 {
-    if (QAbstractItemView *view = qobject_cast<QAbstractItemView*>(parent))
+    if (QpAbstractItemView *view = qobject_cast<QpAbstractItemView*>(parent))
     {
         return  view->sizeHintForColumn(logical);
     }

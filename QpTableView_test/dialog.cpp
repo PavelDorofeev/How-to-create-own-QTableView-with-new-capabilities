@@ -12,7 +12,7 @@
 #include "delegates/combobox_delegate.h"
 #include "app_def.h"
 #include "logging_system/logging_system.h"
-#include "qp/qp_tableview.h"
+#include "qp/tableview/qp_tableview.h"
 #include "section_settings_dlg.h"
 
 
@@ -27,11 +27,11 @@ Dialog::Dialog(QWidget *parent) :
     setWindowTitle( QString::fromUtf8("QpTableView с шаблоном расположения секций"));
 
 
-    ui->tableView->setSelectionBehavior( (QAbstractItemView::SelectionBehavior )ui->cmb_SelectionBehavoir->currentIndex());
+    ui->tableView->setSelectionBehavior( (QpAbstractItemView::SelectionBehavior )ui->cmb_SelectionBehavoir->currentIndex());
 
     ui->cmb_SelectionMode->setCurrentIndex(QAbstractItemView::MultiSelection );
 
-    ui->tableView->setSelectionMode( (QAbstractItemView::SelectionMode )ui->cmb_SelectionMode->currentIndex());
+    ui->tableView->setSelectionMode( (QpAbstractItemView::SelectionMode )ui->cmb_SelectionMode->currentIndex());
 
     ui->tableView->setGridStyle( Qt::DotLine);
 
@@ -342,7 +342,7 @@ void Dialog::on_cmb_SelectionBehavoir_activated(int index)
 {
     ui->tableView->clearSelection();
 
-    ui->tableView->setSelectionBehavior( (QAbstractItemView::SelectionBehavior )index);
+    ui->tableView->setSelectionBehavior( (QpAbstractItemView::SelectionBehavior )index);
 
 }
 
@@ -351,7 +351,7 @@ void Dialog::on_cmb_SelectionMode_activated(int index)
 {
     ui->tableView->clearSelection();
 
-    ui->tableView->setSelectionMode( (QAbstractItemView::SelectionMode )index);
+    ui->tableView->setSelectionMode( (QpAbstractItemView::SelectionMode )index);
 
 }
 
@@ -366,14 +366,14 @@ void Dialog::slot_aaa(const QModelIndex& idx)
 
 }
 
-void Dialog::slot_settinggs_edit(const QPoint& pp)
+void Dialog::slot_settinggs_edit( const QPoint& pp )
 {
 
-    QModelIndex idx = ui->tableView->indexAt( pp );
+    qp::SECTION sect = ui->tableView->indexAt( pp );
 
     //QFont fnt = ui->tableView->get_section_font( idx.column() );
 
-    QPair<qp::LABEL_STYLE,qp::LABEL_STYLE> pair = ui->tableView->get_section_style( idx.column() ) ;
+    QPair<qp::LABEL_STYLE,qp::LABEL_STYLE> pair = ui->tableView->get_section_style( sect.idx.column() ) ;
 
     qDebug() << "slot_bbb pair.first.fnt " << pair.first.fnt;
     qDebug() << "        pair.second.fnt " << pair.second.fnt;
@@ -387,6 +387,6 @@ void Dialog::slot_settinggs_edit(const QPoint& pp)
 
     qDebug() << "slot_bbb : dlg.align: " << dlg.currStyles.align;
 
-    ui->tableView->set_section_style( idx.column() , dlg.currStyles );
+    ui->tableView->set_section_style( sect.idx.column() , dlg.currStyles );
 }
 

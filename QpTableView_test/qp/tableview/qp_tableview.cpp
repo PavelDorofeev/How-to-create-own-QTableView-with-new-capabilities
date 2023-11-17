@@ -26,8 +26,11 @@
 #include "qp_tableview.h"
 
 #ifndef QT_NO_TABLEVIEW
-#include <QtGui/qp/qp_horheaderview.h>
-#include <QtGui/qp/qp_vertheaderview.h>
+
+#include "qp/tableview/qp_horheaderview.h"
+#include "qp/tableview/qp_vertheaderview.h"
+#include "qp/tableview/qp_tableview_p.h"
+
 #include <qitemdelegate.h>
 #include <qapplication.h>
 #include <qpainter.h>
@@ -38,8 +41,7 @@
 #include <qscrollbar.h>
 #include <qabstractbutton.h>
 #include <QStyledItemDelegate>
-//#include "private/QStyledItemDelegatePrivate>
-#include <private/qp_private/qp_tableview_p.h>
+
 #ifndef QT_NO_ACCESSIBILITY
 #include <qaccessible.h>
 #endif
@@ -53,15 +55,18 @@ const int QpTableView::defaultRowHeight = 60;
 const bool QpTableView::debug = false;
 const bool QpTableView::debug_paint = false;
 const bool QpTableView::debug_init = false;
+const bool QpTableView::debug_geometry = false;
 const bool QpTableView::debug_event = false;
 const bool QpTableView::debug_paint_region = false;
 const bool QpTableView::debug_paint_row_col = false;
 const bool QpTableView::debug_paint_border = false;
-const bool QpTableView::debug_selection = false;
+
+const bool QpTableView::debug_selection = true;
+const bool QpTableViewPrivate::debug_selection = true;
+
 const bool QpTableView::debug_scroll = false;
 const bool QpTableViewPrivate::debug = false;
 const bool QpTableViewPrivate::debug_init = false;
-const bool QpTableViewPrivate::debug_selection = false;
 
 const int QpTableView::correct_width_minus_1 = -1;
 const int QpTableView::correct_height_minus_1 = -1;
@@ -97,7 +102,7 @@ void QpTableViewPrivate::init(  )
 
     if ( debug_init ) qDebug() << "QpTableViewPrivate::init()" ;
 
-    q->setEditTriggers( editTriggers|QAbstractItemView::AnyKeyPressed);
+    q->setEditTriggers( editTriggers |QpAbstractItemView::AnyKeyPressed);
 
     QpHorHeaderView *horizontal = new QpHorHeaderView( Qt::Horizontal, q);
 
@@ -115,7 +120,9 @@ void QpTableViewPrivate::init(  )
 
     cornerWidget = new QTableCornerButton2(q);
     cornerWidget->setFocusPolicy(Qt::NoFocus);
-    QObject::connect(cornerWidget, SIGNAL(clicked()), q, SLOT(selectAll()));
+
+    Q_ASSERT ( QObject::connect(cornerWidget, SIGNAL(clicked()), q, SLOT(selectAll())) == true);
+
 
 }
 
@@ -180,7 +187,7 @@ void QpTableViewPrivate::drawCellLabel(QPainter *painter, const QStyleOptionView
     QModelIndex index = model->index( row, 0 , root);
 
 
-    if(  selectionModel && q->selectionBehavior() == QAbstractItemView::SelectRows  &&  index.isValid() )
+    if(  selectionModel && q->selectionBehavior() == QpAbstractItemView::SelectRows  &&  index.isValid() )
     {
         if (selectionModel && selectionModel->isSelected(index))
         {
@@ -286,31 +293,11 @@ void QpTableViewPrivate::drawCell(QPainter *painter, const QStyleOptionViewItemV
 
         painterChanged = true;
 
-
-        QFont fnt = painter->font();
-
-        if( index.column() ==5 && index.row() ==0 )
-        {
-//            qDebug() << "1 drawCell opt.font " << opt.font;
-//            qDebug() << "1 drawCell painter->font() " << painter->font();
-//            qDebug() << "1 drawCell stls[ col ].fnt " << stls.value( col ).fnt;
-        }
-
         QFontMetrics fntMtr = painter->fontMetrics();
 
-        correctStyle( stls[ col ], fnt , opt);
+        correct_Style( stls[ col ], opt);
 
-        painter->setFont( fnt ); // this is set font size
-
-        if( opt.font != fnt )
-            opt.font = fnt; // here set font size ()
-
-        if( index.column() ==5 && index.row() ==0 )
-        {
-//            qDebug() << "2 drawCell opt.font " << opt.font;
-//            qDebug() << "2 drawCell painter->font() " << painter->font();
-//            qDebug() << "2 drawCell stls[ col ].fnt " << stls.value( col ).fnt;
-        }
+        painter->setFont( opt.font ); // this is set font size
 
     }
 
@@ -332,7 +319,7 @@ void QpTableViewPrivate::drawCell(QPainter *painter, const QStyleOptionViewItemV
 
 QpTableView::QpTableView( QWidget *parent, Qp_SECTION_TMPL *matrix)
     :
-      QAbstractItemView(*new QpTableViewPrivate, parent),
+      QpAbstractItemView(*new QpTableViewPrivate, parent),
       delayed_Repaint_tmr(0),
       row_selected(-1)
 {
@@ -340,14 +327,18 @@ QpTableView::QpTableView( QWidget *parent, Qp_SECTION_TMPL *matrix)
 
     d->init( );
 
+
+    Q_ASSERT ( connect(this, SIGNAL( clicked(QModelIndex) ),
+                       this , SLOT( slot_clicked(QModelIndex)) ) == true);
+
     //viewport()->setBackgroundRole( QPalette::Button );
     //setBackgroundRole( QPalette::Button ); //!!
-    if(debug) qDebug() << "ctor QpTableView::QTableView2(QWidget *parent): QAbstractItemView(*new QpTableViewPrivate, parent) backgroundRole:" <<  backgroundRole();
+    if(debug) qDebug() << "ctor QpTableView::QpTableView(QWidget *parent): QpAbstractItemView(*new QpTableViewPrivate, parent) backgroundRole:" <<  backgroundRole();
 
 }
 
 QpTableView::QpTableView(QpTableViewPrivate &dd,  Qp_SECTION_TMPL *matrix, QWidget *parent)
-    : QAbstractItemView(dd, parent),
+    : QpAbstractItemView(dd, parent),
       row_selected(-1)
 {
     Q_D(QpTableView);
@@ -355,7 +346,7 @@ QpTableView::QpTableView(QpTableViewPrivate &dd,  Qp_SECTION_TMPL *matrix, QWidg
 
     d->init( );
 
-    if( debug ) qDebug() << "ctor QTableView2 (QpTableViewPrivate&, QWidget *) backgroundRole:" << backgroundRole();
+    if( debug ) qDebug() << "ctor QpTableView (QpTableViewPrivate&, QWidget *) backgroundRole:" << backgroundRole();
     //viewport()->setBackgroundRole( QPalette::Button );
     //setBackgroundRole( QPalette::Button ); //!!
 
@@ -413,7 +404,7 @@ void QpTableView::setModel (QAbstractItemModel *model , const Qp_SECTION_TMPL & 
 
     d->verticalHeader->setModel( model );
 
-    QAbstractItemView::setModel(model);
+    QpAbstractItemView::setModel(model);
 }
 
 /*!
@@ -432,7 +423,7 @@ void QpTableView::setRootIndex(const QModelIndex &index)
 
     d->horizontalHeader->setRootIndex(index);
 
-    QAbstractItemView::setRootIndex(index);
+    QpAbstractItemView::setRootIndex(index);
 }
 
 /*!
@@ -442,11 +433,11 @@ void QpTableView::doItemsLayout()
 {
     Q_D(QpTableView);
 
-    QAbstractItemView::doItemsLayout();
+    QpAbstractItemView::doItemsLayout();
 
     if( debug_scroll) qDebug() << "QpTableView::doItemsLayout() verticalScrollBar()->value()" << verticalScrollBar()->value();
 
-    if (verticalScrollMode() == QAbstractItemView::ScrollPerItem)
+    if (verticalScrollMode() == QpAbstractItemView::ScrollPerItem)
 
         d->verticalHeader->setOffsetToSectionPosition(verticalScrollBar()->value());
 
@@ -465,7 +456,7 @@ void QpTableView::doItemsLayout()
 */
 void QpTableView::setSelectionModel(QItemSelectionModel *selectionModel)
 {
-    qDebug() << "QpTableView::setSelectionModel "<<selectionModel;
+    if ( debug_init ) qDebug() << "QpTableView::setSelectionModel "<<selectionModel;
 
     Q_D(QpTableView);
 
@@ -475,7 +466,7 @@ void QpTableView::setSelectionModel(QItemSelectionModel *selectionModel)
 
     d->horizontalHeader->setSelectionModel(selectionModel);
 
-    QAbstractItemView::setSelectionModel(selectionModel);
+    QpAbstractItemView::setSelectionModel(selectionModel);
 }
 
 
@@ -541,8 +532,19 @@ void QpTableView::setHorizontalHeader(QpHorHeaderView *header)
 }
 
 
+void QpTableView::slot_clicked(const QModelIndex & idx)
+{
+    if( selectionBehavior() ==  SelectRows )
+        if ( idx.isValid())
+        {
+            selectRow( idx.row() );
+        }
+
+}
+
 void QpTableView::setVerticalHeader(QpVertHeaderView *header)
 {
+
     Q_D(QpTableView);
 
     if (!header || header == d->verticalHeader)
@@ -562,23 +564,23 @@ void QpTableView::setVerticalHeader(QpVertHeaderView *header)
             d->verticalHeader->setSelectionModel(d->selectionModel);
     }
 
-    connect(d->verticalHeader, SIGNAL(sectionResized(int,int,int)),
-            this, SLOT(rowResized(int,int,int)));
+    Q_ASSERT (connect(d->verticalHeader, SIGNAL(sectionResized(int,int,int)),
+                      this, SLOT(rowResized(int,int,int)))== true );
 
-    connect(d->verticalHeader, SIGNAL(sectionMoved(int,int,int)),
-            this, SLOT(rowMoved(int,int,int)));
+    Q_ASSERT (connect(d->verticalHeader, SIGNAL(sectionMoved(int,int,int)),
+                      this, SLOT(rowMoved(int,int,int)))== true );
 
-    connect(d->verticalHeader, SIGNAL(sectionCountChanged(int,int)),
-            this, SLOT(rowCountChanged(int,int)));
+    Q_ASSERT (connect(d->verticalHeader, SIGNAL(sectionCountChanged(int,int)),
+                      this, SLOT(rowCountChanged(int,int)))== true );
 
-    connect(d->verticalHeader, SIGNAL(sectionPressed(int)), this, SLOT(selectRow(int)));
+    Q_ASSERT (connect(d->verticalHeader, SIGNAL(sectionPressed(int)), this, SLOT(selectRow(int))) == true );
 
-    connect(d->verticalHeader, SIGNAL(sectionEntered(int)), this, SLOT(_q_selectRow(int)));
+    Q_ASSERT ( connect(d->verticalHeader, SIGNAL(sectionEntered(int)), this, SLOT( _q_selectRow(int) )) == true );
 
-    connect(d->verticalHeader, SIGNAL(sectionHandleDoubleClicked(int)),
-            this, SLOT(resizeRowToContents(int)));
+    Q_ASSERT (connect(d->verticalHeader, SIGNAL(sectionHandleDoubleClicked(int)),
+                      this, SLOT(resizeRowToContents(int))) == true );
 
-    connect(d->verticalHeader, SIGNAL(geometriesChanged()), this, SLOT(updateGeometries()));
+    Q_ASSERT (connect(d->verticalHeader, SIGNAL(geometriesChanged()), this, SLOT(updateGeometries())) == true );
 }
 
 
@@ -596,7 +598,7 @@ void QpTableView::scrollContentsBy(int dx, int dy)
 
     if (dx)
     {
-        if ( horizontalScrollMode() == QAbstractItemView::ScrollPerItem )
+        if ( horizontalScrollMode() == QpAbstractItemView::ScrollPerItem )
         {
             int oldOffset = d->horizontalHeader->offset();
 
@@ -623,7 +625,7 @@ void QpTableView::scrollContentsBy(int dx, int dy)
 
     if (dy)
     {
-        if (verticalScrollMode() == QAbstractItemView::ScrollPerItem)
+        if (verticalScrollMode() == QpAbstractItemView::ScrollPerItem)
         {
             int oldOffset = d->verticalHeader->offset();
 
@@ -676,7 +678,7 @@ void QpTableView::scrollContentsBy(int dx, int dy)
 
 QStyleOptionViewItem QpTableView::viewOptions() const
 {
-    QStyleOptionViewItem option = QAbstractItemView::viewOptions();
+    QStyleOptionViewItem option = QpAbstractItemView::viewOptions();
 
     option.showDecorationSelected = true;
 
@@ -785,7 +787,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
     QBitArray drawn( sz );
 
-     if ( debug_paint ) qDebug() << "QBitArray drawn " << drawn.size() << " num_y_cnt:"<<num_y_cnt << " num_x_cnt:"<<num_x_cnt;
+    if ( debug_paint ) qDebug() << "QBitArray drawn " << drawn.size() << " num_y_cnt:"<<num_y_cnt << " num_x_cnt:"<<num_x_cnt;
 
     //drawn.resize( );
 
@@ -838,7 +840,10 @@ void QpTableView::paintEvent(QPaintEvent *event)
         int bottom = verticalHeader->visualIndexAt( dirtyArea.bottom() );
 
         if (bottom == -1)
-            bottom = verticalHeader->count() - 1;
+        {
+            int btm = verticalHeader->count() - 1;
+            bottom = btm;
+        }
 
         int top = 0;
 
@@ -920,7 +925,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
                         QVariant var = horizontalHeader->cellLabelValue( line , numX );
 
                         //bool rowSel = is_RowSelected( row );
-                        if( selectionBehavior()  == QAbstractItemView::SelectRows)
+                        if( selectionBehavior()  == QpAbstractItemView::SelectRows)
                         {
 
                         }
@@ -929,7 +934,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
                         if( rowSel )
                         {
-                             if ( debug_paint ) qDebug() <<"        rowSel " << rowSel << " row "<< row;
+                            if ( debug_paint ) qDebug() <<"        rowSel " << rowSel << " row "<< row;
                         }
 
                         if( debug_paint_row_col ) qDebug() << "               numX:"  << numX << "  label : "<< var.toString().toUtf8();
@@ -970,7 +975,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
                         if ( ! rect.isValid() )
                         {
-                             qDebug() << "wrong rect for logicalIndex:"<<logicalIndex;
+                            qDebug() << "wrong rect for logicalIndex:"<<logicalIndex;
                             continue;
                         }
 
@@ -1123,7 +1128,39 @@ void QpTableView::paintEvent(QPaintEvent *event)
             Returns the index position of the model item corresponding to the
             table item at position \a pos in contents coordinates.
         */
-QModelIndex QpTableView::indexAt(const QPoint &pos) const
+
+int QpTableView::get_section_at( const QPoint & pos)
+{
+    Q_D(QpTableView);
+
+    int logicalIndex =  horizontalHeader()->logicalIndexAt_xy( pos );
+
+    return logicalIndex;
+}
+
+void QpTableView::mousePressEvent(QMouseEvent *event)
+{
+    Q_D(QpTableView);
+
+    d->delayedAutoScroll.stop(); //any interaction with the view cancel the auto scrolling
+
+    QPoint pos = event->pos();
+
+    QModelIndex idx = indexAt( pos ).idx;
+
+    if( idx.column() == qp::LABEL_FLD )
+        if( selectionBehavior() == QpAbstractItemView::SelectRows )
+        {
+            selectRow( idx.row());
+            return;
+        }
+
+
+    QpAbstractItemView::mousePressEvent(event);
+
+}
+
+qp::SECTION QpTableView::indexAt(const QPoint &pos) const
 {
     Q_D(const QpTableView);
 
@@ -1144,18 +1181,30 @@ QModelIndex QpTableView::indexAt(const QPoint &pos) const
 
     int col = columnAt( x , y ) ; // columnAt uses only here (nothing anymore)
 
-    //if( debug ) qDebug() << "   TableView2::indexAt(pos"<<pos<<")  r:"<<row << "  c:"<<col;
+    qp::SECTION section;
 
-    if (row >= 0 && col >= 0)
+    if( col == qp::LABEL_FLD)
+    {
+        QModelIndex idx = d->model->index(row, 0, d->root);
+
+        section.type = qp::LABEL_FIELD;
+        section.idx = idx;
+
+        return  section;
+    }
+    else if ( row >= 0 && col >= 0 )
     {
         QModelIndex idx = d->model->index(row, col, d->root);
 
-        if( debug_selection ) qDebug() << "   TableView2::indexAt pos "<<pos << " idx " << idx;
+        if( debug_selection ) qDebug() << "   QpTableView::indexAt pos "<<pos << " idx " << idx;
 
-        return idx;
+        section.type = qp::MODEL_FIELD;
+        section.idx = idx;
+
+        return section;
     }
 
-    return QModelIndex();
+    return section;
 }
 
 /*!
@@ -1193,7 +1242,7 @@ int QpTableView::verticalOffset() const
             Moves the cursor in accordance with the given \a cursorAction, using the
             information provided by the \a modifiers.
 
-            \sa QAbstractItemView::CursorAction
+            \sa QpAbstractItemView::CursorAction
         */
 QModelIndex QpTableView::moveCursor(CursorAction cursorAction, Qt::KeyboardModifiers modifiers)
 {
@@ -1484,12 +1533,12 @@ void QpTableView::setSelection(const QRect &rect, QItemSelectionModel::Selection
 {
     Q_D(QpTableView);
 
-    //if( debug_selection ) qDebug() << "QpTableView::setSelection rect" << rect;
+    if( debug_selection ) qDebug() << "QpTableView::setSelection rect" << rect;
 
-    QModelIndex tl = indexAt( QPoint( qMin(rect.left(), rect.right()), qMin(rect.top(), rect.bottom())));
+    QModelIndex tl = indexAt( QPoint( qMin(rect.left(), rect.right()), qMin(rect.top(), rect.bottom()))).idx;
 
 
-    QModelIndex br = indexAt( QPoint( qMax(rect.left(), rect.right()), qMax(rect.top(), rect.bottom())));
+    QModelIndex br = indexAt( QPoint( qMax(rect.left(), rect.right()), qMax(rect.top(), rect.bottom()))).idx;
 
     //if( debug_selection ) qDebug() << "QpTableView::setSelection rect" << rect << "  tl "<< tl << " br " << br;
 
@@ -1766,9 +1815,15 @@ void QpTableView::rowCountChanged(int oldCount, int newCount )
     Q_D(QpTableView);
     //when removing rows, we need to disable updates for the header until the geometries have been
     //updated and the offset has been adjusted, or we risk calling paintSection for all the sections
+
+    if ( debug_paint ) qDebug() << "QpTableView::rowCountChanged oldCount " <<oldCount << " newCount " << newCount;
+
     if (newCount < oldCount)
         d->verticalHeader->setUpdatesEnabled(false);
+
     d->doDelayedItemsLayout();
+
+    //qDebug() << "2 rowCountChanged oldCount " <<oldCount << " newCount " << newCount;
 }
 
 /*!
@@ -1780,7 +1835,7 @@ void QpTableView::columnCountChanged(int, int)
 {
     Q_D(QpTableView);
     updateGeometries();
-    if (horizontalScrollMode() == QAbstractItemView::ScrollPerItem)
+    if (horizontalScrollMode() == QpAbstractItemView::ScrollPerItem)
         d->horizontalHeader->setOffsetToSectionPosition(horizontalScrollBar()->value());
     else
         d->horizontalHeader->setOffset(horizontalScrollBar()->value());
@@ -1822,7 +1877,7 @@ void QpTableView::updateGeometries()
 
         height = qMin( height, d->horizontalHeader->maximumHeight() );
 
-        qDebug() << " setViewportMargins width:" << width << " height:" << height << " maximumHeight(): " << d->horizontalHeader->maximumHeight() << " minimumHeight():" <<d->horizontalHeader->minimumHeight();
+        if ( debug_geometry ) qDebug() << " setViewportMargins width:" << width << " height:" << height << " maximumHeight(): " << d->horizontalHeader->maximumHeight() << " minimumHeight():" <<d->horizontalHeader->minimumHeight();
     }
 
     setViewportMargins( width, height, 0, 0);
@@ -1915,7 +1970,7 @@ void QpTableView::updateGeometries()
 
     xNumsInViewport = qMax(xNumsInViewport, 1); //there must be always at least 1 column
 
-    if (horizontalScrollMode() == QAbstractItemView::ScrollPerItem)
+    if (horizontalScrollMode() == QpAbstractItemView::ScrollPerItem)
     {
         const int visibleColumns = xNumCount - d->horizontalHeader->hiddenSectionCount();
 
@@ -1949,12 +2004,15 @@ void QpTableView::updateGeometries()
     // --------------------------------------------------
 
     const int rowCount = d->verticalHeader->count();
+
     const int viewportHeight = vsize.height();
     int rowsInViewport = 0;
+
 
     for (int height = 0, row = rowCount - 1; row >= 0; --row)
     {
         int logical = d->verticalHeader->logicalIndex(row);
+
         if (!d->verticalHeader->isSectionHidden(logical))
         {
             height += d->verticalHeader->sectionSize(logical);
@@ -1965,9 +2023,11 @@ void QpTableView::updateGeometries()
             ++rowsInViewport;
         }
     }
+
+
     rowsInViewport = qMax(rowsInViewport, 1); //there must be always at least 1 row
 
-    if (verticalScrollMode() == QAbstractItemView::ScrollPerItem)
+    if (verticalScrollMode() == QpAbstractItemView::ScrollPerItem)
     {
         const int visibleRows = rowCount - d->verticalHeader->hiddenSectionCount();
 
@@ -1979,16 +2039,21 @@ void QpTableView::updateGeometries()
             d->verticalHeader->setOffset(0);
 
         verticalScrollBar()->setSingleStep(1);
+
+        if( rowCount == 30 )
+            qDebug() << "updateGeometries 30";
+
+        if( debug_geometry )qDebug() << "updateGeometries rowCount "  << rowCount << "  rowsInViewport " << rowsInViewport << " visibleRows " << visibleRows;
     }
     else
     { // ScrollPerPixel
-        verticalScrollBar()->setPageStep(vsize.height());
+        verticalScrollBar()->setPageStep( vsize.height() );
         verticalScrollBar()->setRange(0, verticalLength - vsize.height());
         verticalScrollBar()->setSingleStep(qMax(vsize.height() / (rowsInViewport + 1), 2));
     }
 
     d->geometryRecursionBlock = false;
-    QAbstractItemView::updateGeometries();
+    QpAbstractItemView::updateGeometries();
 }
 
 int QpTableView::sizeHintForRow(int row) const
@@ -2090,6 +2155,8 @@ void QpTableView::setLineHeightInRow(int line, int height) const
     Q_D(const QpTableView);
 
     horizontalHeader()->setLineHeightInRow( line , height);
+
+
 }
 
 void QpTableView::setRowHeight(int row, int height)
@@ -2108,7 +2175,7 @@ int QpTableView::rowHeight(int row) const
 
 //int QpTableView::rowLine(int y) const
 //{
-//    Q_D(const QTableView2);
+//    Q_D(const QpTableView);
 
 //    return d->horizontalHeader->sectionSize();
 //}
@@ -2181,7 +2248,7 @@ int QpTableView::columnAt( int x , int y) const
 
 
 
-    return d->horizontalHeader->logicalIndexAt(QPoint( x , y ) ); //?????
+    return d->horizontalHeader->logicalIndexAt_xy(QPoint( x , y ) ); //?????
 }
 
 /*!
@@ -2464,7 +2531,7 @@ void QpTableView::scrollTo(const QModelIndex &index, ScrollHint hint)
     //            : d->horizontalHeader->sectionSize(index.column());
     int cellWidth =  d->horizontalHeader->sectionSize(index.column());
 
-    if (horizontalScrollMode() == QAbstractItemView::ScrollPerItem)
+    if (horizontalScrollMode() == QpAbstractItemView::ScrollPerItem)
     {
 
         bool positionAtLeft = (horizontalPosition - horizontalOffset < 0);
@@ -2538,7 +2605,7 @@ void QpTableView::scrollTo(const QModelIndex &index, ScrollHint hint)
             hint = PositionAtBottom;
     }
 
-    if (verticalScrollMode() == QAbstractItemView::ScrollPerItem)
+    if (verticalScrollMode() == QpAbstractItemView::ScrollPerItem)
     {
 
         if (hint == PositionAtBottom || hint == PositionAtCenter)
@@ -2730,7 +2797,7 @@ void QpTableView::timerEvent(QTimerEvent *event)
 
     }
 
-    QAbstractItemView::timerEvent(event);
+    QpAbstractItemView::timerEvent(event);
 }
 
 /*!
@@ -2888,14 +2955,14 @@ void QpTableView::verticalScrollbarAction(int action)
 {
     if( debug_scroll) qDebug() << "QpTableView::verticalScrollbarAction";
 
-    QAbstractItemView::verticalScrollbarAction(action); // NOTHING
+    QpAbstractItemView::verticalScrollbarAction(action); // NOTHING
 }
 
 void QpTableView::horizontalScrollbarAction(int action)
 {
     if( debug_scroll) qDebug() << "QpTableView::horizontalScrollbarAction " << action;
 
-    QAbstractItemView::horizontalScrollbarAction(action);
+    QpAbstractItemView::horizontalScrollbarAction(action);
 }
 
 bool QpTableView::isIndexHidden(const QModelIndex &index) const
@@ -3066,7 +3133,7 @@ void QpTableView::currentChanged(const QModelIndex &current, const QModelIndex &
         if (current.isValid())
         {
 #ifdef Q_WS_X11
-            Q_D(QTableView2);
+            Q_D(QpTableView);
             int entry = d->accessibleTable2Index(current);
             QAccessible::updateAccessibility(this, entry, QAccessible::Focus);
 #else
@@ -3078,7 +3145,7 @@ void QpTableView::currentChanged(const QModelIndex &current, const QModelIndex &
         }
     }
 #endif
-    QAbstractItemView::currentChanged(current, previous);
+    QpAbstractItemView::currentChanged(current, previous);
 }
 
 
@@ -3129,7 +3196,7 @@ void QpTableView::selectionChanged(const QItemSelection &selected,
     }
 #endif
 
-    QAbstractItemView::selectionChanged(selected, deselected);
+    QpAbstractItemView::selectionChanged(selected, deselected);
 }
 
 void QpTableView::updateGeometry()
@@ -3155,20 +3222,19 @@ QFont QpTableView::get_section_font( int mdlfldNum ) const
     return opt.font;
 }
 
-void QpTableViewPrivate::correctStyle( const qp::LABEL_STYLE &stls,
-                                       QFont &fnt ,
-                                       QStyleOptionViewItemV4 &opt)
+void QpTableViewPrivate::correct_Style( const qp::LABEL_STYLE &stls,
+                                        QStyleOptionViewItemV4 &opt)
 {
     //QPainter painter( viewport );
 
     //QStyleOptionViewItemV4 option = d->viewOptionsV4();
     //opt = viewOptionsV4();
 
-    if( fnt != stls.fnt)
+    if( opt.font != stls.fnt)
     {
-        fnt = stls.fnt;
+        opt.font = stls.fnt;
 
-        qDebug() << "correctStyle fnt" << fnt;
+        qDebug() << "correctStyle fnt" << opt.font;
 
     }
 
@@ -3191,11 +3257,6 @@ QPair<qp::LABEL_STYLE,qp::LABEL_STYLE> QpTableView::get_section_style( int mdlfl
     QPair<qp::LABEL_STYLE,qp::LABEL_STYLE> pp;
 
 
-    //QFont fnt = painter.font() ;
-    QFont fnt = opt.font ;
-
-
-    pp.first.fnt = opt.font;
     pp.first.align = opt.displayAlignment;
     pp.first.color = opt.palette.color( QPalette::Text );
 
@@ -3205,9 +3266,9 @@ QPair<qp::LABEL_STYLE,qp::LABEL_STYLE> QpTableView::get_section_style( int mdlfl
 
     if( d->stls.contains( mdlfldNum ))
     {
-        d->correctStyle( d->stls[  mdlfldNum ] , fnt ,  opt );
+        d->correct_Style( d->stls[  mdlfldNum ] , opt );
 
-        pp.second.fnt = fnt;
+        pp.second.fnt = opt.font;
         pp.second.align = opt.displayAlignment;
         pp.second.color = opt.palette.color( QPalette::Text );
     }
@@ -3215,7 +3276,7 @@ QPair<qp::LABEL_STYLE,qp::LABEL_STYLE> QpTableView::get_section_style( int mdlfl
     {
     }
 
-    qDebug() << "get_section_style second fnt " << fnt;
+    qDebug() << "get_section_style second fnt " << pp.second.fnt;
 
 
     return pp;
@@ -3286,6 +3347,8 @@ void QpTableView::slot_rowsInserted( const QModelIndex &parent, int first, int l
     //qDebug() << "    rowHeight   " << rowHeight( );
 
 }
+
+
 
 void QpTableView::delayed_Repaint()
 {

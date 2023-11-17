@@ -27,7 +27,7 @@
 #ifndef QP_HORHEADERVIEW_H
 #define QP_HORHEADERVIEW_H
 
-#include <QtGui/qabstractitemview.h>
+#include "qp/tableview/qp_abstractitemview.h"
 
 #include "qp_common.h"
 
@@ -46,7 +46,7 @@ class QStyleOptionHeader;
 typedef QList < QList< QVariant > >  Qp_SECTION_TMPL;
 
 
-class Q_GUI_EXPORT QpHorHeaderView : public QAbstractItemView
+class __declspec(dllexport) QpHorHeaderView : public QpAbstractItemView
 {
     Q_OBJECT
     Q_PROPERTY(bool showSortIndicator READ isSortIndicatorShown WRITE setSortIndicatorShown)
@@ -77,10 +77,12 @@ public:
     static const bool debug ;
     static const bool debug_line_numX ;
     static const bool debug_paint ;
+    static const bool debug_offset ;
     static const bool debug_init ;
     static const bool debug_selection ;
     static const bool debug_scroll ;
     static const bool debug_resize ;
+    static const bool debug_size ;
 
     static const int default_section_width ;
 
@@ -207,8 +209,8 @@ public:
     bool sectionsMoved() const;
     bool sectionsHidden() const;
 
-    int logicalIndexAt(int ax, int line) const;     // !!
-    int logicalIndexAt(const QPoint &apos) const;   // !!
+    int logicalIndex_at(int ax, int line) const;     // !!
+    int logicalIndexAt_xy(const QPoint &apos) const;   // !!
 
     void setSectionSize( int logical, int newSize); //!!
     void setLineHeightInRow( int line, int newHeight); //!!
@@ -280,7 +282,7 @@ protected:
     QRect visualRect(const QModelIndex &index) const;
     void scrollTo(const QModelIndex &index, ScrollHint hint);
 
-    QModelIndex indexAt(const QPoint &p) const;
+    qp::SECTION indexAt(const QPoint &p) const;
     bool isIndexHidden(const QModelIndex &index) const;
 
     QModelIndex moveCursor(CursorAction, Qt::KeyboardModifiers);

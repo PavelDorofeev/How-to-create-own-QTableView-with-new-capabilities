@@ -24,44 +24,25 @@
 
 *******************************************************************************/
 
-#ifndef QPTABLEVIEW_P_H
-#define QPTABLEVIEW_P_H
+#ifndef QP_TABLEVIEW_P_H
+#define QP_TABLEVIEW_P_H
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
 
 #include <QtCore/QList>
 #include <QtCore/QLinkedList>
 #include <QtCore/QMap>
 #include <QtCore/QSet>
 #include <QtCore/QDebug>
-#include "private/qabstractitemview_p.h"
-#include "qp_horheaderview.h"
+#include "qp/tableview/qp_abstractitemview_p.h"
+#include "qp/tableview/qp_horheaderview.h"
+#include "qp/tableview/qp_vertheaderview.h"
 
 #ifndef QT_NO_TABLEVIEW
 
 QT_BEGIN_NAMESPACE
 
-/** \internal
-*
-* This is a list of span with a binary index to look up quickly a span at a certain index.
-*
-* The index is a map of map.
-* spans are mentaly divided into sub spans so that the start of any subspans doesn't overlap
-* with any other subspans. There is no real representation of the subspans.
-* The key of the first map is the row where the subspan starts, the value of the first map is
-* a list (map) of all subspans that starts at the same row.  It is indexed with its row
-*/
 
-class QpTableViewPrivate : public QAbstractItemViewPrivate
+class QpTableViewPrivate : public QpAbstractItemViewPrivate
 {
     Q_DECLARE_PUBLIC(QpTableView)
 public:
@@ -94,37 +75,44 @@ public:
 
     void init( );
 
-    void correctStyle( const qp::LABEL_STYLE &stls, QFont &fnt1 , QStyleOptionViewItemV4 &opt ); //!
+    void correct_Style( const qp::LABEL_STYLE &stls, QStyleOptionViewItemV4 &opt ); //!
 
     void trimHiddenSelections(QItemSelectionRange *range) const;
 
-    inline bool isHidden(int row, int col) const {
+    inline bool isHidden(int row, int col) const
+    {
         return verticalHeader->isSectionHidden(row)
                 || horizontalHeader->isSectionHidden(col);
     }
 
-    inline int visualRow(int logicalRow) const {
+    inline int visualRow(int logicalRow) const
+    {
         return verticalHeader->visualIndex(logicalRow);
     }
 
-    inline int visualColumn(int logicalCol) const {
+    inline int visualColumn(int logicalCol) const
+    {
         return horizontalHeader->visualIndex(logicalCol);
     }
 
-    inline int logicalRow(int visualRow) const {
+    inline int logicalRow(int visualRow) const
+    {
         return verticalHeader->logicalIndex(visualRow);
     }
 
-    inline int logicalColumn(int visualCol) const {
+    inline int logicalColumn(int visualCol) const
+    {
         return horizontalHeader->logicalIndex(visualCol);
     }
 
-    inline int accessibleTable2Index(const QModelIndex &index) const {
+    inline int accessibleTable2Index(const QModelIndex &index) const
+    {
         return (index.row() + (horizontalHeader ? 1 : 0)) * (index.model()->columnCount() + (verticalHeader ? 1 : 0))
                 + index.column() + (verticalHeader ? 1 : 0) + 1;
     }
 
     void drawCell(QPainter *painter, const QStyleOptionViewItemV4 &option, const QModelIndex &index);
+
     void drawCellLabel(QPainter *painter, const QStyleOptionViewItemV4 &option, const QString &txt, bool rowSelected, int row, const qp::LABEL_STYLE & st);
 
     bool showGrid;
@@ -180,10 +168,10 @@ public:
     void selectRow(int row, bool anchor);
     void selectColumn(int column, bool anchor);
 
-    void _q_updateSpanInsertedRows(const QModelIndex &parent, int start, int end);
-    void _q_updateSpanInsertedColumns(const QModelIndex &parent, int start, int end);
-    void _q_updateSpanRemovedRows(const QModelIndex &parent, int start, int end);
-    void _q_updateSpanRemovedColumns(const QModelIndex &parent, int start, int end);
+//    void _q_updateSpanInsertedRows(const QModelIndex &parent, int start, int end);
+//    void _q_updateSpanInsertedColumns(const QModelIndex &parent, int start, int end);
+//    void _q_updateSpanRemovedRows(const QModelIndex &parent, int start, int end);
+//    void _q_updateSpanRemovedColumns(const QModelIndex &parent, int start, int end);
 };
 
 QT_END_NAMESPACE

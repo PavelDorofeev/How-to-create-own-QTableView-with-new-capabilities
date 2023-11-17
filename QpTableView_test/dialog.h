@@ -6,7 +6,7 @@
 #include <QStandardItemModel>
 #include <QSqlDatabase>
 #include <QSqlTableModel>
-#include <QtGui/qp/qp_horheaderview.h>
+#include "qp/tableview/qp_horheaderview.h"
 
 namespace Ui {
 class Dialog;

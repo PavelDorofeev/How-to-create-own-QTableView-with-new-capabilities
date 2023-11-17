@@ -27,19 +27,9 @@
 #ifndef QP_HORHEADERVIEW_P_H
 #define QP_HORHEADERVIEW_P_H
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
 
-#include "private/qabstractitemview_p.h"
-#include "qp_common.h"
+#include "qp/tableview/qp_abstractitemview_p.h"
+#include "qp/tableview/qp_common.h"
 
 #ifndef QT_NO_ITEMVIEWS
 
@@ -52,7 +42,7 @@
 QT_BEGIN_NAMESPACE
 
 
-class QpHorHeaderViewPrivate: public QAbstractItemViewPrivate
+class QpHorHeaderViewPrivate: public QpAbstractItemViewPrivate
 {
     Q_DECLARE_PUBLIC(QpHorHeaderView)
 
@@ -188,9 +178,6 @@ public:
         else sectionSelected.fill(false);
     }
 
-    inline bool reverse() const {
-        return q_func()->isRightToLeft();
-    }
 
     inline int logicalIndex(int visualIndex) const
     {
@@ -276,10 +263,7 @@ public:
         return headerSectionResizeMode(visual) == QpHorHeaderView::Interactive;
     }
 
-    inline int modelSectionCount() const
-    {
-        return  model->columnCount(root);
-    }
+    int modelSectionCount() const;
 
     inline bool modelIsEmpty() const
     {
@@ -384,7 +368,7 @@ public:
     const QRect headerSectionPosition2( int visual ) const ;
     //const QRect headerSectionPosition3( int visual ) const;
 
-    int headerVisualIndexAt2(int x, int line) const;
+    int headerLogicalIndex_at(int x, int line) const;
 
     // resize mode
     void setHeaderSectionResizeMode(int visual, QpHorHeaderView::ResizeMode mode);
