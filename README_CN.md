@@ -16,4 +16,5 @@ YouTube 上首个热追介绍视频（第一个测试版 1.0.0）：https://yout
 
 哈布尔 https://habr.com/ru/articles/761530/
 
+![image](https://github.com/PavelDorofeev/How-to-create-own-QTableView-with-new-capabilities/assets/13850002/f7427fb2-5c2b-4e9d-a067-3271c198ec2f)
 

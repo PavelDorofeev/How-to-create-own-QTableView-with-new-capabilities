@@ -14,3 +14,5 @@ The first introductory video in hot pursuit (first beta version 1.0.0) on YouTub
 There is also a resource on our website https://kkmspb.ru/development/Qt/layouts-and-widgets/QTableView/developing/row-in-two-lines/
 
 Habr https://habr.com/ru/articles/761530/
+
+![image](https://github.com/PavelDorofeev/How-to-create-own-QTableView-with-new-capabilities/assets/13850002/c7f7919e-4148-4a54-b0aa-3ed4fec5932e)

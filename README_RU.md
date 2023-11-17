@@ -17,3 +17,4 @@
 
 Habr https://habr.com/ru/articles/761530/
 
+![image](https://github.com/PavelDorofeev/How-to-create-own-QTableView-with-new-capabilities/assets/13850002/8ed95681-ea74-4efa-bcf4-f69c36e36d4e)
