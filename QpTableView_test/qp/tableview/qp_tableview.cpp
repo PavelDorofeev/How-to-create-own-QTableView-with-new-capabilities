@@ -46,8 +46,6 @@
 #include <qaccessible.h>
 #endif
 
-#include "my_lib/common/dbg.h"
-
 QT_BEGIN_NAMESPACE
 
 const int QpTableView::defaultRowHeight = 60;

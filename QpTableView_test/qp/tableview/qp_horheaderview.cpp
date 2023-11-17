@@ -43,8 +43,6 @@
 #include <qvariant.h>
 #include "qp/tableview/qp_horheaderview_p.h"
 #include <private/qabstractitemmodel_p.h>
-//#include "QtGui/qp/qp_tableview.h"
-#include "my_lib/common/dbg.h"
 
 #ifndef QT_NO_DATASTREAM
 #include <qdatastream.h>
