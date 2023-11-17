@@ -403,7 +403,7 @@
   <customwidget>
    <class>QpTableView</class>
    <extends>QTableView</extends>
-   <header location="global">qp/qp_tableview.h</header>
+   <header location="global">qp/tableview/qp_tableview.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
