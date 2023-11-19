@@ -504,26 +504,29 @@ void QpTableView::setHorizontalHeader(QpHorHeaderView *header)
             d->horizontalHeader->setSelectionModel(d->selectionModel);
     }
 
-    connect(d->horizontalHeader,SIGNAL(sectionResized_Y()),
-            this, SLOT(columnResized_Y())); //!!;
+    Q_ASSERT (connect(d->horizontalHeader,SIGNAL(sectionResized_Y()),
+                      this, SLOT(columnResized_Y())) == true); //!!
 
-    connect(d->horizontalHeader,SIGNAL(sectionResized(int,int,int)),
-            this, SLOT(columnResized(int,int,int)));
+    Q_ASSERT (connect(d->horizontalHeader,SIGNAL(sectionResized_X(int)),
+                      this, SLOT(columnResized_X(int)))== true); //!!;
 
-    connect(d->horizontalHeader, SIGNAL(sectionMoved(int,int,int)),
-            this, SLOT(columnMoved(int,int,int)));
+//    Q_ASSERT (connect(d->horizontalHeader,SIGNAL(sectionResized(int,int,int)),
+//            this, SLOT(columnResized(int,int,int))) == true);
 
-    connect(d->horizontalHeader, SIGNAL(sectionCountChanged(int,int)),
-            this, SLOT(columnCountChanged(int,int)));
+    Q_ASSERT (connect(d->horizontalHeader, SIGNAL(sectionMoved(int,int,int)),
+                      this, SLOT(columnMoved(int,int,int)))== true);
 
-    connect(d->horizontalHeader, SIGNAL(sectionPressed(int)), this, SLOT(selectColumn(int)));
+    Q_ASSERT (connect(d->horizontalHeader, SIGNAL(sectionCountChanged(int,int)),
+                      this, SLOT(columnCountChanged(int,int)))== true);
 
-    connect(d->horizontalHeader, SIGNAL(sectionEntered(int)), this, SLOT(_q_selectColumn(int)));
+    Q_ASSERT (connect(d->horizontalHeader, SIGNAL(sectionPressed(int)), this, SLOT(selectColumn(int)))== true);
 
-    connect(d->horizontalHeader, SIGNAL(sectionHandleDoubleClicked(int)),
-            this, SLOT(resizeColumnToContents(int)));
+    Q_ASSERT (connect(d->horizontalHeader, SIGNAL(sectionEntered(int)), this, SLOT(_q_selectColumn(int)))== true);
 
-    connect(d->horizontalHeader, SIGNAL(geometriesChanged()), this, SLOT(updateGeometries()));
+    Q_ASSERT (connect(d->horizontalHeader, SIGNAL(sectionHandleDoubleClicked(int)),
+                      this, SLOT(resizeColumnToContents(int)))== true);
+
+    Q_ASSERT (connect(d->horizontalHeader, SIGNAL(geometriesChanged()), this, SLOT(updateGeometries()))== true);
 
     //update the sorting enabled states on the new header
     setSortingEnabled(d->sortingEnabled);
@@ -1284,14 +1287,7 @@ QModelIndex QpTableView::moveCursor(CursorAction cursorAction, Qt::KeyboardModif
     QPoint visualCurrent(d->visualColumn(current.column()), d->visualRow(current.row()));
     if (visualCurrent != d->visualCursor)
     {
-        //        if (d->hasSpans()) {
-        //            QSpanCollection2::Span span = d->span(current.row(), current.column());
-        //            if (span.top() > d->visualCursor.y() || d->visualCursor.y() > span.bottom()
-        //                    || span.left() > d->visualCursor.x() || d->visualCursor.x() > span.right())
-        //                d->visualCursor = visualCurrent;
-        //        } else {
         d->visualCursor = visualCurrent;
-        //}
     }
 
     int visualRow = d->visualCursor.y();
@@ -1308,17 +1304,10 @@ QModelIndex QpTableView::moveCursor(CursorAction cursorAction, Qt::KeyboardModif
 
     Q_ASSERT(visualColumn != -1);
 
-    //    if (isRightToLeft())
-    //    {
-    //        if (cursorAction == MoveLeft)
-    //            cursorAction = MoveRight;
-    //        else if (cursorAction == MoveRight)
-    //            cursorAction = MoveLeft;
-    //    }
-
     switch (cursorAction)
     {
-    case MoveUp: {
+    case MoveUp:
+    {
         int originalRow = visualRow;
 #ifdef QT_KEYPAD_NAVIGATION
         if (QApplication::keypadNavigationEnabled() && visualRow == 0)
@@ -1508,6 +1497,7 @@ QModelIndex QpTableView::moveCursor(CursorAction cursorAction, Qt::KeyboardModif
     }}
 
     d->visualCursor = QPoint(visualColumn, visualRow);
+
     int logicalRow = d->logicalRow(visualRow);
     int logicalColumn = d->logicalColumn(visualColumn);
     if (!d->model->hasIndex(logicalRow, logicalColumn, d->root))
@@ -2257,7 +2247,7 @@ int QpTableView::columnAt( int x , int y) const
 void QpTableView::setColumnWidth(int column, int width)
 {
     Q_D(const QpTableView);
-    d->horizontalHeader->resizeSection(column, width);
+    //d->horizontalHeader->resizeSection(column, width);
 }
 
 int QpTableView::columnWidth(int column) const
@@ -2677,9 +2667,6 @@ void QpTableView::columnResized_Y()
 
     verticalHeader()->setDefaultSectionSize( hh );
 
-    //    QRect hREct = horizontalHeader()->rect();
-
-    //    repaint( viewport()->rect() );
     int firstVisualRow = qMax(verticalHeader()->visualIndexAt( 0 ) , 0);
 
     int lastVisualRow = verticalHeader()->visualIndexAt(verticalHeader()->viewport()->height() );
@@ -2690,22 +2677,16 @@ void QpTableView::columnResized_Y()
     if (d->rowResizeTimerID == 0)
         d->rowResizeTimerID = startTimer(0);
 
-    //    d->columnsToUpdate.append(column);
-
-    //    if (d->columnResizeTimerID == 0)
-    //        d->columnResizeTimerID = startTimer(0);
 }
 
-void QpTableView::columnResized(int column, int oldWidth, int newWidth)
+void QpTableView::columnResized_X(int xNum)
 {
     Q_D(QpTableView);
 
-    //d->horizontalHeader->resizeSection( column );
+    d->xNumsToUpdate.append(xNum);
 
-    d->columnsToUpdate.append(column);
-
-    if (d->columnResizeTimerID == 0)
-        d->columnResizeTimerID = startTimer(0);
+    if (d->xNumsResizeTimerID == 0)
+        d->xNumsResizeTimerID = startTimer(0);
 }
 
 
@@ -2717,33 +2698,36 @@ void QpTableView::timerEvent(QTimerEvent *event)
     // This timer is only for repainting with mouse changes section sizes
     // -----------------------------------------------------------------------
 
-    if (event->timerId() == d->columnResizeTimerID)
+    if (event->timerId() == d->xNumsResizeTimerID)
     {
         if( debug_event ) qDebug() << "QpTableView::timerEvent columnResizeTimerID";
 
         updateGeometries();
 
-        killTimer(d->columnResizeTimerID);
+        killTimer(d->xNumsResizeTimerID);
 
-        d->columnResizeTimerID = 0;
+        d->xNumsResizeTimerID = 0;
 
         QRect rect;
         int viewportHeight = d->viewport->height();
         int viewportWidth = d->viewport->width();
 
 
-        for (int i = d->columnsToUpdate.size()-1; i >= 0; --i)
+        for (int i = d->xNumsToUpdate.size()-1; i >= 0; --i)
         {
-            int column = d->columnsToUpdate.at(i);
+            int xNum = d->xNumsToUpdate.at(i);
 
-            int x = horizontalHeader()->left_common_border_x( column) ;
+            int x = horizontalHeader()->xNum_left( xNum );//  left_common_border_x( xNum ) ;
+
+            if( x == qp::UNKNOWN_VALUE )
+                continue;
 
             rect |= QRect(x, 0, viewportWidth - x, viewportHeight);
         }
 
 
         d->viewport->update(rect.normalized());
-        d->columnsToUpdate.clear();
+        d->xNumsToUpdate.clear();
     }
 
     if (event->timerId() == d->rowResizeTimerID)
@@ -2919,13 +2903,13 @@ void QpTableView::resizeRowsToContents()
 
 void QpTableView::resizeColumnToContents(int column)
 {
-    Q_D(QpTableView);
+//    Q_D(QpTableView);
 
-    int content = sizeHintForColumn(column);
+//    int content = sizeHintForColumn(column);
 
-    int header = d->horizontalHeader->sectionSizeHint(column);
+//    int header = d->horizontalHeader->sectionSizeHint(column);
 
-    d->horizontalHeader->resizeSection(column, qMax(content, header));
+//    d->horizontalHeader->resizeSection(column, qMax(content, header));
 }
 
 void QpTableView::resizeColumnsToContents()

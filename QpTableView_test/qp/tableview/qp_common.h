@@ -143,6 +143,28 @@ typedef struct SECTION
 
 };
 
+typedef struct aaa
+{
+    int xNum;
+    int line;
+    //int logicalNumber;
+    SECTION_TYPE type;
+    Qt::Orientation moveOrientation;
+    bool handle;
+
+    aaa()
+        :
+          xNum( UNKNOWN_VALUE),
+          line( UNKNOWN_VALUE),
+          //logicalNumber( UNKNOWN_VALUE),
+          type( MODEL_FIELD),
+          moveOrientation( Qt::Horizontal),
+          handle ( false)
+    {
+
+    }
+};
+
 }
 QT_END_NAMESPACE
 

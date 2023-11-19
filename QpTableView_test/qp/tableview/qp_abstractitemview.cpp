@@ -153,11 +153,15 @@ void QpAbstractItemViewPrivate::checkMouseMove(const QPersistentModelIndex &inde
     //we take a persistent model index because the model might change by emitting signals
     Q_Q(QpAbstractItemView);
     setHoverIndex(index);
-    if (viewportEnteredNeeded || enteredIndex != index) {
+
+    if (viewportEnteredNeeded || enteredIndex != index)
+    {
         viewportEnteredNeeded = false;
 
-        if (index.isValid()) {
+        if (index.isValid())
+        {
             emit q->entered(index);
+
 #ifndef QT_NO_STATUSTIP
             QString statustip = model->data(index, Qt::StatusTipRole).toString();
             if (parent && (shouldClearStatusTip || !statustip.isEmpty())) {
@@ -166,9 +170,12 @@ void QpAbstractItemViewPrivate::checkMouseMove(const QPersistentModelIndex &inde
                 shouldClearStatusTip = !statustip.isEmpty();
             }
 #endif
-        } else {
+        }
+        else
+        {
 #ifndef QT_NO_STATUSTIP
-            if (parent && shouldClearStatusTip) {
+            if (parent && shouldClearStatusTip)
+            {
                 QString emptyString;
                 QStatusTipEvent tip( emptyString );
                 QApplication::sendEvent(parent, &tip);
@@ -621,7 +628,8 @@ void QpAbstractItemView::setModel(QAbstractItemModel *model)
     Q_D(QpAbstractItemView);
     if (model == d->model)
         return;
-    if (d->model && d->model != QAbstractItemModelPrivate::staticEmptyModel()) {
+    if (d->model && d->model != QAbstractItemModelPrivate::staticEmptyModel())
+    {
         disconnect(d->model, SIGNAL(destroyed()),
                    this, SLOT(_q_modelDestroyed()));
         disconnect(d->model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
@@ -646,6 +654,7 @@ void QpAbstractItemView::setModel(QAbstractItemModel *model)
         disconnect(d->model, SIGNAL(modelReset()), this, SLOT(reset()));
         disconnect(d->model, SIGNAL(layoutChanged()), this, SLOT(_q_layoutChanged()));
     }
+
     d->model = (model ? model : QAbstractItemModelPrivate::staticEmptyModel());
 
     // These asserts do basic sanity checking of the model
@@ -657,7 +666,8 @@ void QpAbstractItemView::setModel(QAbstractItemModel *model)
                "QpAbstractItemView::setModel",
                "The parent of a top level index should be invalid");
 
-    if (d->model != QAbstractItemModelPrivate::staticEmptyModel()) {
+    if (d->model != QAbstractItemModelPrivate::staticEmptyModel())
+    {
         connect(d->model, SIGNAL(destroyed()),
                 this, SLOT(_q_modelDestroyed()));
         connect(d->model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
@@ -1713,7 +1723,8 @@ void QpAbstractItemView::mouseMoveEvent(QMouseEvent *event)
         return;
 
 #ifndef QT_NO_DRAGANDDROP
-    if (state() == DraggingState) {
+    if (state() == DraggingState)
+    {
         topLeft = d->pressedPosition - d->offset();
         if ((topLeft - bottomRight).manhattanLength() > QApplication::startDragDistance()) {
             d->pressedIndex = QModelIndex();
@@ -1728,6 +1739,7 @@ void QpAbstractItemView::mouseMoveEvent(QMouseEvent *event)
     QPersistentModelIndex index = indexAt(bottomRight).idx;
 
     QModelIndex buddy = d->model->buddy(d->pressedIndex);
+
     if ((state() == EditingState && d->hasEditor(buddy))
             || edit(index, NoEditTriggers, event))
         return;
@@ -1744,15 +1756,18 @@ void QpAbstractItemView::mouseMoveEvent(QMouseEvent *event)
             && d->dragEnabled
             && (state() != DragSelectingState)
             && (event->buttons() != Qt::NoButton)
-            && !d->selectedDraggableIndexes().isEmpty()) {
+            && !d->selectedDraggableIndexes().isEmpty())
+    {
         setState(DraggingState);
         return;
     }
 #endif
 
-    if ((event->buttons() & Qt::LeftButton) && d->selectionAllowed(index) && d->selectionModel) {
+    if ((event->buttons() & Qt::LeftButton) && d->selectionAllowed(index) && d->selectionModel)
+    {
         setState(DragSelectingState);
         QItemSelectionModel::SelectionFlags command = selectionCommand(index, event);
+
         if (d->ctrlDragSelectionFlag != QItemSelectionModel::NoUpdate && command.testFlag(QItemSelectionModel::Toggle)) {
             command &= ~QItemSelectionModel::Toggle;
             command |= d->ctrlDragSelectionFlag;

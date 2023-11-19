@@ -44,6 +44,9 @@
          <height>0</height>
         </size>
        </property>
+       <property name="currentIndex">
+        <number>1</number>
+       </property>
        <item>
         <property name="text">
          <string>SelectItems</string>
@@ -68,6 +71,9 @@
          <width>100</width>
          <height>0</height>
         </size>
+       </property>
+       <property name="currentIndex">
+        <number>1</number>
        </property>
        <item>
         <property name="text">
@@ -390,6 +396,12 @@
         <widget class="QpTableView" name="tableView">
          <property name="contextMenuPolicy">
           <enum>Qt::CustomContextMenu</enum>
+         </property>
+         <property name="selectionMode">
+          <enum>QAbstractItemView::SingleSelection</enum>
+         </property>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectRows</enum>
          </property>
         </widget>
        </item>

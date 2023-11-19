@@ -51,7 +51,7 @@ public:
           gridStyle(Qt::SolidLine),
           rowSectionAnchor(-1),
           columnSectionAnchor(-1),
-          columnResizeTimerID(0),
+          xNumsResizeTimerID(0),
           rowResizeTimerID(0),
           horizontalHeader(0),
           verticalHeader(0),
@@ -120,10 +120,12 @@ public:
     Qt::PenStyle gridStyle;
     int rowSectionAnchor;
     int columnSectionAnchor;
-    int columnResizeTimerID;
+    int xNumsResizeTimerID;
     int rowResizeTimerID;
-    QList<int> columnsToUpdate;
+
+    QList<int> xNumsToUpdate;
     QList<int> rowsToUpdate;
+
     QpHorHeaderView *horizontalHeader;
     QpVertHeaderView *verticalHeader;
     QWidget *cornerWidget;

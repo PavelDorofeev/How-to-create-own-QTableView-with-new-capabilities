@@ -20,7 +20,11 @@ i.e. it is not nessasery rebuildint gui branch of qt sources.
 
 Now we are including our qp files at any project and building conveniently as usual .
 
-// 2.0.0
+2.0.0
+
+Resizing xNums and lines for all cells
+2.1.0
+*/
 
 
 #endif // QP_VERSIONS_HISTORY_H

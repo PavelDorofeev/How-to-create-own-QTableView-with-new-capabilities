@@ -84,7 +84,9 @@ public:
           sectionIndicator(0),
           globalResizeMode(QpHorHeaderView::Interactive),
           grid(0),
-          lines(0)
+          lines(0),
+          xNum_sizing(-1),
+          line_sizing(-1)
     {
 
 
@@ -128,12 +130,18 @@ public:
     qp::CELL_NODES get_nodes( int logicalIndex ); //!!
 
     void recalculateLineHeigth_from( int from, int height);
+    void recalculate_xNumWidth( int from_xNum, int newWidth);
 
+    int line_top(int line )  const;
+    int line_bottom(int line ) const;
+    int xNum_left(int xNum ) const; // !!
+    int xNum_right(int xNum ) const; // !!
+    bool set_xNum_size(int xNum,  int width ); // !!
     // -----------------------------------------------------------------------------
 
     int lastVisibleVisualIndex() const;
     //int sectionHandleAt(int position); //!!
-    int sectionHandleAt(const QPoint &point, Qt::Orientation & ret);//!!
+    qp::aaa sectionHandleAt(const QPoint &point);//!!
     void setupSectionIndicator(int section, int position);
     void updateSectionIndicator(int section, int position);
     void updateHiddenSections(int logicalFirst, int logicalLast);
@@ -323,12 +331,13 @@ public:
     int originalSize_Y;
     int section; // used for resizing and moving sections
 
-    int line; //!! used for resizing lines
+    int xNum_sizing; //!! used for resizing and moving sections
+    int line_sizing; //!! used for resizing lines
 
     int target;
     int pressed; // -1 if release mouse button (this is logicalIndex)
     int pressed_orientation; // !!
-    int pressed_line; // !!
+    //int pressed_line; // !!
     int hover;
 
     int length_x;// length in px of horizontal visual sections

@@ -29,7 +29,7 @@
 
 #include "qp/tableview/qp_abstractitemview.h"
 
-#include "qp_common.h"
+#include "qp/tableview/qp_common.h"
 
 QT_BEGIN_HEADER
 
@@ -69,15 +69,18 @@ public:
         Custom = Fixed
     };
 
+
     explicit QpHorHeaderView(Qt::Orientation orientation, QWidget *parent = 0);
     virtual ~QpHorHeaderView();
 
     //--------------------------------------------------------
 
     static const bool debug ;
+    static const bool debug_cursor ;
     static const bool debug_line_numX ;
     static const bool debug_paint ;
     static const bool debug_offset ;
+    static const bool debug_event ;
     static const bool debug_init ;
     static const bool debug_selection ;
     static const bool debug_scroll ;
@@ -95,7 +98,7 @@ public:
 
     int lastLogicalNum( ) const;
     int leftTopVisualNumX( ) const;
-    //int rightBtmLogicalNum( ) const;
+    //void recalculate_xNumWidth( int xNum, int newWidth);
 
     Qt::Orientation orientation() const;
     int offset() const;
@@ -105,6 +108,7 @@ public:
 
     int visualIndexAt(int x,  int y) const;
     int visual_xNum_At(int x ) const; // !!
+    int xNum_left(int xNum ) const; // !!
     int xNum_count( ) const; // !!
     int visualIndexAt_end(int x) const;
 
@@ -148,9 +152,10 @@ public:
 
     //QPoint lastCursor;
 
-    void resizeSection(int logicalIndex, int size);
+    //void resizeSection(int logicalIndex, int size);
 
     void resizeSection_Y(int logical, int newSize);//!!
+    void resizeSection_X(int xNum, int newWidth);
 
     void resizeSections(QpHorHeaderView::ResizeMode mode);
 
@@ -243,6 +248,7 @@ Q_SIGNALS:
     void geometriesChanged();
     void sortIndicatorChanged(int logicalIndex, Qt::SortOrder order);
     void sectionResized_Y();
+    void sectionResized_X( int xNum_from);
 
 protected Q_SLOTS:
     void updateSection(int logicalIndex);

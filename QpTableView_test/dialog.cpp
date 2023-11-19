@@ -31,8 +31,6 @@ Dialog::Dialog(QWidget *parent) :
 
     ui->cmb_SelectionMode->setCurrentIndex(QAbstractItemView::MultiSelection );
 
-    ui->tableView->setSelectionMode( (QpAbstractItemView::SelectionMode )ui->cmb_SelectionMode->currentIndex());
-
     ui->tableView->setGridStyle( Qt::DotLine);
 
     Q_ASSERT ( connect( ui->tableView, SIGNAL( clicked(QModelIndex)),
