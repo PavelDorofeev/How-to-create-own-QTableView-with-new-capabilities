@@ -12,6 +12,8 @@ namespace Ui {
 class Dialog;
 }
 
+class QpTableView;
+
 class Dialog : public QDialog
 {
     Q_OBJECT
@@ -54,10 +56,14 @@ private slots:
 
     void on_cmb_SelectionBehavoir_activated(int index);
 
-
     void on_cmb_SelectionMode_activated(int index);
 
     void on_chk_betweenRowsBorder_clicked(bool checked);
+
+
+    void on_cmb_SelectionMode_currentIndexChanged(int index);
+
+    void on_cmb_SelectionBehavoir_currentIndexChanged(int index);
 
 private:
     Ui::Dialog *ui;
@@ -67,6 +73,8 @@ private:
 
     QStandardItemModel * mdl_standart;
     QSqlTableModel * mdl_sql;
+
+    QpTableView *tableView;
 };
 
 #endif // DIALOG_H

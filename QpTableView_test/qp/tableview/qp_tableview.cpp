@@ -505,10 +505,10 @@ void QpTableView::setHorizontalHeader(QpHorHeaderView *header)
     }
 
     Q_ASSERT (connect(d->horizontalHeader,SIGNAL(sectionResized_Y()),
-                      this, SLOT(columnResized_Y())) == true); //!!
+                      this, SLOT(linesInRowResized_Y())) == true); //!!
 
     Q_ASSERT (connect(d->horizontalHeader,SIGNAL(sectionResized_X(int)),
-                      this, SLOT(columnResized_X(int)))== true); //!!;
+                      this, SLOT(xNumsResized_X(int)))== true); //!!;
 
 //    Q_ASSERT (connect(d->horizontalHeader,SIGNAL(sectionResized(int,int,int)),
 //            this, SLOT(columnResized(int,int,int))) == true);
@@ -2659,7 +2659,7 @@ void QpTableView::rowResized(int row, int oldHeight, int newHeight)
         d->rowResizeTimerID = startTimer(0);
 }
 
-void QpTableView::columnResized_Y()
+void QpTableView::linesInRowResized_Y()
 {
     Q_D(QpTableView);
 
@@ -2679,7 +2679,7 @@ void QpTableView::columnResized_Y()
 
 }
 
-void QpTableView::columnResized_X(int xNum)
+void QpTableView::xNumsResized_X(int xNum)
 {
     Q_D(QpTableView);
 

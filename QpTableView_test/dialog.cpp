@@ -27,16 +27,18 @@ Dialog::Dialog(QWidget *parent) :
     setWindowTitle( QString::fromUtf8("QpTableView с шаблоном расположения секций"));
 
 
-    ui->tableView->setSelectionBehavior( (QpAbstractItemView::SelectionBehavior )ui->cmb_SelectionBehavoir->currentIndex());
 
-    ui->cmb_SelectionMode->setCurrentIndex(QAbstractItemView::MultiSelection );
+    tableView = new QpTableView ( this);
 
-    ui->tableView->setGridStyle( Qt::DotLine);
 
-    Q_ASSERT ( connect( ui->tableView, SIGNAL( clicked(QModelIndex)),
+    tableView->setGridStyle( Qt::DotLine);
+
+    ui->for_tv->addWidget( tableView );
+
+    Q_ASSERT ( connect( tableView, SIGNAL( clicked(QModelIndex)),
                         this, SLOT(slot_aaa(QModelIndex))) == true);
 
-    Q_ASSERT ( connect( ui->tableView, SIGNAL( customContextMenuRequested(QPoint)),
+    Q_ASSERT ( connect( tableView, SIGNAL( customContextMenuRequested(QPoint)),
                         this, SLOT(slot_settinggs_edit(QPoint))) == true);
 
     init_StandardItemModel();
@@ -47,6 +49,9 @@ Dialog::Dialog(QWidget *parent) :
 
     ui->chk_grid_on->setChecked( true );
 
+    on_cmb_SelectionBehavoir_currentIndexChanged (QpAbstractItemView::SingleSelection );
+
+    on_cmb_SelectionMode_currentIndexChanged (QpAbstractItemView::SelectRows);
 
 
 }
@@ -136,7 +141,7 @@ bool Dialog::init_sql_model()
         return false;
     }
 
-    ui->tableView->setModel( mdl_sql , matrix );
+    tableView->setModel( mdl_sql , matrix );
 
 
 
@@ -224,18 +229,18 @@ void Dialog::init_StandardItemModel()
 
     ComboBoxDelegate *cmbd = new ComboBoxDelegate( lst , this);
 
-    ui->tableView->setItemDelegateForColumn( 3 , cmbd );
+    tableView->setItemDelegateForColumn( 3 , cmbd );
 
 
     Qp_SECTION_TMPL matrix = prepare_matrix( *ui->txt1);
 
 
-    ui->tableView->setModel( mdl_standart , matrix );
+    tableView->setModel( mdl_standart , matrix );
 
 
     qDebug() << " model->rowCount() : " << mdl_standart->rowCount();
     qDebug() << " model->columnCount() : " << mdl_standart->columnCount();
-    //    qDebug() << " ui->tableView->selectionBehavior : " << ui->tableView->selectionBehavior();
+    //    qDebug() << " tableView->selectionBehavior : " << tableView->selectionBehavior();
 
     ui->btn_QStandardItemModel_On->setFocus();
 }
@@ -252,21 +257,21 @@ void Dialog::on_btn_Update_clicked()
 void Dialog::on_btn_init_sections_2_clicked()
 {
     Qp_SECTION_TMPL matrix =  prepare_matrix ( *ui->txt2);
-    ui->tableView->init_template( matrix );
+    tableView->init_template( matrix );
 
 }
 
 void Dialog::on_btn_init_sections_clicked()
 {
     Qp_SECTION_TMPL matrix =  prepare_matrix ( *ui->txt1);
-    ui->tableView->init_template( matrix );
+    tableView->init_template( matrix );
 
 }
 
 void Dialog::on_btn_init_sections_3_clicked()
 {
     Qp_SECTION_TMPL matrix =  prepare_matrix ( *ui->txt3);
-    ui->tableView->init_template( matrix );
+    tableView->init_template( matrix );
 
 }
 
@@ -319,7 +324,7 @@ void Dialog::on_btn_QStandardItemModel_On_clicked()
 
 void Dialog::on_chk_grid_on_clicked(bool checked)
 {
-    ui->tableView->setShowGrid( checked );
+    tableView->setShowGrid( checked );
 }
 
 void Dialog::on_btn_logFile_clicked()
@@ -338,25 +343,21 @@ void Dialog::on_btn_logFile_clicked()
 
 void Dialog::on_cmb_SelectionBehavoir_activated(int index)
 {
-    ui->tableView->clearSelection();
 
-    ui->tableView->setSelectionBehavior( (QpAbstractItemView::SelectionBehavior )index);
 
 }
 
 
 void Dialog::on_cmb_SelectionMode_activated(int index)
 {
-    ui->tableView->clearSelection();
 
-    ui->tableView->setSelectionMode( (QpAbstractItemView::SelectionMode )index);
 
 }
 
 void Dialog::on_chk_betweenRowsBorder_clicked(bool checked)
 {
-    ui->tableView->clearSelection();
-    ui->tableView->setShowBetweenRowBorder( checked );
+    tableView->clearSelection();
+    tableView->setShowBetweenRowBorder( checked );
 }
 
 void Dialog::slot_aaa(const QModelIndex& idx)
@@ -367,11 +368,11 @@ void Dialog::slot_aaa(const QModelIndex& idx)
 void Dialog::slot_settinggs_edit( const QPoint& pp )
 {
 
-    qp::SECTION sect = ui->tableView->indexAt( pp );
+    qp::SECTION sect = tableView->indexAt( pp );
 
-    //QFont fnt = ui->tableView->get_section_font( idx.column() );
+    //QFont fnt = tableView->get_section_font( idx.column() );
 
-    QPair<qp::LABEL_STYLE,qp::LABEL_STYLE> pair = ui->tableView->get_section_style( sect.idx.column() ) ;
+    QPair<qp::LABEL_STYLE,qp::LABEL_STYLE> pair = tableView->get_section_style( sect.idx.column() ) ;
 
     qDebug() << "slot_bbb pair.first.fnt " << pair.first.fnt;
     qDebug() << "        pair.second.fnt " << pair.second.fnt;
@@ -385,6 +386,20 @@ void Dialog::slot_settinggs_edit( const QPoint& pp )
 
     qDebug() << "slot_bbb : dlg.align: " << dlg.currStyles.align;
 
-    ui->tableView->set_section_style( sect.idx.column() , dlg.currStyles );
+    tableView->set_section_style( sect.idx.column() , dlg.currStyles );
 }
 
+
+void Dialog::on_cmb_SelectionMode_currentIndexChanged(int index)
+{
+    tableView->clearSelection();
+
+    tableView->setSelectionMode( (QpAbstractItemView::SelectionMode )index);
+}
+
+void Dialog::on_cmb_SelectionBehavoir_currentIndexChanged(int index)
+{
+    tableView->clearSelection();
+
+    tableView->setSelectionBehavior( (QpAbstractItemView::SelectionBehavior )index);
+}

@@ -176,10 +176,10 @@ protected Q_SLOTS:
     void rowMoved(int row, int oldIndex, int newIndex);
     void columnMoved(int column, int oldIndex, int newIndex);
     void rowResized(int row, int oldHeight, int newHeight);
-    void columnResized_X(int xNum);
+    void xNumsResized_X(int xNum);
     void rowCountChanged(int oldCount, int newCount);
     void columnCountChanged(int oldCount, int newCount);
-    void columnResized_Y(); //!!
+    void linesInRowResized_Y(); //!!
     void slot_clicked( const QModelIndex & idx );
 
 protected:
