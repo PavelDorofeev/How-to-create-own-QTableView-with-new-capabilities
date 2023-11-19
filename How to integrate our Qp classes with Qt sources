@@ -1,3 +1,6 @@
+This instruction was be able to version 1.x.x and not available anymore!
+
+
 How to integrate our Qp classes with Qt sources.
 
 1. create qp directory into ...\QtSources\4.8.1\src\gui\itemviews\
