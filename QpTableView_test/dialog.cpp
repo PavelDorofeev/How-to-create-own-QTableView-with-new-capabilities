@@ -32,6 +32,7 @@ Dialog::Dialog(QWidget *parent) :
 
 
     tableView->setGridStyle( Qt::DotLine);
+    tableView->setContextMenuPolicy( Qt::CustomContextMenu );
 
     ui->for_tv->addWidget( tableView );
 
