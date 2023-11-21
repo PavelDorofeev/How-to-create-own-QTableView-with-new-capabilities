@@ -55,18 +55,18 @@ const bool QpHorHeaderView::debug = false;
 const bool QpHorHeaderView::debug_line_numX = false;
 const bool QpHorHeaderView::debug_paint = false;
 const bool QpHorHeaderView::debug_offset = false;
-const bool QpHorHeaderView::debug_event = true;
+const bool QpHorHeaderView::debug_event = false;
 const bool QpHorHeaderView::debug_size = false;
 const bool QpHorHeaderView::debug_selection = false;
-const bool QpHorHeaderView::debug_scroll = false;
-const bool QpHorHeaderView::debug_resize = true;
+const bool QpHorHeaderView::debug_scroll = true;
+const bool QpHorHeaderView::debug_resize = false;
 const bool QpHorHeaderView::debug_init = false;
 const bool QpHorHeaderView::debug_cursor = false;
 
 const int QpHorHeaderView::default_section_width = 150;
 
 const bool QpHorHeaderViewPrivate::debug = false;
-const bool QpHorHeaderViewPrivate::debug_resize = true;
+const bool QpHorHeaderViewPrivate::debug_resize = false;
 
 const int qp::CELL_NODES::NODE_UNDEFINED  = -1;
 
@@ -99,9 +99,15 @@ QpHorHeaderView::~QpHorHeaderView()
 {
 }
 
-/*!
-  \internal
-*/
+void QpHorHeaderViewPrivate::set_Style_test()
+{
+    QPair<int,int> pp;
+    pp.first=0;
+    pp.second=0;
+
+    qp::LABEL_STYLE stl  =  label_styles.take( pp );
+}
+
 void QpHorHeaderView::initialize()
 {
     Q_D(QpHorHeaderView);
@@ -817,14 +823,25 @@ const QRect QpHorHeaderView::cellPosition( int line, int num_x ) const
 
 }
 
+const int QpHorHeaderView::xNumPosition( int xNum ) const
+{
+    Q_D( const QpHorHeaderView);
+
+    if ( xNum >= d->offsets_x.count() )
+        return -1;
+
+    int position = d->offsets_x[ xNum ];
+
+    int offsetPosition = position - d->offset;
+
+    return offsetPosition;
+}
+
 const QRect QpHorHeaderView::sectionPosition2(int logicalIndex) const
 {
     Q_D( const QpHorHeaderView);
 
     int visual = visualIndex( logicalIndex );
-    // in some cases users may change the selections
-    // before we have a chance to do the layout
-
 
     if (visual == -1)
         return QRect();
@@ -1216,52 +1233,52 @@ void QpHorHeaderView::setLineHeightInRow( int line, int newHeight)
 
 void QpHorHeaderView::setSectionHidden(int logicalIndex, bool hide)
 {
-//    Q_D(QpHorHeaderView);
+    //    Q_D(QpHorHeaderView);
 
-//    if (logicalIndex < 0 || logicalIndex >= count())
-//        return;
+    //    if (logicalIndex < 0 || logicalIndex >= count())
+    //        return;
 
-//    d->executePostedLayout();
+    //    d->executePostedLayout();
 
-//    int visual = visualIndex(logicalIndex);
+    //    int visual = visualIndex(logicalIndex);
 
-//    Q_ASSERT(visual != -1);
+    //    Q_ASSERT(visual != -1);
 
-//    if (hide == d->isVisualIndexHidden(visual))
-//        return;
+    //    if (hide == d->isVisualIndexHidden(visual))
+    //        return;
 
-//    if (hide)
-//    {
-//        int size = d->headerSectionSize(visual);
-//        if (!d->hasAutoResizeSections())
-//            resizeSection(logicalIndex, 0);
+    //    if (hide)
+    //    {
+    //        int size = d->headerSectionSize(visual);
+    //        if (!d->hasAutoResizeSections())
+    //            resizeSection(logicalIndex, 0);
 
-//        d->hiddenSectionSize.insert(logicalIndex, size);
+    //        d->hiddenSectionSize.insert(logicalIndex, size);
 
-//        if (d->sectionHidden.count() < count())
-//            d->sectionHidden.resize(count());
+    //        if (d->sectionHidden.count() < count())
+    //            d->sectionHidden.resize(count());
 
-//        d->sectionHidden.setBit(visual, true);
+    //        d->sectionHidden.setBit(visual, true);
 
-//        if (d->hasAutoResizeSections())
-//            d->doDelayedResizeSections();
-//    }
-//    else
-//    {
-//        int size = d->hiddenSectionSize.value(logicalIndex, d->defaultSectionSize);
-//        d->hiddenSectionSize.remove(logicalIndex);
+    //        if (d->hasAutoResizeSections())
+    //            d->doDelayedResizeSections();
+    //    }
+    //    else
+    //    {
+    //        int size = d->hiddenSectionSize.value(logicalIndex, d->defaultSectionSize);
+    //        d->hiddenSectionSize.remove(logicalIndex);
 
-//        if (d->hiddenSectionSize.isEmpty())
-//        {
-//            d->sectionHidden.clear();
-//        }
-//        else
-//        {
-//            Q_ASSERT(visual <= d->sectionHidden.count());
-//            d->sectionHidden.setBit(visual, false);
-//        }
-//        resizeSection(logicalIndex, size);
-//    }
+    //        if (d->hiddenSectionSize.isEmpty())
+    //        {
+    //            d->sectionHidden.clear();
+    //        }
+    //        else
+    //        {
+    //            Q_ASSERT(visual <= d->sectionHidden.count());
+    //            d->sectionHidden.setBit(visual, false);
+    //        }
+    //        resizeSection(logicalIndex, size);
+    //    }
 }
 
 /*!
@@ -1688,14 +1705,14 @@ bool QpHorHeaderView::stretchLastSection() const
 
 void QpHorHeaderView::setStretchLastSection(bool stretch)
 {
-//    Q_D(QpHorHeaderView);
-//    d->stretchLastSection = stretch;
-//    if (d->state != QpHorHeaderViewPrivate::NoState)
-//        return;
-//    if (stretch)
-//        resizeSections();
-//    else if (count())
-//        resizeSection(count() - 1, d->defaultSectionSize);
+    //    Q_D(QpHorHeaderView);
+    //    d->stretchLastSection = stretch;
+    //    if (d->state != QpHorHeaderViewPrivate::NoState)
+    //        return;
+    //    if (stretch)
+    //        resizeSections();
+    //    else if (count())
+    //        resizeSection(count() - 1, d->defaultSectionSize);
 }
 
 /*!
@@ -2184,22 +2201,34 @@ void QpHorHeaderViewPrivate::recalculate_xNumWidth( int from_xNum, int newWidth)
 
     int delta = newWidth - before_width ;
 
-    int start = offsets_x[ from_xNum + 1  ];
+    //int start = offsets_x[ from_xNum + 1  ];
 
-    offsets_x[ from_xNum + 1  ] =  start + delta;
+    //offsets_x[ from_xNum + 1  ] =  start + delta;
 
-    for( int xNum = from_xNum + 2 ; xNum < offsets_x.count(); xNum++)
+    if(from_xNum == 3)
+        qDebug() <<"asdasasdsad";
+
+    qDebug() << "recalculate_xNumWidth: from_xNum:" << from_xNum << " before_width " << before_width << " newWidth " << newWidth;
+
+    for( int ii = from_xNum + 1 ; ii < offsets_x.count(); ii++)
     {
-        int x1 = offsets_x[ xNum] + delta;
+        int x1 = offsets_x[ ii ] + delta;
 
-        offsets_x[ xNum  ] =  x1;
+        offsets_x[ ii  ] =  x1;
+
+        qDebug() << "   xNum:"<<ii << x1 << " (" <<offsets_x[ ii]<<")";
 
     }
 
     int ii=0;
-    //    qDebug() << "offsets_x : ";
-    //    foreach( int xx, offsets_x)
-    //        if( debug_resize ) qDebug() << "    " << ii++ << " xx: " << xx;
+
+    if( debug_resize )
+    {
+        qDebug() << "offsets_x : ";
+
+        for( int ii=0; ii < offsets_x.count(); ii++)
+            if( debug_resize ) qDebug() << "    " << ii << " xx: " << offsets_x[ ii ];
+    }
 
 }
 
@@ -2339,8 +2368,13 @@ void QpHorHeaderViewPrivate::_q_layoutAboutToBeChanged()
 void QpHorHeaderViewPrivate::_q_layoutChanged()
 {
     Q_Q(QpHorHeaderView);
+
+    qDebug() << "QpHorHeaderViewPrivate::_q_layoutChanged()";
+
     viewport->update();
-    if (persistentHiddenSections.isEmpty() || modelIsEmpty()) {
+
+    if (persistentHiddenSections.isEmpty() || modelIsEmpty())
+    {
         if (modelSectionCount() != sectionCount)
             q->initializeSections();
         persistentHiddenSections.clear();
@@ -2348,9 +2382,11 @@ void QpHorHeaderViewPrivate::_q_layoutChanged()
     }
 
     QBitArray oldSectionHidden = sectionHidden;
+
     bool sectionCountChanged = false;
 
-    for (int i = 0; i < persistentHiddenSections.count(); ++i) {
+    for (int i = 0; i < persistentHiddenSections.count(); ++i)
+    {
         QModelIndex index = persistentHiddenSections.at(i);
 
         if (index.isValid())
@@ -2367,9 +2403,11 @@ void QpHorHeaderViewPrivate::_q_layoutChanged()
             break;
         }
     }
+
     persistentHiddenSections.clear();
 
-    for (int i = 0; i < oldSectionHidden.count(); ++i) {
+    for (int i = 0; i < oldSectionHidden.count(); ++i)
+    {
         if (oldSectionHidden.testBit(i))
             q->setSectionHidden(i, false);
     }
@@ -2682,7 +2720,7 @@ void QpHorHeaderView::paintEvent(QPaintEvent *e)
             }
 
 
-            currentSectionRect.translate( offset );
+            ////currentSectionRect.translate( offset );
 
             QVariant variant = d->model->headerData(logical, Qt::Horizontal, Qt::FontRole);
 
@@ -3363,7 +3401,7 @@ void QpHorHeaderView::paintSection(QPainter *painter, const QRect &rect, int log
                                                   Qt::TextAlignmentRole);
 
     opt.rect = rect;
-    opt.section = logicalIndex;
+    ////opt.section = logicalIndex;  // не влияет
     opt.state |= state;
     opt.textAlignment = Qt::Alignment( textAlignment.isValid()
                                        ? Qt::Alignment(textAlignment.toInt())
@@ -3371,78 +3409,82 @@ void QpHorHeaderView::paintSection(QPainter *painter, const QRect &rect, int log
 
     opt.iconAlignment = Qt::AlignVCenter;
 
+    QPointF oldBO = painter->brushOrigin();
+
     if( ! isLabel )
     {
         opt.text = d->model->headerData(logicalIndex, Qt::Horizontal,
                                         Qt::DisplayRole).toString();
     }
-
-    if (d->textElideMode != Qt::ElideNone)
-        opt.text = opt.fontMetrics.elidedText(opt.text, d->textElideMode , rect.width() - 4);
-
-    QVariant variant = d->model->headerData(logicalIndex, Qt::Horizontal, Qt::DecorationRole);
-
-    opt.icon = qvariant_cast<QIcon>(variant);
-
-    if (opt.icon.isNull())
-        opt.icon = qvariant_cast<QPixmap>(variant);
-
-    QVariant foregroundBrush = d->model->headerData(logicalIndex, Qt::Horizontal,
-                                                    Qt::ForegroundRole);
-    if (foregroundBrush.canConvert<QBrush>())
-    {
-        opt.palette.setBrush(QPalette::ButtonText, qvariant_cast<QBrush>(foregroundBrush));
-    }
-
-
-    QPointF oldBO = painter->brushOrigin();
-
-    QVariant backgroundBrush = d->model->headerData(logicalIndex, Qt::Horizontal, Qt::BackgroundRole);
-
-    if (backgroundBrush.canConvert<QBrush>())
-    {
-        opt.palette.setBrush(QPalette::Button, qvariant_cast<QBrush>(backgroundBrush));
-
-        opt.palette.setBrush(QPalette::Window, qvariant_cast<QBrush>(backgroundBrush));
-
-        painter->setBrushOrigin( opt.rect.topLeft());
-
-    }
-
-    // the section position
-    int visual = visualIndex( logicalIndex );
-
-    //if (debug) qDebug() << "QpHorHeaderView::paintSection visual " << visual ;
-
-    Q_ASSERT(visual != -1);
-
-    if (count() == 1)
-        opt.position = QStyleOptionHeader::OnlyOneSection;
-    else if ( visual == 0)
-        opt.position = QStyleOptionHeader::Beginning;
-    else if ( visual == count() - 1)
-        opt.position = QStyleOptionHeader::End;
     else
-        opt.position = QStyleOptionHeader::Middle;
+    {
+        if (d->textElideMode != Qt::ElideNone)
+            opt.text = opt.fontMetrics.elidedText(opt.text, d->textElideMode , rect.width() - 4);
+
+
+        QVariant variant = d->model->headerData(logicalIndex, Qt::Horizontal, Qt::DecorationRole);
+
+        opt.icon = qvariant_cast<QIcon>(variant);
+
+        if (opt.icon.isNull())
+            opt.icon = qvariant_cast<QPixmap>(variant);
+
+        QVariant foregroundBrush = d->model->headerData(logicalIndex, Qt::Horizontal,
+                                                        Qt::ForegroundRole);
+        if (foregroundBrush.canConvert<QBrush>())
+        {
+            opt.palette.setBrush(QPalette::ButtonText, qvariant_cast<QBrush>(foregroundBrush));
+        }
+
+
+
+        QVariant backgroundBrush = d->model->headerData(logicalIndex, Qt::Horizontal, Qt::BackgroundRole);
+
+        if (backgroundBrush.canConvert<QBrush>())
+        {
+            opt.palette.setBrush(QPalette::Button, qvariant_cast<QBrush>(backgroundBrush));
+
+            opt.palette.setBrush(QPalette::Window, qvariant_cast<QBrush>(backgroundBrush));
+
+            painter->setBrushOrigin( opt.rect.topLeft());
+
+        }
+        int visual = visualIndex( logicalIndex );
+
+        //if (debug) qDebug() << "QpHorHeaderView::paintSection visual " << visual ;
+
+        Q_ASSERT(visual != -1);
+
+        if (count() == 1)
+            opt.position = QStyleOptionHeader::OnlyOneSection;
+        else if ( visual == 0)
+            opt.position = QStyleOptionHeader::Beginning;
+        else if ( visual == count() - 1)
+            opt.position = QStyleOptionHeader::End;
+        else
+            opt.position = QStyleOptionHeader::Middle;
+        // the selected position
+        bool previousSelected = d->isSectionSelected(this->logicalIndex(visual - 1));
+
+        bool nextSelected =  d->isSectionSelected(this->logicalIndex(visual + 1));
+
+        if (previousSelected && nextSelected)
+            opt.selectedPosition = QStyleOptionHeader::NextAndPreviousAreSelected;
+
+        else if (previousSelected)
+            opt.selectedPosition = QStyleOptionHeader::PreviousIsSelected;
+
+        else if (nextSelected)
+            opt.selectedPosition = QStyleOptionHeader::NextIsSelected;
+
+        else
+            opt.selectedPosition = QStyleOptionHeader::NotAdjacent;
+    }
+
+
 
     opt.orientation = Qt::Horizontal;
 
-    // the selected position
-    bool previousSelected = d->isSectionSelected(this->logicalIndex(visual - 1));
-
-    bool nextSelected =  d->isSectionSelected(this->logicalIndex(visual + 1));
-
-    if (previousSelected && nextSelected)
-        opt.selectedPosition = QStyleOptionHeader::NextAndPreviousAreSelected;
-
-    else if (previousSelected)
-        opt.selectedPosition = QStyleOptionHeader::PreviousIsSelected;
-
-    else if (nextSelected)
-        opt.selectedPosition = QStyleOptionHeader::NextIsSelected;
-
-    else
-        opt.selectedPosition = QStyleOptionHeader::NotAdjacent;
 
     // ---------------------------------------
     //           draw the section
@@ -3682,6 +3724,19 @@ void QpHorHeaderView::clear_sections_template(  )
     d->offsets_y.clear();
     d->sectionHidden.clear();
     d->label_styles.clear();
+}
+
+void QpHorHeaderView::set_label_style( int line, int numX , qp::LABEL_STYLE &stl)
+{
+    Q_D( QpHorHeaderView);
+
+    QPair<int,int> pp (line, numX );
+
+    if( d->label_styles.contains( pp ))
+        d->label_styles.take( pp);
+
+    d->label_styles[ pp ] = stl;
+
 }
 
 const qp::LABEL_STYLE QpHorHeaderView::get_label_style( int line, int numX ) const
@@ -4540,9 +4595,6 @@ void QpHorHeaderViewPrivate::resizeSections(QpHorHeaderView::ResizeMode globalMo
 {
     Q_Q(QpHorHeaderView);
 
-
-    if ( debug_resize )        qDebug() << "QpHorHeaderViewPrivate::resizeSections globalMode:"<<globalMode<< "  useGlobalMode:"<<useGlobalMode ;
-
     //  stop the timer in case it is delayed
     delayedResize.stop();
 
@@ -4558,137 +4610,202 @@ void QpHorHeaderViewPrivate::resizeSections(QpHorHeaderView::ResizeMode globalMo
 
     invalidateCachedSizeHint();
 
+    const QFont &defFnt = QFont();
+
+    if( debug_resize ) qDebug() << "resizeSections defFnt:" << defFnt;
+
+    QList< int > sz;
+
+    for( int xNum=0; xNum < (offsets_x.count() - 1); xNum++)
+    {
+        int ww=0;
+
+        for( int line=0; line < offsets_y.count() - 1 ; line++)
+        {
+            if( visual_matrix [ line ] [ xNum ].type() == QVariant::String )
+            {
+                const QString & str = visual_matrix [ line ] [ xNum ].toString();
+
+
+                QPair<int,int> pp;
+                pp.first= line;
+                pp.second = xNum;
+
+                if( label_styles.contains( pp ))
+                {
+
+
+                    if( label_styles[ pp ].fnt == defFnt)
+                        ;//continue;
+
+                    QFontMetrics metr (  label_styles[ pp ] .fnt );
+
+                    QString str2 = visual_matrix [ line ] [ xNum ].toString();
+
+                    int ll = str.length();
+
+                    QRectF rect = metr.boundingRect( str2 );
+
+                    int margin = q->style()->pixelMetric(QStyle::PM_HeaderMargin, 0, q);
+
+                    int width = metr.width(  str2 )+ margin*2;
+
+                    ww = qMax( ww , width );
+
+                    if( debug_resize ) qDebug() << "   qMax xNum:" << xNum << " line:" << line << " ww:" <<ww << " width:" << width << "  str2:"<<str2 << "  ll:"<<ll << "  fnt:"<<label_styles[ pp ].fnt << " pixelSz:" << label_styles[ pp ].fnt.pixelSize()<<" rect " << rect;
+                }
+            }
+            else
+                ww = offsets_x [ xNum + 1 ] - offsets_x [ xNum ];
+
+        }
+
+        sz.append( ww );
+
+
+    }
+
+    qDebug() << "list sz: " << sz;
+
+    offsets_x [ 0 ] =0;
+
+    for( int ii=1; ii < offsets_x.count(); ii++)
+    {
+        offsets_x [ ii ] = offsets_x [ ii - 1 ] + sz.at( ii - 1) ;
+    }
+    //recalculate_xNumWidth(  , ww);
+
     const int lastVisibleSection = lastVisibleVisualIndex();
 
-    // find stretchLastSection if we have it
-    int stretchSection = -1;
+    //    // find stretchLastSection if we have it
+    //    int stretchSection = -1;
 
-    if (stretchLastSection && !useGlobalMode)
-        stretchSection = lastVisibleVisualIndex();
+    //    if (stretchLastSection && !useGlobalMode)
+    //        stretchSection = lastVisibleVisualIndex();
 
-    // count up the number of strected sections and how much space left for them
-    int lengthToStrech = viewport->width();
-    int numberOfStretchedSections = 0;
+    //    // count up the number of strected sections and how much space left for them
+    //    int lengthToStrech = viewport->width();
+    //    int numberOfStretchedSections = 0;
 
-    QList<int> section_sizes;
+    //    QList<int> section_sizes;
 
-    for (int i = 0; i < sectionCount; ++i)
-    {
-        if (isVisualIndexHidden(i))
-            continue;
+    //    for (int i = 0; i < sectionCount; ++i)
+    //    {
+    //        if (isVisualIndexHidden(i))
+    //            continue;
 
-        QpHorHeaderView::ResizeMode resizeMode;
+    //        QpHorHeaderView::ResizeMode resizeMode;
 
-        if (useGlobalMode && (i != stretchSection))
-            resizeMode = globalMode;
-        else
-            resizeMode = (i == stretchSection ? QpHorHeaderView::Stretch : headerSectionResizeMode(i));
+    //        if (useGlobalMode && (i != stretchSection))
+    //            resizeMode = globalMode;
+    //        else
+    //            resizeMode = (i == stretchSection ? QpHorHeaderView::Stretch : headerSectionResizeMode(i));
 
-        if (resizeMode == QpHorHeaderView::Stretch)
-        {
-            ++numberOfStretchedSections;
-            section_sizes.append(headerSectionSize(i));
-            continue;
-        }
+    //        if (resizeMode == QpHorHeaderView::Stretch)
+    //        {
+    //            ++numberOfStretchedSections;
+    //            section_sizes.append(headerSectionSize(i));
+    //            continue;
+    //        }
 
-        // because it isn't stretch, determine its width and remove that from lengthToStrech
-        int sectionSize = 0;
+    //        // because it isn't stretch, determine its width and remove that from lengthToStrech
+    //        int sectionSize = 0;
 
-        if (resizeMode == QpHorHeaderView::Interactive || resizeMode == QpHorHeaderView::Fixed)
-        {
-            sectionSize = headerSectionSize(i);
-        }
-        else
-        { // resizeMode == QpHorHeaderView::ResizeToContents
-            int logicalIndex = q->logicalIndex(i);
-            sectionSize = qMax(viewSectionSizeHint(logicalIndex),
-                               q->sectionSizeHint(logicalIndex));
-        }
+    //        if (resizeMode == QpHorHeaderView::Interactive || resizeMode == QpHorHeaderView::Fixed)
+    //        {
+    //            sectionSize = headerSectionSize(i);
+    //        }
+    //        else
+    //        { // resizeMode == QpHorHeaderView::ResizeToContents
+    //            int logicalIndex = q->logicalIndex(i);
+    //            sectionSize = qMax(viewSectionSizeHint(logicalIndex),
+    //                               q->sectionSizeHint(logicalIndex));
+    //        }
 
-        section_sizes.append(sectionSize);
-        lengthToStrech -= sectionSize;
-    }
+    //        section_sizes.append(sectionSize);
+    //        lengthToStrech -= sectionSize;
+    //    }
 
-    // calculate the new length for all of the stretched sections
-    int stretchSectionLength = -1;
-    int pixelReminder = 0;
+    //    // calculate the new length for all of the stretched sections
+    //    int stretchSectionLength = -1;
+    //    int pixelReminder = 0;
 
-    if (numberOfStretchedSections > 0 && lengthToStrech > 0)
-    { // we have room to stretch in
-        int hintLengthForEveryStretchedSection = lengthToStrech / numberOfStretchedSections;
+    //    if (numberOfStretchedSections > 0 && lengthToStrech > 0)
+    //    { // we have room to stretch in
+    //        int hintLengthForEveryStretchedSection = lengthToStrech / numberOfStretchedSections;
 
-        stretchSectionLength = qMax(hintLengthForEveryStretchedSection, q->minimumSectionSize());
+    //        stretchSectionLength = qMax(hintLengthForEveryStretchedSection, q->minimumSectionSize());
 
-        pixelReminder = lengthToStrech % numberOfStretchedSections;
-    }
+    //        pixelReminder = lengthToStrech % numberOfStretchedSections;
+    //    }
 
-    int spanStartSection = 0;
-    int previousSectionLength = 0;
+    //    int spanStartSection = 0;
+    //    int previousSectionLength = 0;
 
-    QpHorHeaderView::ResizeMode previousSectionResizeMode = QpHorHeaderView::Interactive;
+    //    QpHorHeaderView::ResizeMode previousSectionResizeMode = QpHorHeaderView::Interactive;
 
-    // resize each section along the total length
-    for (int i = 0; i < sectionCount; ++i)
-    {
+    //    // resize each section along the total length
+    //    for (int i = 0; i < sectionCount; ++i)
+    //    {
 
-        //        int oldSectionLength = headerSectionSize(i);
-        //        int newSectionLength = -1;
+    //        //        int oldSectionLength = headerSectionSize(i);
+    //        //        int newSectionLength = -1;
 
-        //        QpHorHeaderView::ResizeMode newSectionResizeMode = headerSectionResizeMode(i);
+    //        //        QpHorHeaderView::ResizeMode newSectionResizeMode = headerSectionResizeMode(i);
 
-        //        if (isVisualIndexHidden(i))
-        //        {
-        //            newSectionLength = 0;
-        //        }
-        //        else
-        //        {
-        //            QpHorHeaderView::ResizeMode resizeMode;
+    //        //        if (isVisualIndexHidden(i))
+    //        //        {
+    //        //            newSectionLength = 0;
+    //        //        }
+    //        //        else
+    //        //        {
+    //        //            QpHorHeaderView::ResizeMode resizeMode;
 
-        //            if (useGlobalMode)
-        //                resizeMode = globalMode;
-        //            else
-        //                resizeMode = (i == stretchSection
-        //                              ? QpHorHeaderView::Stretch
-        //                              : newSectionResizeMode);
-        //            if (resizeMode == QpHorHeaderView::Stretch && stretchSectionLength != -1)
-        //            {
-        //                if (i == lastVisibleSection)
-        //                    newSectionLength = qMax(stretchSectionLength, lastSectionSize);
-        //                else
-        //                    newSectionLength = stretchSectionLength;
+    //        //            if (useGlobalMode)
+    //        //                resizeMode = globalMode;
+    //        //            else
+    //        //                resizeMode = (i == stretchSection
+    //        //                              ? QpHorHeaderView::Stretch
+    //        //                              : newSectionResizeMode);
+    //        //            if (resizeMode == QpHorHeaderView::Stretch && stretchSectionLength != -1)
+    //        //            {
+    //        //                if (i == lastVisibleSection)
+    //        //                    newSectionLength = qMax(stretchSectionLength, lastSectionSize);
+    //        //                else
+    //        //                    newSectionLength = stretchSectionLength;
 
-        //                if (pixelReminder > 0)
-        //                {
-        //                    newSectionLength += 1;
-        //                    --pixelReminder;
-        //                }
-        //                section_sizes.removeFirst();
-        //            }
-        //            else
-        //            {
-        //                newSectionLength = section_sizes.front();
-        //                section_sizes.removeFirst();
-        //            }
-        //        }
+    //        //                if (pixelReminder > 0)
+    //        //                {
+    //        //                    newSectionLength += 1;
+    //        //                    --pixelReminder;
+    //        //                }
+    //        //                section_sizes.removeFirst();
+    //        //            }
+    //        //            else
+    //        //            {
+    //        //                newSectionLength = section_sizes.front();
+    //        //                section_sizes.removeFirst();
+    //        //            }
+    //        //        }
 
-        //        //Q_ASSERT(newSectionLength > 0);
-        //        if ((previousSectionResizeMode != newSectionResizeMode
-        //             || previousSectionLength != newSectionLength) && i > 0)
-        //        {
-        //            int spanLength = (i - spanStartSection) * previousSectionLength;
+    //        //        //Q_ASSERT(newSectionLength > 0);
+    //        //        if ((previousSectionResizeMode != newSectionResizeMode
+    //        //             || previousSectionLength != newSectionLength) && i > 0)
+    //        //        {
+    //        //            int spanLength = (i - spanStartSection) * previousSectionLength;
 
-        //            createSectionSpan(spanStartSection, i - 1, spanLength, previousSectionResizeMode);
+    //        //            createSectionSpan(spanStartSection, i - 1, spanLength, previousSectionResizeMode);
 
-        //            //Q_ASSERT(headerLength() == length);
-        //            spanStartSection = i;
-        //        }
+    //        //            //Q_ASSERT(headerLength() == length);
+    //        //            spanStartSection = i;
+    //        //        }
 
-        //        if (newSectionLength != oldSectionLength)
-        //            emit q->sectionResized(logicalIndex(i), oldSectionLength, newSectionLength);
+    //        //        if (newSectionLength != oldSectionLength)
+    //        //            emit q->sectionResized(logicalIndex(i), oldSectionLength, newSectionLength);
 
-        //        previousSectionLength = newSectionLength;
-        //        previousSectionResizeMode = newSectionResizeMode;
-    }
+    //        //        previousSectionLength = newSectionLength;
+    //        //        previousSectionResizeMode = newSectionResizeMode;
+    //    }
 
     //Q_ASSERT(headerLength() == length);
     resizeRecursionBlock = false;

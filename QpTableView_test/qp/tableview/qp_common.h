@@ -101,6 +101,7 @@ typedef struct CELL_NODES{
 
 typedef struct LABEL_STYLE
 {
+public:
     Qt::Alignment align;
 
     QFont fnt;
@@ -110,10 +111,12 @@ typedef struct LABEL_STYLE
     LABEL_STYLE()
         :
           align( Qt::AlignCenter ),
-          color(QColor())
+          color(QColor(Qt::gray)),
+          fnt (QFont())
     {
 
     }
+
 };
 
 typedef enum FIELD_TYPE

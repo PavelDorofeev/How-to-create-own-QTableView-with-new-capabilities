@@ -54,9 +54,10 @@
 QT_BEGIN_NAMESPACE
 
 
-const  bool QpVertHeaderView::debug_paint = false;
+const  bool QpVertHeaderView::debug_paint = true;
 const  bool QpVertHeaderView::debug_select = false;
 const  bool QpVertHeaderView::debug_init = false;
+const  bool QpVertHeaderView::debug_scroll = true;
 const  bool QpVertHeaderView::debug_size = false;
 
 const  bool QpVertHeaderViewPrivate::debug_select = false;
@@ -188,7 +189,7 @@ void QpVertHeaderView::setOffset(int newOffset)
 {
     Q_D(QpVertHeaderView);
 
-    if ( debug_size ) qDebug() << "QpVertHeaderView::setOffset("<<newOffset;
+    if ( debug_scroll ) qDebug() << "QpVertHeaderView::setOffset("<<newOffset;
 
     if (d->offset == (int)newOffset)
         return;
@@ -448,8 +449,6 @@ int QpVertHeaderView::sectionViewportPosition(int row) const
 
     int offsetPosition = position - d->offset;
 
-    //    if (d->reverse())
-    //        return d->viewport->width() - (offsetPosition + sectionSize(row));
 
     return offsetPosition;
 }
@@ -1391,13 +1390,17 @@ void QpVertHeaderViewPrivate::_q_layoutAboutToBeChanged()
     // ### map columns or rows persistently
 
     for (int i = 0; i < sectionHidden.count(); ++i)
+    {
         if (sectionHidden.testBit(i)) // ### note that we are using column or row 0
             persistentHiddenSections.append( model->index(logicalIndex(i), 0, root));
+    }
 }
 
 void QpVertHeaderViewPrivate::_q_layoutChanged()
 {
     Q_Q(QpVertHeaderView);
+
+    qDebug() << "QpVertHeaderViewPrivate::_q_layoutChanged()";
 
     viewport->update();
 
@@ -3002,6 +3005,7 @@ int QpVertHeaderViewPrivate::headerSectionSize(int visual) const
 }
 
 int QpVertHeaderViewPrivate::headerSectionPosition_Y(int visual) const
+
 {
 
     return hrzntl.row_height() * visual;

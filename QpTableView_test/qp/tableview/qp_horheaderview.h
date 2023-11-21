@@ -119,6 +119,7 @@ public:
     bool init_sections_template( QAbstractItemModel *model, const Qp_SECTION_TMPL & matrix );
 
     const qp::LABEL_STYLE get_label_style( int line, int numX ) const;//!!
+    void set_label_style( int line, int numX , qp::LABEL_STYLE &stl) ;//!!
 
     //int logicalIndexAt(int position) const;
 
@@ -137,6 +138,7 @@ public:
 
 
     //virtual int sectionPosition(int logicalIndex) const;
+    virtual const int xNumPosition( int xNum) const;
     virtual const QRect sectionPosition2( int logicalIndex) const;
     virtual const QRect cellPosition( int line, int num_x ) const;
     virtual const QVariant cellLabelValue( int line, int num_x ) const;

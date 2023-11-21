@@ -51,18 +51,18 @@ QT_BEGIN_NAMESPACE
 const int QpTableView::defaultRowHeight = 60;
 
 const bool QpTableView::debug = false;
-const bool QpTableView::debug_paint = false;
 const bool QpTableView::debug_init = false;
+const bool QpTableView::debug_paint = true;
+const bool QpTableView::debug_paint_row_col = true;
 const bool QpTableView::debug_geometry = false;
 const bool QpTableView::debug_event = false;
-const bool QpTableView::debug_paint_region = false;
-const bool QpTableView::debug_paint_row_col = false;
+const bool QpTableView::debug_paint_region = true;
 const bool QpTableView::debug_paint_border = false;
 
 const bool QpTableView::debug_selection = true;
 const bool QpTableViewPrivate::debug_selection = true;
 
-const bool QpTableView::debug_scroll = false;
+const bool QpTableView::debug_scroll = true;
 const bool QpTableViewPrivate::debug = false;
 const bool QpTableViewPrivate::debug_init = false;
 
@@ -170,13 +170,13 @@ void QpTableViewPrivate::trimHiddenSelections(QItemSelectionRange *range) const
     //    *range = QItemSelectionRange(topLeft, bottomRight);
 }
 
-void QpTableViewPrivate::drawCellLabel(QPainter *painter, const QStyleOptionViewItemV4 &option,  const QString &txt, bool rowSelected, int row , const qp::LABEL_STYLE & st)
+void QpTableViewPrivate::drawCellLabel(QPainter *painter, const QStyleOptionViewItemV4 &option,  const QString &txt, bool rowSelected, int row , const qp::LABEL_STYLE & stl)
 {
     Q_Q(QpTableView);
 
     QStyleOptionViewItemV4 opt = option;
 
-    opt.displayAlignment = st.align;
+    opt.displayAlignment = stl.align;
 
     // -------------------------------------------------------------
     // lifehack: label selection is detected by index (row,0)
@@ -225,6 +225,8 @@ void QpTableViewPrivate::drawCellLabel(QPainter *painter, const QStyleOptionView
 
     if (const QStyleOptionViewItemV4 *v4 = qstyleoption_cast<const QStyleOptionViewItemV4 *>(&opt))
     {
+        correct_Style( stl , opt );
+
         const QWidget *widget = v4->widget;
 
         QStyle *style = widget ? widget->style() : QApplication::style();
@@ -424,9 +426,6 @@ void QpTableView::setRootIndex(const QModelIndex &index)
     QpAbstractItemView::setRootIndex(index);
 }
 
-/*!
-  \internal
-*/
 void QpTableView::doItemsLayout()
 {
     Q_D(QpTableView);
@@ -449,9 +448,6 @@ void QpTableView::doItemsLayout()
         d->verticalHeader->setUpdatesEnabled(true);
 }
 
-/*!
-  \reimp
-*/
 void QpTableView::setSelectionModel(QItemSelectionModel *selectionModel)
 {
     if ( debug_init ) qDebug() << "QpTableView::setSelectionModel "<<selectionModel;
@@ -597,7 +593,7 @@ void QpTableView::scrollContentsBy(int dx, int dy)
 
     //dx = isRightToLeft() ? -dx : dx;
 
-    if (dx)
+    if ( dx )
     {
         if ( horizontalScrollMode() == QpAbstractItemView::ScrollPerItem )
         {
@@ -796,20 +792,20 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
     if ( debug_paint ) qDebug() << "QBitArray drawn : " << drawn;
 
-    QString str = "\n\t\t";
+//    QString str = "\n\t\t";
 
-    for( int ii =0; ii < drawn.count(); ii++)
-    {
-        int dd = ii % 10 ;
+//    for( int ii =0; ii < drawn.count(); ii++)
+//    {
+//        int dd = ii % 10 ;
 
-        if( dd == 0)
-            str.append("\n\t\t");
+//        if( dd == 0)
+//            str.append("\n\t\t");
 
-        str.append( QString::number(drawn.at( ii )) ).append(" ");
+//        str.append( QString::number(drawn.at( ii )) ).append(" ");
 
-    }
+//    }
 
-    if ( debug_paint ) qDebug() << str <<"\n";
+//    if ( debug_paint ) qDebug() << str <<"\n";
 
     // -------------------------------------------------------------------------------
 
@@ -823,10 +819,8 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
         dirtyArea.setRight( qMin(dirtyArea.right(), int( x )));
 
-        //int left = horizontalHeader->visualIndexAt( dirtyArea.left() , 0);
         int left_num = horizontalHeader->visual_xNum_At( dirtyArea.left() );
 
-        //int right = horizontalHeader->visualIndexAt_end( dirtyArea.right()  );
         int right_num = horizontalHeader->visual_xNum_At( dirtyArea.right()  );
 
 
@@ -850,11 +844,13 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
         bool alternateBase = false;
 
-        top = verticalHeader->visualIndexAt(dirtyArea.top() );
-        //alternateBase = (top & 1) && alternate;
+        top = verticalHeader->visualIndexAt( dirtyArea.top() );
 
         if (top == -1 || top > bottom)
             continue;
+
+
+        if( debug_scroll)  qDebug() << "left_num " << left_num << "  right_num " << right_num;
 
         //----------------------------------------------------
         //              Paint each row item
@@ -873,7 +869,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
             //                      rows
             // --------------------------------------------------------------------
 
-            if( debug_paint_row_col ) qDebug()<< "    row:"<<row<<" top:"<<top << " row - top  : " << row - top  << " lgcl_max_num:" << lgcl_max_num ;
+            if( debug_paint_row_col ) qDebug()<< "    row:"<<row<<" top:"<<top << " row - top  : " << row - top  ;
 
             for ( int line = 0 ; line < lines_count; ++line)
             {
@@ -905,6 +901,11 @@ void QpTableView::paintEvent(QPaintEvent *event)
                     if( logicalIndex == qp::UNDEFINED_FLD)
                         continue;
 
+
+                    int rowX = horizontalHeader->xNumPosition( left_num );
+
+                    rowX += offset.x();
+
                     QRect rect;
 
                     if( logicalIndex == qp::LABEL_FLD)
@@ -912,6 +913,13 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
                         rect = horizontalHeader->cellPosition( line , numX );
 
+                        qDebug() << "LABEL_FLD    rect " << rect << " rowY " << rowY << " rowX " << rowX;
+
+                        if ( debug_scroll )
+                            if( offset.y()!=0 || offset.x()!=0 )
+                                qDebug() << " offset.y()" << offset.y() << " offset.x() " <<offset.x();
+
+                        int x1 = rect.left();
                         int x2 = rect.right();
                         int y1 = rect.top();
                         int y2 = rect.bottom();
@@ -920,8 +928,9 @@ void QpTableView::paintEvent(QPaintEvent *event)
                         rect.setRight(  x2 - gridSize + correct_width_minus_1 );
 
                         rect.moveTop( rowY + y1 );
+                        rect.moveLeft( rowX + x1 );
 
-                        option.rect = rect ;
+                        option.rect =  rect  ;
 
                         QVariant var = horizontalHeader->cellLabelValue( line , numX );
 
@@ -933,9 +942,9 @@ void QpTableView::paintEvent(QPaintEvent *event)
                         bool rowSel = verticalHeader->is_rowSelected( row );
 
 
-                        if( rowSel )
+                        if( debug_selection && rowSel )
                         {
-                            if ( debug_paint ) qDebug() <<"        rowSel " << rowSel << " row "<< row;
+                            if ( debug_paint ) qDebug() <<"        rowSelected " << rowSel << " row "<< row;
                         }
 
                         if( debug_paint_row_col ) qDebug() << "               numX:"  << numX << "  label : "<< var.toString().toUtf8();
@@ -3216,7 +3225,7 @@ void QpTableViewPrivate::correct_Style( const qp::LABEL_STYLE &stls,
     {
         opt.font = stls.fnt;
 
-        qDebug() << "correctStyle fnt" << opt.font;
+        //qDebug() << "correctStyle fnt" << opt.font;
 
     }
 

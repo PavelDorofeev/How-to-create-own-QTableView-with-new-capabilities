@@ -22,8 +22,11 @@ Now we are including our qp files at any project and building conveniently as us
 
 2.0.0
 
-Resizing columns(xNums) and lines for all cells
+    Resizing columns(xNums) and lines for all cells
 2.1.0
+
+    repaire scroll x
+2.1.1
 */
 
 

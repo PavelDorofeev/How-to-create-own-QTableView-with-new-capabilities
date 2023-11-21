@@ -115,9 +115,9 @@ public:
 
     QHash < QPair<int,int> , qp::LABEL_STYLE > label_styles;   // only for label formatting
 
-    //QList < CELL_NODES > visual_section; // left top section and right bottom section
+    QHash<int , qp::CELL_NODES > map; // int = logical index into model
 
-    QHash<int , qp::CELL_NODES > map;
+    void set_Style_test();
 
     void setLines(int lines);
 

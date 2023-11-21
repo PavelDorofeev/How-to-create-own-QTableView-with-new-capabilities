@@ -51,6 +51,7 @@ public:
 
     static const bool  debug_paint;
     static const bool  debug_size;
+    static const bool  debug_scroll;
     static const bool  debug_init;
     static const bool  debug_select;
     //int row_heigth() const;
