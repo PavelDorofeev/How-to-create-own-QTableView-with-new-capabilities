@@ -74,6 +74,7 @@ SectionSettingsDlg::SectionSettingsDlg(const qp::CELL_STYLE &stl ,
         {
             btn->click();
             colorfnd = true;
+
         }
         else
             qDebug() << "colors: " << colors.value( btn ).name() << " != " << name;
@@ -102,11 +103,11 @@ SectionSettingsDlg::SectionSettingsDlg(const qp::CELL_STYLE &stl ,
 
     // ---------------------------------------------------
 
-    sizes.insert( ui->rbtn_size_0_5 , 0.5);
-    sizes.insert( ui->rbtn_size_0_7 , 0.7);
-    sizes.insert( ui->rbtn_size_normal , 1);
-    sizes.insert( ui->rbtn_size_1_5 , 1.5);
-    sizes.insert( ui->rbtn_size_2_0 , 2.0);
+    sizes.insert( ui->rbtn_size_0_5 , appDef::sz05);
+    sizes.insert( ui->rbtn_size_0_7 , appDef::sz07);
+    sizes.insert( ui->rbtn_size_normal , appDef::sz1);
+    sizes.insert( ui->rbtn_size_1_5 , appDef::sz15);
+    sizes.insert( ui->rbtn_size_2_0 , appDef::sz20);
 
     int pointSz = currStyles.font.pointSize();
     int pixelSz = currStyles.font.pixelSize();
@@ -115,12 +116,14 @@ SectionSettingsDlg::SectionSettingsDlg(const qp::CELL_STYLE &stl ,
 
     if( pixelSz >0 && defaultPixelSz>0 )
     {
-        kf = (double)pixelSz / (double)defaultPixelSz ;
+        kf =  (double) pixelSz / (double)defaultPixelSz  ;
     }
     else if( pointSz >0 && defaultPointSz>0 )
     {
         kf = (double)pointSz / (double)defaultPointSz ;
     }
+    QString kf_ = QString::number( kf , 'f', 1);
+    kf = kf_.toDouble();
 
     foreach( QRadioButton*  btn , sizes.keys())
     {
@@ -327,6 +330,10 @@ void SectionSettingsDlg::recalculate_align()
         currStyles.align &= ~Qt::AlignBottom;
     }
 
+    qDebug() << "currStyles " << currStyles.color;
+
+
+
 }
 
 void SectionSettingsDlg::on_ledt_fntWeight_textEdited(const QString &arg1)
@@ -405,7 +412,7 @@ void SectionSettingsDlg::setColor()
     {
         QPalette palette = btn->palette();
 
-        currStyles.color = palette.color( QPalette::Text );
+        currStyles.color = colors.value( btn );
 
         ui->ledt_color->setText( colors.value( btn).name() );
 

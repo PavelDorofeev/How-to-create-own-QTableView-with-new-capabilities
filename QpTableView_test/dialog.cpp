@@ -15,6 +15,7 @@
 #include "qp/tableview/qp_tableview.h"
 #include "section_settings_dlg.h"
 
+int Dialog::lbl_number = -2;
 
 Dialog::Dialog(QWidget *parent) :
     QDialog(parent),
@@ -244,28 +245,44 @@ void Dialog::init_StandardItemModel()
 
     qp::CELL_STYLE stl;
 
-    stl.font.setPixelSize( 25 );
-    stl.font.setPointSize( -1 );
-    stl.align = Qt::AlignRight;
+
+    stl.font = QApplication::font();
+    int pizxelSz = QApplication::font().pixelSize();
+
+    qDebug() << "QApplication::font() " << QApplication::font();
+
+    stl.font.setBold( true );
+    stl.align = Qt::AlignRight|Qt::AlignCenter;
 
     stl.color = appDef::green;
-    tableView->horizontalHeader()->set_cell_style( 0 , 2 , stl );
+    //tableView->horizontalHeader()->set_cell_style( 0 , 2 , stl );
+    tableView->horizontalHeader()->set_section_style( -2 , stl );
+    tableView->horizontalHeader()->set_section_style( 0 , stl );
+    tableView->horizontalHeader()->set_section_style( 1 , stl );
 
-    stl.font.setPixelSize( 30 );
-    stl.font.setPointSize( -1 );
+    stl.font.setPixelSize( pizxelSz*appDef::sz15 );
+    //stl.font.setPointSize( -1 );
 
     stl.color = appDef::red;
-    tableView->horizontalHeader()->set_cell_style( 0 , 1 , stl );
+    stl.align = Qt::AlignLeft|Qt::AlignCenter;
+    //tableView->horizontalHeader()->set_cell_style( 0 , 1 , stl );
+    tableView->horizontalHeader()->set_section_style( -3 , stl );
+    tableView->horizontalHeader()->set_section_style( 3 , stl );
 
-    stl.font.setPixelSize( 20 );
-    stl.font.setPointSize( -1 );
+    stl.font.setPixelSize( pizxelSz*appDef::sz20 );
+    //stl.font.setPointSize( -1 );
     stl.color = appDef::blue;
-    tableView->horizontalHeader()->set_cell_style( 1 , 0 , stl );
-    tableView->horizontalHeader()->set_cell_style( 0 , 4 , stl );
+    //tableView->horizontalHeader()->set_cell_style( 1 , 0 , stl );
+    //tableView->horizontalHeader()->set_cell_style( 0 , 4 , stl );
+    tableView->horizontalHeader()->set_section_style( 4 , stl );
 
+    stl.font.setPixelSize( pizxelSz*appDef::sz1 );
     stl.color = appDef::brown;
-    tableView->horizontalHeader()->set_cell_style( 1 , 3 , stl );
-    tableView->horizontalHeader()->set_cell_style( 1 , 2 , stl );
+    //tableView->horizontalHeader()->set_cell_style( 1 , 3 , stl );
+    //tableView->horizontalHeader()->set_cell_style( 1 , 2 , stl );
+    tableView->horizontalHeader()->set_section_style( -4 , stl );
+    tableView->horizontalHeader()->set_section_style( 5 , stl );
+    tableView->horizontalHeader()->set_section_style( 6 , stl );
 
     tableView->resizeColumnsToContents();
     qDebug() << " model->rowCount() : " << mdl_standart->rowCount();
@@ -313,21 +330,35 @@ Qp_SECTION_TMPL Dialog::prepare_matrix( const QPlainTextEdit & txt )
 
     Qp_SECTION_TMPL matrix;
 
+    Dialog::lbl_number =-2;
+
     foreach ( QString str, lst)
     {
         QStringList lst1 = str.split(",");
 
-        QList < QVariant > lst;
+        QList < qp::SECTION_D > lst;
 
         foreach( QVariant var, lst1)
         {
-            bool ok;
-            int logicalIndex = var.toInt( &ok );
+            bool isMdlFld = true;
 
-            if( ok  )
-                lst.append( logicalIndex );
-            else
-                lst.append( var );
+            qp::SECTION_D dd;
+
+            bool ok_int;
+            int tt = var.toInt( &ok_int );
+            if( ok_int )
+            {
+                dd.type = qp::MODEL_TYPE;
+                dd.number = var.toInt();
+
+            }
+            else if( var.type() == QVariant::String)
+            {
+                dd.type = qp::LABEL_TYPE;
+                dd.number = Dialog::lbl_number--;
+                dd.txt = var.toString();
+            }
+            lst.append( dd );
         }
 
         matrix.append( lst );
@@ -407,14 +438,13 @@ void Dialog::slot_settinggs_edit( const QPoint& pp )
 
     qp::CELL_STYLE stl;
 
-    if ( ! tableView->horizontalHeader()->get_cell_style( cell.line, cell.xNum , stl ) )
+
+    if ( ! tableView->horizontalHeader()->get_section_style( cell.sectionNum , stl ) )
         stl = defStl;
     else
         qDebug() << "asdasd stl " << stl.color.name() << stl.font;
 
 
-
-    QPair<qp::CELL_STYLE,qp::CELL_STYLE> pair ( stl , defStl );
 
     SectionSettingsDlg dlg ( stl , defStl, this );
 
@@ -423,7 +453,7 @@ void Dialog::slot_settinggs_edit( const QPoint& pp )
 
     qDebug() << "slot_bbb : dlg.align: " << dlg.currStyles.align;
 
-    tableView->horizontalHeader()->set_cell_style( cell.line, cell.xNum , dlg.currStyles );
+    tableView->horizontalHeader()->set_section_style( cell.sectionNum , dlg.currStyles );
 }
 
 

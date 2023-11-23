@@ -158,9 +158,22 @@ typedef enum FIELD_TYPE
 
 typedef enum SECTION_TYPE
 {
-    MODEL_FIELD =1,
-    LABEL_FIELD
+    UNKNOWN_TYPE =-1,
+    MODEL_TYPE =1,
+    LABEL_TYPE
 };
+
+typedef struct SECTION_D
+{
+    qp::SECTION_TYPE type;
+    int number;
+    QString txt;
+
+    SECTION_D(): number (qp::UNKNOWN_VALUE),
+        type (qp::UNKNOWN_TYPE)
+    {}
+};
+
 
 typedef struct SECTION
 {
@@ -168,7 +181,7 @@ typedef struct SECTION
     QModelIndex idx;
 
     SECTION() :
-        type(MODEL_FIELD),
+        type(MODEL_TYPE),
         idx(QModelIndex())
     {
 
@@ -190,7 +203,7 @@ typedef struct aaa
           xNum( UNKNOWN_VALUE),
           line( UNKNOWN_VALUE),
           //logicalNumber( UNKNOWN_VALUE),
-          type( MODEL_FIELD),
+          type( MODEL_TYPE),
           moveOrientation( Qt::Horizontal),
           handle ( false)
     {
@@ -202,21 +215,27 @@ typedef struct aaa
 typedef struct CELL
 {
 
-    CELL() : line(qp::UNKNOWN_VALUE), xNum(qp::UNKNOWN_VALUE)
+    CELL() : line(qp::UNKNOWN_VALUE), xNum(qp::UNKNOWN_VALUE) , sectionNum (qp::UNKNOWN_VALUE)
     {
     }
 
-    CELL( const int &line, const int &xNum):  line(line), xNum(xNum)
+    CELL( const int &line, const int &xNum):
+        line(line),
+        xNum(xNum)
     {
     }
 
     CELL &operator=(const CELL &other)
     {
-        line = other.line; xNum = other.xNum; return *this;
+        line = other.line;
+        xNum = other.xNum;
+        sectionNum = other.sectionNum;
+        return *this;
     }
 
     int line;
     int xNum;
+    int sectionNum;
 };
 
 Q_INLINE_TEMPLATE bool operator==(const CELL &p1, const CELL &p2)

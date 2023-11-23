@@ -48,14 +48,19 @@ int main(int argc, char *argv[])
 
     int fontSize = 20; // px
 
+    //             "   font-size:"+QString::number(fontSize)+"px;\n"\
+
+    QFont fnt;
+    fnt.setPixelSize( 25);
+
+    app.setFont(fnt);
+
     QString st = "*{\n"\
-            "   font-size:"+QString::number(fontSize)+"px;\n"\
             "   font-weight:500;\n"\
             "   color:gray;\n"\
             "}" \
 
             "QPushButton{\n"\
-            "   font-size:"+QString::number(fontSize*1.3)+"px;\n"\
             "   background:#1a3167;\n"\
             "   color:white;\n"\
             "   padding:"+QString::number(fontSize*0.5)+"px;\n"\

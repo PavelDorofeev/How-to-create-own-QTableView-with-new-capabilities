@@ -43,7 +43,8 @@ QT_MODULE(Gui)
 class QpHorHeaderViewPrivate;
 class QStyleOptionHeader;
 
-typedef QList < QList< QVariant > >  Qp_SECTION_TMPL;
+
+typedef QList < QList< qp::SECTION_D > >  Qp_SECTION_TMPL;
 
 
 class __declspec(dllexport) QpHorHeaderView : public QpAbstractItemView
@@ -99,6 +100,7 @@ public:
     int lastLogicalNum( ) const;
     int leftTopVisualNumX( ) const;
     //void recalculate_xNumWidth( int xNum, int newWidth);
+    int get_section_number( int line , int xNum ) const;
 
     Qt::Orientation orientation() const;
     int offset() const;
@@ -118,8 +120,11 @@ public:
 
     bool init_sections_template( QAbstractItemModel *model, const Qp_SECTION_TMPL & matrix );
 
-    const bool get_cell_style( int line, int numX, qp::CELL_STYLE &stl ) const;//!!
-    void set_cell_style( int line, int numX , qp::CELL_STYLE &stl) ;//!!
+    const bool get_section_style( int sectionNum, qp::CELL_STYLE &stl ) const;
+    void set_section_style( int sectionNum , qp::CELL_STYLE &stl);
+
+    //const bool get_cell_style( int line, int numX, qp::CELL_STYLE &stl ) const;//!!
+    //void set_cell_style( int line, int numX , qp::CELL_STYLE &stl) ;//!!
 
     //int logicalIndexAt(int position) const;
 
@@ -140,8 +145,8 @@ public:
     //virtual int sectionPosition(int logicalIndex) const;
     virtual const int xNumPosition( int xNum) const;
     virtual const QRect sectionPosition2( int logicalIndex) const;
-    virtual const QRect cellPosition( int line, int num_x ) const;
-    virtual const QVariant cellLabelValue( int line, int num_x ) const;
+    virtual const QRect cellRect( int line, int num_x ) const;
+    virtual const qp::SECTION_D get_cell_at_line_xNum( int line, int num_x ) const;
 
     const qp::CELL_NODES get_logicalIdex_nodes(int logicalIndex) const;
 

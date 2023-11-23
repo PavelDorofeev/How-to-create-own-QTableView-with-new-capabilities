@@ -31,6 +31,10 @@ Now we are including our qp files at any project and building conveniently as us
 2.1.2
     repair mouse move cursor image (shape) when scrolling x is presents
 2.1.3
+
+    add section number: for labels are < -2 and for field model number >0
+    creating new containers and remove some old
+2.2.0
 */
 
 

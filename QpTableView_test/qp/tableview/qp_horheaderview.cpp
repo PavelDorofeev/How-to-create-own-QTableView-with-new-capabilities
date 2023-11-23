@@ -99,14 +99,6 @@ QpHorHeaderView::~QpHorHeaderView()
 {
 }
 
-void QpHorHeaderViewPrivate::set_Style_test()
-{
-    QPair<int,int> pp;
-    pp.first=0;
-    pp.second=0;
-
-    qp::CELL_STYLE stl  =  label_styles.take( pp );
-}
 
 void QpHorHeaderView::initialize()
 {
@@ -670,6 +662,13 @@ const qp::CELL_NODES QpHorHeaderView::get_logicalIdex_nodes(int logicalIndex) co
     return d->map[ logicalIndex ];
 }
 
+int QpHorHeaderView::get_section_number( int line , int xNum ) const
+{
+    Q_D(const QpHorHeaderView);
+
+    return get_cell_at_line_xNum( line , xNum).number;
+}
+
 int QpHorHeaderView::get_section_line( int y ) const
 {
     // y - this is coordinate into viewport
@@ -780,11 +779,11 @@ int QpHorHeaderView::sectionSize(int logicalIndex) const
 }
 
 
-const QVariant QpHorHeaderView::cellLabelValue( int line, int num_x ) const
+const qp::SECTION_D QpHorHeaderView::get_cell_at_line_xNum( int line, int num_x ) const
 {
     Q_D( const QpHorHeaderView);
 
-    QVariant var;
+    qp::SECTION_D var;
 
     if( line < 0 || line > d->offsets_y.count() - 1  )
         return var;
@@ -797,7 +796,7 @@ const QVariant QpHorHeaderView::cellLabelValue( int line, int num_x ) const
     return var;
 }
 
-const QRect QpHorHeaderView::cellPosition( int line, int num_x ) const
+const QRect QpHorHeaderView::cellRect( int line, int num_x ) const
 {
 
     Q_D( const QpHorHeaderView);
@@ -946,7 +945,7 @@ int QpHorHeaderView::leftTopVisualNumX( ) const
     if ( d->offsets_y.count() <=0)
         return -1;
 
-    int lastLgcl = d->visual_matrix[ 0 ] [ 0 ].toInt();
+    int lastLgcl = d->visual_matrix[ 0 ] [ 0 ].number; //???
 
     return lastLgcl;
 }
@@ -1294,25 +1293,25 @@ int QpHorHeaderView::left_common_border_x( int logicalIndex) const // for repain
 
     int curr_line = d->map[ logicalIndex ].bottom - 1;
 
-    QList< QVariant > currLine =  d->visual_matrix[ curr_line ];
+    QList< qp::SECTION_D > currLine =  d->visual_matrix[ curr_line ];
 
-    while( left_num - 1 >=0 && currLine[ left_num - 1].toInt() == logicalIndex ) // current line
+    while( left_num - 1 >=0 && currLine[ left_num - 1].number == logicalIndex ) // current line
     {
         left_num--;
     }
 
 
-    foreach ( QList< QVariant > lst, d->visual_matrix) // lines
+    foreach ( QList< qp::SECTION_D > lst, d->visual_matrix) // lines
     {
 
 
-        if( lst[ num ].toInt() != logicalIndex ) // other index cell
+        if( lst[ num ].number != logicalIndex ) // other index cell
         {
-            int other_Index = lst[ num ].toInt();
+            int other_Index = lst[ num ].number;
 
             int from = num ;
 
-            while( from - 1 >=0 && lst[ from - 1].toInt() == other_Index )
+            while( from - 1 >=0 && lst[ from - 1].number == other_Index )
             {
                 from--;
             }
@@ -1400,17 +1399,13 @@ int QpHorHeaderView::logicalIndex_atNum_x_line(int num_x, int line) const
     if ( num_x < 0 || num_x >= d->visual_matrix[ line ].count() )
         return qp::UNDEFINED_FLD;
 
-    QVariant var = d->visual_matrix[ line ] [ num_x ];
+    qp::SECTION_D var = d->visual_matrix[ line ] [ num_x ];
 
     bool ok;
 
-    int idx =  var.toInt( &ok );
+    int sectionNum =  var.number;
 
-    if( ! ok )
-        return qp::LABEL_FLD;
-
-
-    return idx;
+    return sectionNum;
 }
 
 
@@ -1476,12 +1471,6 @@ bool QpHorHeaderView::highlightSections() const
     return d->highlightSelected;
 }
 
-/*!
-    Sets the constraints on how the header can be resized to those described
-    by the given \a mode.
-
-    \sa resizeMode(), length(), sectionResized(), sectionAutoResize()
-*/
 
 void QpHorHeaderView::setResizeMode(ResizeMode mode)
 {
@@ -1494,21 +1483,6 @@ void QpHorHeaderView::setResizeMode(ResizeMode mode)
         d->doDelayedResizeSections(); // section sizes may change as a result of the new mode
 }
 
-/*!
-    \overload
-
-    Sets the constraints on how the section specified by \a logicalIndex in
-    the header can be resized to those described by the given \a mode. The logical
-    index should exist at the time this function is called.
-
-    \note This setting will be ignored for the last section if the stretchLastSection
-    property is set to true. This is the default for the horizontal headers provided
-    by QTreeView.
-
-    \sa setStretchLastSection()
-*/
-
-// ### Qt 5: change to setSectionResizeMode()
 void QpHorHeaderView::setResizeMode(int logicalIndex, ResizeMode mode)
 {
     Q_D(QpHorHeaderView);
@@ -2148,7 +2122,7 @@ qp::CELL_NODES QpHorHeaderViewPrivate::get_nodes( int logicalIndex )
 
         for( int line = 0 ; line < visual_matrix.count(); line++ )
         {
-            if( visual_matrix[ line ] [ num ] == visual )
+            if( visual_matrix[ line ] [ num ].number == visual )
             {
                 if ( cells.top == qp::CELL_NODES::NODE_UNDEFINED )
                 {
@@ -2664,7 +2638,7 @@ void QpHorHeaderView::paintEvent(QPaintEvent *e)
 
     QRect currentSectionRect;
 
-    int logical;
+    int sectionNum;
 
     const int width = d->viewport->width();
 
@@ -2684,23 +2658,23 @@ void QpHorHeaderView::paintEvent(QPaintEvent *e)
             //                continue;
             painter.save();
 
-            logical = logicalIndex_atNum_x_line( xNum , line );
+            sectionNum = logicalIndex_atNum_x_line( xNum , line );
 
-            if( logical == qp::UNDEFINED_FLD )
+            if( sectionNum == qp::UNDEFINED_FLD )
             {
                 painter.restore();
                 qDebug() << "56839580984609865";
                 continue;
             }
-            else if ( logical == qp::LABEL_FLD)
+            else if ( sectionNum <= qp::LABEL_FLD)
             {
-                currentSectionRect = cellPosition( line , xNum );
+                currentSectionRect = cellRect( line , xNum );
 
                 if (debug_resize ) qDebug() << "            LABEL_FLD rect:" << currentSectionRect;
             }
             else
             {
-                currentSectionRect = sectionViewportPosition2( logical );
+                currentSectionRect = sectionViewportPosition2( sectionNum );
 
                 if (debug_resize ) qDebug() << "                       rect:" << currentSectionRect;
             }
@@ -2708,19 +2682,22 @@ void QpHorHeaderView::paintEvent(QPaintEvent *e)
 
             ////currentSectionRect.translate( offset );
 
-            QVariant variant = d->model->headerData(logical, Qt::Horizontal, Qt::FontRole);
-
-
-            if (variant.isValid() && variant.canConvert<QFont>())
+            if( sectionNum>=0 )
             {
-                qDebug() << "fadfjlakdsjfkdsjklfd";
-                QFont sectionFont = qvariant_cast<QFont>(variant);
-                painter.setFont(sectionFont);
-            }
+                QVariant variant = d->model->headerData(sectionNum, Qt::Horizontal, Qt::FontRole);
 
+
+                if (variant.isValid() && variant.canConvert<QFont>())
+                {
+                    qDebug() << "fadfjlakdsjfkdsjklfd";
+                    QFont sectionFont = qvariant_cast<QFont>(variant);
+                    painter.setFont(sectionFont);
+                }
+
+            }
             //if ( debug_paint ) qDebug() << " QpHorHeaderView::paintSection() rect " << currentSectionRect << " logical "<<logical;
 
-            paintSection( &painter, currentSectionRect, logical );
+            paintSection( &painter, currentSectionRect, sectionNum );
 
 
             int x1 = currentSectionRect.left() ;
@@ -3325,7 +3302,7 @@ bool QpHorHeaderView::viewportEvent(QEvent *e)
     return QpAbstractItemView::viewportEvent(e);
 }
 
-void QpHorHeaderView::paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const
+void QpHorHeaderView::paintSection(QPainter *painter, const QRect &rect, int sectionNum) const
 {
     // -----------------------------------------------------
     // paintSection is called from paintEvent
@@ -3355,21 +3332,19 @@ void QpHorHeaderView::paintSection(QPainter *painter, const QRect &rect, int log
 
     bool isLabel = false;
 
-    if( logicalIndex == qp::LABEL_FLD)
+    if( sectionNum <= qp::LABEL_FLD)
     {
         isLabel = true ;
-        logicalIndex = 0;
-        //state |= QStyle::State_Sunken;
     }
     else
     {
 
         if (d->clickableSections)
         {
-            if (logicalIndex == d->hover)
+            if (sectionNum == d->hover)
                 state |= QStyle::State_MouseOver;
 
-            if (logicalIndex == d->pressed) // click into section
+            if (sectionNum == d->pressed) // click into section
                 state |= QStyle::State_Sunken;
 
             else if (d->highlightSelected)
@@ -3381,19 +3356,19 @@ void QpHorHeaderView::paintSection(QPainter *painter, const QRect &rect, int log
                 //            }
 
 
-                if (d->isSectionSelected( logicalIndex ))
+                if (d->isSectionSelected( sectionNum ))
                     state |= QStyle::State_Sunken;
             }
 
         }
 
-        if (isSortIndicatorShown() && sortIndicatorSection() == logicalIndex)
+        if (isSortIndicatorShown() && sortIndicatorSection() == sectionNum)
         {
             opt.sortIndicator = (sortIndicatorOrder() == Qt::AscendingOrder)
                     ? QStyleOptionHeader::SortDown : QStyleOptionHeader::SortUp;
         }
 
-        QVariant textAlignment = d->model->headerData(logicalIndex, Qt::Horizontal,
+        QVariant textAlignment = d->model->headerData(sectionNum, Qt::Horizontal,
                                                       Qt::TextAlignmentRole);
 
         opt.textAlignment = Qt::Alignment( textAlignment.isValid()
@@ -3417,14 +3392,14 @@ void QpHorHeaderView::paintSection(QPainter *painter, const QRect &rect, int log
     }
     else
     {
-        opt.text = d->model->headerData(logicalIndex, Qt::Horizontal, Qt::DisplayRole).toString();
+        opt.text = d->model->headerData(sectionNum, Qt::Horizontal, Qt::DisplayRole).toString();
 
         if (d->textElideMode != Qt::ElideNone)
             opt.text = opt.fontMetrics.elidedText(opt.text, d->textElideMode , rect.width() - 4);
 
         // ------------------- icon -------------------------------
 
-        QVariant variant = d->model->headerData(logicalIndex, Qt::Horizontal, Qt::DecorationRole);
+        QVariant variant = d->model->headerData(sectionNum, Qt::Horizontal, Qt::DecorationRole);
 
         opt.icon = qvariant_cast<QIcon>(variant);
 
@@ -3433,7 +3408,7 @@ void QpHorHeaderView::paintSection(QPainter *painter, const QRect &rect, int log
 
         // ------------------- foregroundBrush -------------------------------
 
-        QVariant foregroundBrush = d->model->headerData(logicalIndex, Qt::Horizontal, Qt::ForegroundRole);
+        QVariant foregroundBrush = d->model->headerData(sectionNum, Qt::Horizontal, Qt::ForegroundRole);
 
         if (foregroundBrush.canConvert<QBrush>())
         {
@@ -3442,7 +3417,7 @@ void QpHorHeaderView::paintSection(QPainter *painter, const QRect &rect, int log
 
         // ------------------- backgroundBrush -------------------------------
 
-        QVariant backgroundBrush = d->model->headerData(logicalIndex, Qt::Horizontal, Qt::BackgroundRole);
+        QVariant backgroundBrush = d->model->headerData(sectionNum, Qt::Horizontal, Qt::BackgroundRole);
 
         if (backgroundBrush.canConvert<QBrush>())
         {
@@ -3456,7 +3431,7 @@ void QpHorHeaderView::paintSection(QPainter *painter, const QRect &rect, int log
 
         // -------------------                -------------------------------
 
-        int visual = visualIndex( logicalIndex );
+        int visual = visualIndex( sectionNum );
 
         Q_ASSERT(visual != -1);
 
@@ -3500,7 +3475,7 @@ void QpHorHeaderView::paintSection(QPainter *painter, const QRect &rect, int log
     {
         qDebug() << "----------------------------------------------------------";
         qDebug() << "QpHorHeaderView::paintSection() CE_Header ";
-        qDebug() << "       logicalIndex " << logicalIndex;
+        qDebug() << "       logicalIndex " << sectionNum;
         qDebug() << "       opt.text " << opt.text << opt.state;
         qDebug() << "       opt.rect " << opt.rect;
         //qDebug() << "       opt " << opt;
@@ -3728,46 +3703,67 @@ void QpHorHeaderView::clear_sections_template(  )
     d->offsets_x.clear();
     d->offsets_y.clear();
     d->sectionHidden.clear();
-    d->label_styles.clear();
+    //d->label_styles.clear();
+    d->label_styles2.clear();
 }
 
-void QpHorHeaderView::set_cell_style( int line, int numX , qp::CELL_STYLE &stl)
+void QpHorHeaderView::set_section_style( int sectionNum , qp::CELL_STYLE &stl)
 {
     Q_D( QpHorHeaderView);
 
-    QPair<int,int> pp (line, numX );
+    if( d->label_styles2.contains( sectionNum ))
+        d->label_styles2.take( sectionNum);
 
-    if( d->label_styles.contains( pp ))
-        d->label_styles.take( pp);
+    d->label_styles2[ sectionNum ] = stl;
 
-    d->label_styles[ pp ] = stl;
-
-    if ( line >=0 && line < d->visual_matrix.count())
-    {
-        if( numX>=0 && numX < d->visual_matrix [ line ].count() )
-        {
-            //if( )
-            d->visual_matrix [ line ] [ numX ];
-        }
-    }
 
 }
+//void QpHorHeaderView::set_cell_style( int line, int numX , qp::CELL_STYLE &stl)
+//{
+//    Q_D( QpHorHeaderView);
 
-const bool QpHorHeaderView::get_cell_style( int line, int numX, qp::CELL_STYLE &stl ) const
+//    QPair<int,int> pp (line, numX );
+
+//    if( d->label_styles.contains( pp ))
+//        d->label_styles.take( pp);
+
+//    d->label_styles[ pp ] = stl;
+
+//    int sectionNum = get_cell_at_line_xNum( line , numX ).number;
+
+//    set_section_style ( sectionNum , stl );
+
+//}
+
+const bool QpHorHeaderView::get_section_style( int sectionNum, qp::CELL_STYLE &stl ) const
 {
     Q_D( const QpHorHeaderView);
 
-
-    QPair<int,int> pp (line, numX );
-
-    if( d->label_styles.contains( pp ))
+    if( d->label_styles2.contains( sectionNum ))
     {
-        stl = d->label_styles.value( pp );
+        stl = d->label_styles2.value( sectionNum );
         return true;
     }
 
     return false;
 }
+
+
+//const bool QpHorHeaderView::get_cell_style( int line, int numX, qp::CELL_STYLE &stl ) const
+//{
+//    Q_D( const QpHorHeaderView);
+
+
+//    QPair<int,int> pp (line, numX );
+
+//    if( d->label_styles.contains( pp ))
+//    {
+//        stl = d->label_styles.value( pp );
+//        return true;
+//    }
+
+//    return false;
+//}
 
 bool QpHorHeaderView::init_sections_template( QAbstractItemModel *mdl, const Qp_SECTION_TMPL &matrix )
 {
@@ -3801,7 +3797,7 @@ line1     0      1      3      4     5
 
     int line_lenght= -1;
 
-    foreach( QList< QVariant > lst , matrix)
+    foreach( QList< qp::SECTION_D > lst , matrix)
     {
         // ------------------------------------------------------
         //  protect unequal length of lines
@@ -3824,16 +3820,16 @@ line1     0      1      3      4     5
 
         line_lenght = lst.count();
 
-        foreach( QVariant var, lst)
+        foreach( qp::SECTION_D var, lst)
         {
-            if ( debug_init ) qDebug() << "       var:" << var << var.typeName()<< var.type();
+            if ( debug_init ) qDebug() << "       var:" << var.txt<< var.type;
 
 
-            if( var.type() == QVariant::Int &&  var.toInt() > colCount - 1)
+            if( var.type == qp::MODEL_TYPE &&  var.number > colCount - 1)
             {
-                QString err = QString("sections template is wrong: field number %1 (in line %2) is more then model column count (%3)")
-                        .arg( var.toString() )
-                        .arg( line)
+                QString err = QString("sections template is wrong: section number %1 (in line %2) is more then model column count (%3)")
+                        .arg( var.number )
+                        .arg( line )
                         .arg( mdl->columnCount());
 
                 QMessageBox::warning( this,
@@ -3844,10 +3840,10 @@ line1     0      1      3      4     5
                 return false;
             }
 
-            if(  var.type() == QVariant::Int && var.toInt() < 0 )
+            if(  var.type == qp::MODEL_TYPE && var.number < 0 )
             {
-                QString err = QString("sections template is wrong: field number %1 (in line %2) is less then 0)")
-                        .arg( var.toInt() )
+                QString err = QString("sections template is wrong: section number %1 (in line %2) is less then 0)")
+                        .arg( var.number )
                         .arg(line)
                         .arg( mdl->columnCount());
 
@@ -3921,20 +3917,24 @@ line1     0      1      3      4     5
         while( line < d->offsets_y.count() - 1 )
         {
 
-            QVariant var = d->visual_matrix [ line ] [ num ];
+            qp::SECTION_D var = d->visual_matrix [ line ] [ num ];
 
-            if( debug_line_numX ) qDebug() << "------- line: " << line << " var:" << var;
+            if( debug_line_numX ) qDebug() << "------- line: " << line << " number:" << var.number;
 
-            if( var.isValid() && var.type() == QVariant::String )
+            if( var.type == qp::LABEL_TYPE )
             {
                 // -----------------------------------------------
                 //   labels
                 // -----------------------------------------------
 
-                qDebug() << "       String: " << var ;
+                qDebug() << "       String: " << var.txt ;
 
-                QString txt = d->visual_matrix [ line ] [ num ].toString();
+                qp::SECTION_D dd = d->visual_matrix[ line ] [ num ];
+
+                QString txt = dd.txt;
                 qp::CELL_STYLE style;
+
+
 
                 if( txt.contains(">")) // align right
                 {
@@ -3942,7 +3942,7 @@ line1     0      1      3      4     5
                     style.align &= ~(Qt::AlignLeft|Qt::AlignHCenter);
 
                     txt.replace(">","");
-                    d->visual_matrix[ line ] [ num ] = txt;
+                    dd.txt = txt;
                 }
 
                 else if( txt.contains("<")) // align left
@@ -3950,7 +3950,7 @@ line1     0      1      3      4     5
                     style.align |= Qt::AlignLeft;
                     style.align &= ~(Qt::AlignRight|Qt::AlignHCenter);
                     txt.replace("<","");
-                    d->visual_matrix[ line ] [ num ] = txt;
+                    dd.txt = txt;
                 }
 
                 if( txt.contains("^")) // align top
@@ -3958,29 +3958,29 @@ line1     0      1      3      4     5
                     style.align |= Qt::AlignTop;
                     style.align &= ~(Qt::AlignBottom|Qt::AlignVCenter);
                     txt.replace("^","");
-                    d->visual_matrix[ line ] [ num ] = txt;
+                    dd.txt = txt;
                 }
 
                 QPair<int,int> x_y( line , num );
 
-                d->label_styles.insert( x_y, style );
+                d->label_styles2.insert( dd.number, style );
 
                 line++;
                 continue;
             }
 
-            if( debug_line_numX ) qDebug() << "       " << var.typeName() ;
+            if( debug_line_numX ) qDebug() << "       " << var.number ;
 
-            if( d->map.contains( var.toInt() ))
+            if( var.type == qp::MODEL_TYPE && d->map.contains( var.number ))
             {
-                qp::CELL_NODES cl = d->map[ var.toInt() ];
+                qp::CELL_NODES cl = d->map[ var.number ];
 
                 if( num >= cl.right )
                 {
                     QMessageBox::warning( this ,
                                           QString("error"),
-                                          QString("uncorrect template: please look to field number %1 field number %1")
-                                          .arg(var.toInt())
+                                          QString("uncorrect template: please look to section number %1 field number %1")
+                                          .arg(var.number)
                                           );
 
                     clear_sections_template();
@@ -3993,7 +3993,7 @@ line1     0      1      3      4     5
                     QMessageBox::warning( this ,
                                           QString("error"),
                                           QString("uncorrect template: please look to field number %1")
-                                          .arg(var.toInt())
+                                          .arg(var.number)
                                           );
 
                     clear_sections_template();
@@ -4015,7 +4015,7 @@ line1     0      1      3      4     5
 
             int ll=0;
 
-            while ( line + ll < d->visual_matrix.count() &&  d->visual_matrix [ line + ll ] [ num ] == var )
+            while ( line + ll < d->visual_matrix.count() &&  d->visual_matrix [ line + ll ] [ num ].number == var.number )
             {
                 cell.bottom = line + ll + 1;
                 ll++;
@@ -4023,7 +4023,7 @@ line1     0      1      3      4     5
 
             int nn =0 ;
 
-            while ( num + nn < d->visual_matrix[ line ].count() &&  d->visual_matrix [ line ] [ num + nn ] == var )
+            while ( num + nn < d->visual_matrix[ line ].count() &&  d->visual_matrix [ line ] [ num + nn ].number == var.number )
             {
                 cell.right = num + nn + 1;
                 nn++;
@@ -4039,12 +4039,12 @@ line1     0      1      3      4     5
                 for( int x= cell.left; x < cell.right ; x++ )
                 {
 
-                    if( var != d->visual_matrix [ y ] [ x ])
+                    if( var.number != d->visual_matrix [ y ] [ x ].number)
                     {
                         QMessageBox::warning( this ,
                                               QString("error"),
-                                              QString("section template is wrong: please look to field number %1")
-                                              .arg(var.toInt())
+                                              QString("section template is wrong: please look to section number %1")
+                                              .arg(var.number)
                                               );
 
                         clear_sections_template();
@@ -4056,9 +4056,9 @@ line1     0      1      3      4     5
             }
 
 
-            if( debug_init )  qDebug() << "           insert val:" << var << " cell left:"<<cell.left<<" right:"<<cell.right<<" top:"<<cell.top<<" bottom:"<<cell.bottom;
+            if( debug_init )  qDebug() << "           insert var.number:" << var.number << " cell left:"<<cell.left<<" right:"<<cell.right<<" top:"<<cell.top<<" bottom:"<<cell.bottom;
 
-            d->map.insert( var.toInt() , cell );
+            d->map.insert( var.number , cell );
 
             line++;
         }
@@ -4075,14 +4075,14 @@ line1     0      1      3      4     5
         // ----------------------------------------------------
         for( int line =0 ; line < d->visual_matrix.count(); ++line)
         {
-            QString str;
+            //            QString str;
 
-            for( int xNum =0 ; xNum < d->visual_matrix[ line].count(); ++xNum)
-            {
-                str.append(  d->visual_matrix[ line] [ xNum].toString()  ).append(" ");
-            }
+            //            for( int xNum =0 ; xNum < d->visual_matrix[ line].count(); ++xNum)
+            //            {
+            //                str.append(  d->visual_matrix[ line] [ xNum].toString()  ).append(" ");
+            //            }
 
-            if ( debug_init )qDebug() << "line : " << line  << " : " << str;
+            //            if ( debug_init )qDebug() << "line : " << line  << " : " << str;
 
         }
     }
@@ -4251,14 +4251,14 @@ qp::aaa QpHorHeaderViewPrivate::sectionHandleAt( const QPoint &pos)
 
     //int lgclIdx = qp::UNKNOWN_VALUE;
 
-    if( visual_matrix [ dat.line ] [ dat.xNum ].type() == QVariant::Int )
+    if( visual_matrix [ dat.line ] [ dat.xNum ].type == qp::MODEL_TYPE )
     {
         //lgclIdx = visual_matrix [ dat.line ] [ dat.xNum ].toInt();
-        dat.type == qp::MODEL_FIELD;
+        dat.type == qp::MODEL_TYPE;
     }
     else
     {
-        dat.type == qp::LABEL_FIELD;
+        dat.type == qp::LABEL_TYPE;
     }
 
     bool atLeft = false;
@@ -4648,37 +4648,40 @@ void QpHorHeaderViewPrivate::resizeSections(QpHorHeaderView::ResizeMode globalMo
 
         for( int line=0; line < offsets_y.count() - 1 ; line++)
         {
-            if( visual_matrix [ line ] [ xNum ].type() == QVariant::String )
+            qp::SECTION_D dd = visual_matrix [ line ] [ xNum ];
+
+            if( dd.type == qp::LABEL_TYPE )
             {
-                const QString & str = visual_matrix [ line ] [ xNum ].toString();
+//                const QString & str = visual_matrix [ line ] [ xNum ].txt;
 
 
-                QPair<int,int> pp;
-                pp.first= line;
-                pp.second = xNum;
+//                QPair<int,int> pp;
+//                pp.first= line;
+//                pp.second = xNum;
 
-                if( label_styles.contains( pp ))
+                int sectionNumber = dd.number;
+
+                if( label_styles2.contains( sectionNumber ))
                 {
 
-
-                    if( label_styles[ pp ].font == defFnt)
+                    if( label_styles2[ sectionNumber ].font == defFnt)
                         ;//continue;
 
-                    QFontMetrics metr (  label_styles[ pp ] .font );
+                    QFontMetrics metr (  label_styles2[ sectionNumber ] .font );
 
-                    QString str2 = visual_matrix [ line ] [ xNum ].toString();
+                    //QString str2 = dd.txt;
 
-                    int ll = str.length();
+                    int ll = dd.txt.length();
 
-                    QRectF rect = metr.boundingRect( str2 );
+                    QRectF rect = metr.boundingRect( dd.txt );
 
                     int margin = q->style()->pixelMetric(QStyle::PM_HeaderMargin, 0, q);
 
-                    int width = metr.width(  str2 )+ margin*2;
+                    int width = metr.width(  dd.txt )+ margin*2;
 
                     ww = qMax( ww , width );
 
-                    if( debug_resize ) qDebug() << "   qMax xNum:" << xNum << " line:" << line << " ww:" <<ww << " width:" << width << "  str2:"<<str2 << "  ll:"<<ll << "  fnt:"<<label_styles[ pp ].font << " pixelSz:" << label_styles[ pp ].font.pixelSize()<<" rect " << rect;
+                    if( debug_resize ) qDebug() << "   qMax xNum:" << xNum << " line:" << line << " ww:" <<ww << " width:" << width << "  dd.txt:"<<dd.txt << "  ll:"<<ll << "  fnt:"<<label_styles2[ sectionNumber ].font << " pixelSz:" << label_styles2[ sectionNumber ].font.pixelSize()<<" rect " << rect;
                 }
             }
             else
@@ -4861,7 +4864,7 @@ void QpHorHeaderViewPrivate::clear()
         sectionSelected.clear();
         sectionHidden.clear();
         hiddenSectionSize.clear();
-        label_styles.clear();
+        label_styles2.clear();
     }
 }
 
@@ -5118,126 +5121,6 @@ const QRect QpHorHeaderViewPrivate::headerSectionPosition2(int logicalColNum) co
     return rect;
 }
 
-//const QRect QpHorHeaderViewPrivate::headerSectionPosition3(int visual) const
-//{
-//    /*
-//     visual indices :
-
-//    line0     0      1      2      2     5
-//    line1     0      1      3      4     5
-//             col0   col1   col2  col3   col4  - this virtual special columns
-//    */
-//    //    int count = model->columnCount();
-
-//    //    if( visual >= count || visual < 0 )
-
-//    //        return QRect();
-
-//    //    if( offsets_y.count() == 0)
-//    //        return QRect();
-
-//    //    // ---------------------------------------
-//    //    //              find
-//    //    // ---------------------------------------
-//    //    //int col = offsets_x.count()-1;
-
-//    //    // offsets_x.count() may be less then model->columnCount()
-//    //    int columnCount = model->columnCount()-1;
-//    //    int arrCount = offsets_x_.count()-1;
-
-//    //    int col = qMin( arrCount , columnCount );
-
-//    //    int right   = -1;
-//    //    int left    = -1;
-//    //    int top     = -1;
-//    //    int bottom  = -1;
-
-//    //    while( col >=0  )
-//    //    {
-
-//    //        top     = 0 ;
-
-//    //        for( int line = 0; line < offsets_y.count(); line++)
-//    //        {
-//    //            int idx2 = visual_matrix [ line ] [ col ];
-
-//    //            if ( idx2 == visual)
-//    //            {
-//    //                right   = offsets_x [ col ];
-//    //                bottom  = offsets_y [ line ];
-
-//    //                if( line > 0)
-//    //                    top  = offsets_y [ line - 1 ];
-
-//    //                /*
-//    //                    line0     0      1      2      2     5
-//    //                    line1     0      1      3      4     5
-//    //                             col0   col1   col2  col3   col4  - this virtual special columns
-//    //                */
-
-//    //                // ---------------------------------------------------
-//    //                //      find to the bottom a index equal visual
-//    //                // ---------------------------------------------------
-
-//    //                int lineToTheBottom = line + 1;
-
-//    //                while ( lineToTheBottom <  offsets_y.count() && visual == visual_matrix [ lineToTheBottom ] [ col ]) // navigate to bottom
-//    //                {
-//    //                    lineToTheBottom++;
-//    //                }
-
-//    //                bottom  = offsets_y [ lineToTheBottom -1 ];
-
-
-//    //                // ---------------------------------------------------
-//    //                //      find to the left a index equal visual
-//    //                // ---------------------------------------------------
-
-//    //                /*
-//    //                line0     0      1      3      4     5
-//    //                line1     1      2      3      4     5
-//    //                */
-
-//    //                if( col == 0)
-//    //                    left = 0;
-//    //                else
-//    //                {
-//    //                    int colToTheLeft = col-1;
-
-//    //                    while ( colToTheLeft >= 0 && visual ==  visual_matrix [ line ] [ colToTheLeft ]) // navigate to left
-//    //                    {
-//    //                        colToTheLeft--;
-//    //                    }
-
-//    //                    if( colToTheLeft == -1)
-//    //                        left = 0;
-//    //                    else
-//    //                        left = offsets_x [ colToTheLeft ];
-
-
-//    //                }
-
-//    //                //  left, top, right, bottom was been known
-
-//    //                //                if( debug_p)
-//    //                //                    qDebug() << "QpHorHeaderViewPrivate 2 visual : " <<  visual <<" left, top, right, bottom : " << left << top << right << bottom;
-
-//    //                QPoint lt( left + grid , top );
-//    //                QPoint rb( right ,  bottom - grid );
-
-//    //                return QRect ( lt , rb );
-//    //                //return left;
-
-//    //                break;
-
-//    //            }
-//    //        }
-
-//    //        col--;
-//    //    }
-
-//    return QRect();
-//}
 
 
 int QpHorHeaderViewPrivate::headerLogicalIndex_at( int x , int line) const
@@ -5270,11 +5153,11 @@ int QpHorHeaderViewPrivate::headerLogicalIndex_at( int x , int line) const
 
         if( x < xx )
         {
-            if( visual_matrix [ line ] [ col - 1 ].type() == QVariant::Int )
+            if( visual_matrix [ line ] [ col - 1 ].type == qp::MODEL_TYPE )
 
-                return visual_matrix [ line ] [ col - 1 ].toInt() ;
+                return visual_matrix [ line ] [ col - 1 ].number ;
 
-            else if( visual_matrix [ line ] [ col - 1 ].type() == QVariant::String )
+            else if( visual_matrix [ line ] [ col - 1 ].type == qp::LABEL_TYPE )
 
                 return qp::LABEL_FLD;
         }

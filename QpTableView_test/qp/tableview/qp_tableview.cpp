@@ -906,9 +906,9 @@ void QpTableView::paintEvent(QPaintEvent *event)
                 for (int numX = left_num; numX <= right_num; ++numX)
                 {
 
-                    int logicalIndex = horizontalHeader->logicalIndex_atNum_x_line( numX , line );
+                    int sectionNum = horizontalHeader->logicalIndex_atNum_x_line( numX , line );
 
-                    if( logicalIndex == qp::UNDEFINED_FLD)
+                    if( sectionNum == qp::UNDEFINED_FLD)
                         continue;
 
 
@@ -918,10 +918,13 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
                     QRect rect;
 
-                    if( logicalIndex == qp::LABEL_FLD)
+                    if( sectionNum <= qp::LABEL_FLD)
                     {
+                        // ------------------------------------------------------------------------
+                        //                              LABEL_FLD
+                        // ------------------------------------------------------------------------
 
-                        rect = horizontalHeader->cellPosition( line , numX );
+                        rect = horizontalHeader->cellRect( line , numX );
 
                         if( debug_resize ) qDebug() << "LABEL_FLD    rect " << rect << " rowY " << rowY << " rowX " << rowX;
 
@@ -942,7 +945,8 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
                         option.rect =  rect  ;
 
-                        QVariant var = horizontalHeader->cellLabelValue( line , numX );
+
+                        qp::SECTION_D var = horizontalHeader->get_cell_at_line_xNum( line , numX );
 
                         //bool rowSel = is_RowSelected( row );
                         if( selectionBehavior()  == QpAbstractItemView::SelectRows)
@@ -957,7 +961,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
                             if ( debug_paint ) qDebug() <<"        rowSelected " << rowSel << " row "<< row;
                         }
 
-                        if( debug_paint_row_col ) qDebug() << "               numX:"  << numX << "  label : "<< var.toString().toUtf8();
+                        if( debug_paint_row_col ) qDebug() << "               numX:"  << numX << "  label : "<< var.txt <<var.number;
 
                         if( debug_paint_row_col )
                             qDebug() << "                   option.rect " << option.rect;
@@ -965,26 +969,31 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
                         qp::CELL_STYLE stl;
 
-                        if ( horizontalHeader->get_cell_style( line , numX , stl) )
+                        //if ( horizontalHeader->get_cell_style( line , numX , stl) )
+                        if ( horizontalHeader->get_section_style( sectionNum , stl) )
                         {
                             QStyleOptionViewItemV4 option2 = option;
 
                             d->correct_Style( stl , option2 );
                             //qDebug()<< "-- stl : "<< line << numX << stl.color.name() << stl.font;
 
-                            d->drawCellLabel( &painter, option2, var.toString() , rowSel , row );
+                            d->drawCellLabel( &painter, option2, var.txt , rowSel , row );
                         }
                         else
-                            d->drawCellLabel( &painter, option, var.toString() , rowSel , row );
+                            d->drawCellLabel( &painter, option, var.txt , rowSel , row );
 
 
                     }
-                    else if (logicalIndex >=0 )
+                    else if (sectionNum >=0 )
                     {
-                        if ( horizontalHeader->isSectionHidden( logicalIndex ))
+                        // ------------------------------------------------------------------------
+                        //                              MODEL_FLD
+                        // ------------------------------------------------------------------------
+
+                        if ( horizontalHeader->isSectionHidden( sectionNum ))
                             continue;
 
-                        int currentBit = ( row - firstVisualRow ) * lgcl_max_num  + logicalIndex  ;
+                        int currentBit = ( row - firstVisualRow ) * lgcl_max_num  + sectionNum  ;
 
                         if ( currentBit < 0 || currentBit >= drawn.size() )// || drawn.testBit(currentBit))
                         {
@@ -1003,11 +1012,11 @@ void QpTableView::paintEvent(QPaintEvent *event)
                         //int rowh = rowHeight(row) - gridSize; // 99
 
 
-                        rect =  columnViewportPosition2( logicalIndex );
+                        rect =  columnViewportPosition2( sectionNum );
 
                         if ( ! rect.isValid() )
                         {
-                            qDebug() << "wrong rect for logicalIndex:"<<logicalIndex;
+                            qDebug() << "wrong rect for logicalIndex:"<<sectionNum;
                             continue;
                         }
 
@@ -1020,16 +1029,16 @@ void QpTableView::paintEvent(QPaintEvent *event)
                         rect.setRight(  x2 - gridSize + correct_width_minus_1 );
 
 
-                        const QModelIndex index = d->model->index( row, logicalIndex , d->root);
+                        const QModelIndex index = d->model->index( row, sectionNum , d->root);
 
 
                         if ( ! index.isValid())
                         {
-                            qDebug() << "! index.isValid() index " << index <<  d->model->data( index).toString() << "  line " << line << " logicalIndex " << logicalIndex << " numX " << numX;
+                            qDebug() << "! index.isValid() index " << index <<  d->model->data( index).toString() << "  line " << line << " logicalIndex " << sectionNum << " numX " << numX;
                             continue;
                         }
 
-                        if( debug_paint_row_col ) qDebug() << "               numX:"  << numX << "  col : "<<logicalIndex;
+                        if( debug_paint_row_col ) qDebug() << "               numX:"  << numX << "  col : "<<sectionNum;
                         rect.moveTop( rowY + y1 );
 
                         option.rect = rect ;
@@ -1051,7 +1060,8 @@ void QpTableView::paintEvent(QPaintEvent *event)
                         //-------------------------------------------------------------
                         qp::CELL_STYLE stl;
 
-                        if ( horizontalHeader->get_cell_style( line , numX , stl) )
+                        //if ( horizontalHeader->get_cell_style( line , numX , stl) )
+                        if ( horizontalHeader->get_section_style( sectionNum , stl) )
                         {
                             QStyleOptionViewItemV4 option2 = option;
 
@@ -1076,9 +1086,9 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
                         bool draw_bottom = false;
 
-                        if( logicalIndex >=0 )
+                        if( sectionNum >=0 )
                         {
-                            qp::CELL_NODES nd = horizontalHeader->get_logicalIdex_nodes( logicalIndex );
+                            qp::CELL_NODES nd = horizontalHeader->get_logicalIdex_nodes( sectionNum );
 
                             if( nd.bottom == lines_count  )
                             {
@@ -1087,7 +1097,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
                         }
 
-                        if ( logicalIndex == qp::LABEL_FLD)
+                        if ( sectionNum <= qp::LABEL_FLD)
                         {
                             if( line == lines_count - 1)
                             {
@@ -1191,8 +1201,13 @@ qp::CELL QpTableView::get_cell_at( const QPoint & pos)
 
     int line =  horizontalHeader()->get_section_line( pos.y() );
     int xNum =  horizontalHeader()->get_section_num( pos.x() );
+    //int xNum =  horizontalHeader()->get_section_line();
 
-    qp::CELL cell (line , xNum);
+    qp::SECTION_D dd =horizontalHeader()->get_cell_at_line_xNum( line , xNum);
+
+    qp::CELL cell(line , xNum);
+
+    cell.sectionNum = dd.number;
 
     return cell;
 }
@@ -1209,13 +1224,14 @@ void QpTableView::mousePressEvent(QMouseEvent *event)
     QModelIndex idx = indexAt( pos ).idx;
 
     if( idx.column() == qp::LABEL_FLD )
+    {
         if( selectionBehavior() == QpAbstractItemView::SelectRows )
         {
             selectRow( idx.row());
             return;
         }
 
-
+    }
     QpAbstractItemView::mousePressEvent(event);
 
 }
@@ -1247,7 +1263,7 @@ qp::SECTION QpTableView::indexAt(const QPoint &pos) const
     {
         QModelIndex idx = d->model->index(row, 0, d->root);
 
-        section.type = qp::LABEL_FIELD;
+        section.type = qp::LABEL_TYPE;
         section.idx = idx;
 
         return  section;
@@ -1258,7 +1274,7 @@ qp::SECTION QpTableView::indexAt(const QPoint &pos) const
 
         if( debug_selection ) qDebug() << "   QpTableView::indexAt pos "<<pos << " idx " << idx;
 
-        section.type = qp::MODEL_FIELD;
+        section.type = qp::MODEL_TYPE;
         section.idx = idx;
 
         return section;
@@ -2696,13 +2712,6 @@ void QpTableView::scrollTo(const QModelIndex &index, ScrollHint hint)
     update(index);
 }
 
-/*!
-                    This slot is called to change the height of the given \a row. The
-                    old height is specified by \a oldHeight, and the new height by \a
-                    newHeight.
-
-                    \sa columnResized()
-                */
 void QpTableView::rowResized(int row, int oldHeight, int newHeight)
 {
     Q_D(QpTableView);

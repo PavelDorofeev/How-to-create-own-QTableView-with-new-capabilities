@@ -30,6 +30,14 @@ public:
     static const QColor red;
     static const QColor brown;
 
+    static const double sz05;
+    static const double sz07;
+    static const double sz1;
+    static const double sz15;
+    static const double sz20;
+
+
+
     static QSettings         *reestr;
 
     static QString        em1;

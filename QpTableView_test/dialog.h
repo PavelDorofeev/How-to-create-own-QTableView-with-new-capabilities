@@ -30,6 +30,8 @@ public:
 
     QSqlDatabase db;
 
+    static int lbl_number;
+
 
 private slots:
 

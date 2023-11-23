@@ -14,10 +14,16 @@ const QString appDef::REESTR_APPLICATION_NAME           = "BIT Sale";
 const QString appDef::TBL_TEST_NAME                     = "goods";
 const QString appDef::DB_TEST_NAME                     = "test_db.db";
 
-const QColor appDef::blue = QColor(67, 101, 255);
-const QColor appDef::green = QColor(0, 149, 0);
-const QColor appDef::red = QColor(194, 36, 8);
-const QColor appDef::brown = QColor(144, 82, 37);
+const QColor appDef::blue = QColor("#7a86d3");//67, 101, 255);
+const QColor appDef::green = QColor("#8db491");//0, 149, 0);
+const QColor appDef::red = QColor("#d18989");//194, 36, 8);
+const QColor appDef::brown = QColor("#aa8f5c");//144, 82, 37);
+
+const double appDef::sz05 = 0.5;
+const double appDef::sz07 = 0.7;
+const double appDef::sz1 = 1;
+const double appDef::sz15 = 1.5;
+const double appDef::sz20 = 2.0;
 
 
 QString appDef::midlight                                     = "";
