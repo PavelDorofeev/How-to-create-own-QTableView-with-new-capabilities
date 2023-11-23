@@ -2,12 +2,15 @@
 #include "ui_section_settings_dlg.h"
 #include <QIntValidator>
 #include <QDebug>
+#include "app_def.h"
 
-SectionSettingsDlg::SectionSettingsDlg(const QPair<qp::LABEL_STYLE,qp::LABEL_STYLE> &pp, QWidget *parent) :
+SectionSettingsDlg::SectionSettingsDlg(const qp::CELL_STYLE &stl ,
+                                       const qp::CELL_STYLE &def,
+                                       QWidget *parent) :
     QDialog(parent),
     ui(new Ui::SectionSettingsDlg),
-    defaultStyle( pp.first ),
-    currStyles( pp.second )
+    defaultStyle( def ),
+    currStyles( stl )
 {
     ui->setupUi(this);
 
@@ -15,7 +18,7 @@ SectionSettingsDlg::SectionSettingsDlg(const QPair<qp::LABEL_STYLE,qp::LABEL_STY
 
     ui->ledt_fntWeight->setValidator( &iVal );
 
-    ui->ledt_fntWeight->setText( QString::number( currStyles.fnt.weight() ) );
+    ui->ledt_fntWeight->setText( QString::number( currStyles.font.weight() ) );
 
     if( currStyles.align & Qt::AlignLeft )
     {
@@ -55,10 +58,10 @@ SectionSettingsDlg::SectionSettingsDlg(const QPair<qp::LABEL_STYLE,qp::LABEL_STY
 
     // -------------------- colors -------------------------------
 
-    colors.insert(ui->rbtn_blue , QColor(67, 101, 255));
-    colors.insert(ui->rbtn_green , QColor(0, 149, 0));
-    colors.insert(ui->rbtn_brown , QColor(144, 82, 37));
-    colors.insert(ui->rbtn_red , QColor(194, 36, 8));
+    colors.insert(ui->rbtn_blue , appDef::blue );
+    colors.insert(ui->rbtn_green ,appDef::green );
+    colors.insert(ui->rbtn_brown , appDef::brown );
+    colors.insert(ui->rbtn_red , appDef::red );
 
     bool colorfnd = false;
 
@@ -90,10 +93,10 @@ SectionSettingsDlg::SectionSettingsDlg(const QPair<qp::LABEL_STYLE,qp::LABEL_STY
 
     // ---------------------------------------------------
 
-    defaultPointSz = defaultStyle.fnt.pointSize();
-    defaultPixelSz = defaultStyle.fnt.pixelSize();
+    defaultPointSz = defaultStyle.font.pointSize();
+    defaultPixelSz = defaultStyle.font.pixelSize();
 
-    currFnt = currStyles.fnt;
+    currFnt = currStyles.font;
 
     qDebug()<< " currFnt " << currFnt;
 
@@ -105,8 +108,8 @@ SectionSettingsDlg::SectionSettingsDlg(const QPair<qp::LABEL_STYLE,qp::LABEL_STY
     sizes.insert( ui->rbtn_size_1_5 , 1.5);
     sizes.insert( ui->rbtn_size_2_0 , 2.0);
 
-    int pointSz = currStyles.fnt.pointSize();
-    int pixelSz = currStyles.fnt.pixelSize();
+    int pointSz = currStyles.font.pointSize();
+    int pixelSz = currStyles.font.pixelSize();
 
     double kf=1;
 
@@ -147,7 +150,7 @@ SectionSettingsDlg::SectionSettingsDlg(const QPair<qp::LABEL_STYLE,qp::LABEL_STY
     foreach( QRadioButton*  btn , weights.keys())
     {
 
-        if( currStyles.fnt.weight() == btn->property("weight").toInt() )
+        if( currStyles.font.weight() == btn->property("weight").toInt() )
         {
             qDebug() << "weights: " << weights.value( btn ) << " == " << btn->property("weight").toInt();
 
@@ -281,7 +284,7 @@ bool SectionSettingsDlg::isVertAlign()
 
 void SectionSettingsDlg::recalculate_font()
 {
-    currStyles.fnt.setWeight ( ui->ledt_fntWeight->text().toInt() );
+    currStyles.font.setWeight ( ui->ledt_fntWeight->text().toInt() );
 }
 
 void SectionSettingsDlg::recalculate_align()
@@ -328,7 +331,7 @@ void SectionSettingsDlg::recalculate_align()
 
 void SectionSettingsDlg::on_ledt_fntWeight_textEdited(const QString &arg1)
 {
-    currStyles.fnt.setWeight ( ui->ledt_fntWeight->text().toInt() );
+    currStyles.font.setWeight ( ui->ledt_fntWeight->text().toInt() );
 
 }
 
@@ -426,8 +429,8 @@ void SectionSettingsDlg::setFontSize(double kf)
         if( defaultPixelSz >0)
             pixelSz = defaultPixelSz * kf;
 
-        currStyles.fnt.setPointSize( pointSz );
-        currStyles.fnt.setPixelSize ( pixelSz );
+        currStyles.font.setPointSize( pointSz );
+        currStyles.font.setPixelSize ( pixelSz );
 
         ui->spb_pointSize->setValue( pointSz );
         ui->spb_pixelSize->setValue( pixelSz );
@@ -455,13 +458,13 @@ void SectionSettingsDlg::on_rbtn_size_1_5_clicked(bool checked)
 void SectionSettingsDlg::on_spb_pointSize_valueChanged(int arg1)
 {
     if( arg1 >0 )
-        currStyles.fnt.setPointSize( arg1);
+        currStyles.font.setPointSize( arg1);
 }
 
 void SectionSettingsDlg::on_spb_pixelSize_valueChanged(int arg1)
 {
     if( arg1 >0 )
-        currStyles.fnt.setPixelSize( arg1);
+        currStyles.font.setPixelSize( arg1);
 }
 
 void SectionSettingsDlg::on_rbtn_size_2_0_clicked()

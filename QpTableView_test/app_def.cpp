@@ -3,6 +3,7 @@
 #include <QProcessEnvironment>
 #include <QDebug>
 #include <QSettings>
+#include <QColor>
 
 
 const char * const appDef::IN_OS_WIN_PROGRAMMDATA_OUR_PROG_NAME_DIR     = "QpTableView_test";
@@ -12,6 +13,11 @@ const QString appDef::REESTR_ORGANIZATION_NAME           = "BIT Ltd";
 const QString appDef::REESTR_APPLICATION_NAME           = "BIT Sale";
 const QString appDef::TBL_TEST_NAME                     = "goods";
 const QString appDef::DB_TEST_NAME                     = "test_db.db";
+
+const QColor appDef::blue = QColor(67, 101, 255);
+const QColor appDef::green = QColor(0, 149, 0);
+const QColor appDef::red = QColor(194, 36, 8);
+const QColor appDef::brown = QColor(144, 82, 37);
 
 
 QString appDef::midlight                                     = "";

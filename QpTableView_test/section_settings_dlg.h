@@ -15,11 +15,13 @@ class SectionSettingsDlg : public QDialog
     Q_OBJECT
 
 public:
-    explicit SectionSettingsDlg( const QPair<qp::LABEL_STYLE,qp::LABEL_STYLE> &pp, QWidget *parent = 0);
+    explicit SectionSettingsDlg( const qp::CELL_STYLE &stl ,
+                                 const qp::CELL_STYLE &def,
+                                 QWidget *parent = 0);
     ~SectionSettingsDlg();
 
-    qp::LABEL_STYLE defaultStyle;
-    qp::LABEL_STYLE currStyles;
+    qp::CELL_STYLE defaultStyle;
+    qp::CELL_STYLE currStyles;
 
     QIntValidator iVal;
 

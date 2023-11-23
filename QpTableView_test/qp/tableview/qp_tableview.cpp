@@ -30,6 +30,7 @@
 #include "qp/tableview/qp_horheaderview.h"
 #include "qp/tableview/qp_vertheaderview.h"
 #include "qp/tableview/qp_tableview_p.h"
+#include "qp/tableview/qp_common.h"
 
 #include <qitemdelegate.h>
 #include <qapplication.h>
@@ -52,15 +53,16 @@ const int QpTableView::defaultRowHeight = 60;
 
 const bool QpTableView::debug = false;
 const bool QpTableView::debug_init = false;
-const bool QpTableView::debug_paint = true;
-const bool QpTableView::debug_paint_row_col = true;
+const bool QpTableView::debug_paint = false;
+const bool QpTableView::debug_paint_row_col = false;
 const bool QpTableView::debug_geometry = false;
 const bool QpTableView::debug_event = false;
-const bool QpTableView::debug_paint_region = true;
+const bool QpTableView::debug_paint_region = false;
 const bool QpTableView::debug_paint_border = false;
+const bool QpTableView::debug_resize = true;
 
-const bool QpTableView::debug_selection = true;
-const bool QpTableViewPrivate::debug_selection = true;
+const bool QpTableView::debug_selection = false;
+const bool QpTableViewPrivate::debug_selection = false;
 
 const bool QpTableView::debug_scroll = true;
 const bool QpTableViewPrivate::debug = false;
@@ -170,13 +172,17 @@ void QpTableViewPrivate::trimHiddenSelections(QItemSelectionRange *range) const
     //    *range = QItemSelectionRange(topLeft, bottomRight);
 }
 
-void QpTableViewPrivate::drawCellLabel(QPainter *painter, const QStyleOptionViewItemV4 &option,  const QString &txt, bool rowSelected, int row , const qp::LABEL_STYLE & stl)
+void QpTableViewPrivate::drawCellLabel(QPainter *painter,
+                                       const QStyleOptionViewItemV4 &option,
+                                       const QString &txt,
+                                       bool rowSelected,
+                                       int row )
 {
     Q_Q(QpTableView);
 
     QStyleOptionViewItemV4 opt = option;
 
-    opt.displayAlignment = stl.align;
+    //opt.displayAlignment = stl.align;
 
     // -------------------------------------------------------------
     // lifehack: label selection is detected by index (row,0)
@@ -215,6 +221,7 @@ void QpTableViewPrivate::drawCellLabel(QPainter *painter, const QStyleOptionView
         opt.palette.setCurrentColorGroup(cg);
     }
 
+
     q->style()->drawPrimitive(QStyle::PE_PanelItemViewRow, &opt, painter, q); // what is this?
 
     opt.text = txt;
@@ -225,7 +232,6 @@ void QpTableViewPrivate::drawCellLabel(QPainter *painter, const QStyleOptionView
 
     if (const QStyleOptionViewItemV4 *v4 = qstyleoption_cast<const QStyleOptionViewItemV4 *>(&opt))
     {
-        correct_Style( stl , opt );
 
         const QWidget *widget = v4->widget;
 
@@ -506,8 +512,8 @@ void QpTableView::setHorizontalHeader(QpHorHeaderView *header)
     Q_ASSERT (connect(d->horizontalHeader,SIGNAL(sectionResized_X(int)),
                       this, SLOT(xNumsResized_X(int)))== true); //!!;
 
-//    Q_ASSERT (connect(d->horizontalHeader,SIGNAL(sectionResized(int,int,int)),
-//            this, SLOT(columnResized(int,int,int))) == true);
+    //    Q_ASSERT (connect(d->horizontalHeader,SIGNAL(sectionResized(int,int,int)),
+    //            this, SLOT(columnResized(int,int,int))) == true);
 
     Q_ASSERT (connect(d->horizontalHeader, SIGNAL(sectionMoved(int,int,int)),
                       this, SLOT(columnMoved(int,int,int)))== true);
@@ -792,20 +798,20 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
     if ( debug_paint ) qDebug() << "QBitArray drawn : " << drawn;
 
-//    QString str = "\n\t\t";
+    //    QString str = "\n\t\t";
 
-//    for( int ii =0; ii < drawn.count(); ii++)
-//    {
-//        int dd = ii % 10 ;
+    //    for( int ii =0; ii < drawn.count(); ii++)
+    //    {
+    //        int dd = ii % 10 ;
 
-//        if( dd == 0)
-//            str.append("\n\t\t");
+    //        if( dd == 0)
+    //            str.append("\n\t\t");
 
-//        str.append( QString::number(drawn.at( ii )) ).append(" ");
+    //        str.append( QString::number(drawn.at( ii )) ).append(" ");
 
-//    }
+    //    }
 
-//    if ( debug_paint ) qDebug() << str <<"\n";
+    //    if ( debug_paint ) qDebug() << str <<"\n";
 
     // -------------------------------------------------------------------------------
 
@@ -819,7 +825,11 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
         dirtyArea.setRight( qMin(dirtyArea.right(), int( x )));
 
+
         int left_num = horizontalHeader->visual_xNum_At( dirtyArea.left() );
+
+        if( debug_scroll )
+            qDebug() << "   left_num:" << left_num << "   dirtyArea.left() " << dirtyArea.left() << " dirtyArea " << dirtyArea;
 
         int right_num = horizontalHeader->visual_xNum_At( dirtyArea.right()  );
 
@@ -850,7 +860,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
             continue;
 
 
-        if( debug_scroll)  qDebug() << "left_num " << left_num << "  right_num " << right_num;
+        if( debug_scroll)  qDebug() << "scroll repaint left_num " << left_num << "  right_num " << right_num;
 
         //----------------------------------------------------
         //              Paint each row item
@@ -913,7 +923,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
                         rect = horizontalHeader->cellPosition( line , numX );
 
-                        qDebug() << "LABEL_FLD    rect " << rect << " rowY " << rowY << " rowX " << rowX;
+                        if( debug_resize ) qDebug() << "LABEL_FLD    rect " << rect << " rowY " << rowY << " rowX " << rowX;
 
                         if ( debug_scroll )
                             if( offset.y()!=0 || offset.x()!=0 )
@@ -928,7 +938,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
                         rect.setRight(  x2 - gridSize + correct_width_minus_1 );
 
                         rect.moveTop( rowY + y1 );
-                        rect.moveLeft( rowX + x1 );
+                        //rect.moveLeft( rowX + x1 );
 
                         option.rect =  rect  ;
 
@@ -952,9 +962,21 @@ void QpTableView::paintEvent(QPaintEvent *event)
                         if( debug_paint_row_col )
                             qDebug() << "                   option.rect " << option.rect;
 
-                        const qp::LABEL_STYLE style = horizontalHeader->get_label_style( line , numX );
 
-                        d->drawCellLabel( &painter, option, var.toString() , rowSel , row , style);
+                        qp::CELL_STYLE stl;
+
+                        if ( horizontalHeader->get_cell_style( line , numX , stl) )
+                        {
+                            QStyleOptionViewItemV4 option2 = option;
+
+                            d->correct_Style( stl , option2 );
+                            //qDebug()<< "-- stl : "<< line << numX << stl.color.name() << stl.font;
+
+                            d->drawCellLabel( &painter, option2, var.toString() , rowSel , row );
+                        }
+                        else
+                            d->drawCellLabel( &painter, option, var.toString() , rowSel , row );
+
 
                     }
                     else if (logicalIndex >=0 )
@@ -1012,6 +1034,8 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
                         option.rect = rect ;
 
+                        if( debug_resize ) qDebug() << "        rect " << rect <<  d->model->data( index).toString();;
+
                         if (alternate)
                         {
                             if (alternateBase)
@@ -1025,7 +1049,20 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
 
                         //-------------------------------------------------------------
-                        d->drawCell( &painter, option, index);
+                        qp::CELL_STYLE stl;
+
+                        if ( horizontalHeader->get_cell_style( line , numX , stl) )
+                        {
+                            QStyleOptionViewItemV4 option2 = option;
+
+                            d->correct_Style( stl , option2 );
+
+                            //qDebug()<< "stl " << line << numX << stl.color.name() << stl.font;
+
+                            d->drawCell( &painter, option2, index  );
+                        }
+                        else
+                            d->drawCell( &painter, option, index  );
                         //-------------------------------------------------------------
                     }
 
@@ -1147,6 +1184,19 @@ int QpTableView::get_section_at( const QPoint & pos)
 
     return logicalIndex;
 }
+
+qp::CELL QpTableView::get_cell_at( const QPoint & pos)
+{
+    Q_D(QpTableView);
+
+    int line =  horizontalHeader()->get_section_line( pos.y() );
+    int xNum =  horizontalHeader()->get_section_num( pos.x() );
+
+    qp::CELL cell (line , xNum);
+
+    return cell;
+}
+
 
 void QpTableView::mousePressEvent(QMouseEvent *event)
 {
@@ -2496,12 +2546,6 @@ QRect QpTableView::visualRect(const QModelIndex &index) const
     return rect;
 }
 
-/*!
-                    \internal
-
-                    Makes sure that the given \a item is visible in the table view,
-                    scrolling if necessary.
-                */
 void QpTableView::scrollTo(const QModelIndex &index, ScrollHint hint)
 {
     Q_D(QpTableView);
@@ -2692,7 +2736,7 @@ void QpTableView::xNumsResized_X(int xNum)
 {
     Q_D(QpTableView);
 
-    d->xNumsToUpdate.append(xNum);
+    d->xNumsToUpdate.append( xNum );
 
     if (d->xNumsResizeTimerID == 0)
         d->xNumsResizeTimerID = startTimer(0);
@@ -2709,7 +2753,7 @@ void QpTableView::timerEvent(QTimerEvent *event)
 
     if (event->timerId() == d->xNumsResizeTimerID)
     {
-        if( debug_event ) qDebug() << "QpTableView::timerEvent columnResizeTimerID";
+        if( debug_event ) qDebug() << "QpTableView::timerEvent xNumsResizeTimerID";
 
         updateGeometries();
 
@@ -2732,10 +2776,16 @@ void QpTableView::timerEvent(QTimerEvent *event)
                 continue;
 
             rect |= QRect(x, 0, viewportWidth - x, viewportHeight);
+
+            qDebug() << "xNumsResizeTimerID rect "<<rect;
         }
 
+        d->horizontalHeader->viewport()->updateGeometry();
+        d->horizontalHeader->viewport()->update();
 
-        d->viewport->update(rect.normalized());
+        //updateGeometries();
+        //update();
+        d->viewport->update( );//rect.normalized() );
         d->xNumsToUpdate.clear();
     }
 
@@ -2744,7 +2794,9 @@ void QpTableView::timerEvent(QTimerEvent *event)
         if( debug_event ) qDebug() << "QpTableView::timerEvent rowResizeTimerID";
 
         updateGeometries();
+
         killTimer(d->rowResizeTimerID);
+
         d->rowResizeTimerID = 0;
 
         int viewportHeight = d->viewport->height();
@@ -2752,6 +2804,7 @@ void QpTableView::timerEvent(QTimerEvent *event)
         int top;
 
         top = viewportHeight;
+
         for (int i = d->rowsToUpdate.size()-1; i >= 0; --i)
         {
             int y = rowViewportPosition(d->rowsToUpdate.at(i));
@@ -2912,13 +2965,13 @@ void QpTableView::resizeRowsToContents()
 
 void QpTableView::resizeColumnToContents(int column)
 {
-//    Q_D(QpTableView);
+    //    Q_D(QpTableView);
 
-//    int content = sizeHintForColumn(column);
+    //    int content = sizeHintForColumn(column);
 
-//    int header = d->horizontalHeader->sectionSizeHint(column);
+    //    int header = d->horizontalHeader->sectionSizeHint(column);
 
-//    d->horizontalHeader->resizeSection(column, qMax(content, header));
+    //    d->horizontalHeader->resizeSection(column, qMax(content, header));
 }
 
 void QpTableView::resizeColumnsToContents()
@@ -3213,7 +3266,7 @@ QFont QpTableView::get_section_font( int mdlfldNum ) const
     return opt.font;
 }
 
-void QpTableViewPrivate::correct_Style( const qp::LABEL_STYLE &stls,
+void QpTableViewPrivate::correct_Style( const qp::CELL_STYLE &stls,
                                         QStyleOptionViewItemV4 &opt)
 {
     //QPainter painter( viewport );
@@ -3221,9 +3274,9 @@ void QpTableViewPrivate::correct_Style( const qp::LABEL_STYLE &stls,
     //QStyleOptionViewItemV4 option = d->viewOptionsV4();
     //opt = viewOptionsV4();
 
-    if( opt.font != stls.fnt)
+    if( opt.font != stls.font)
     {
-        opt.font = stls.fnt;
+        opt.font = stls.font;
 
         //qDebug() << "correctStyle fnt" << opt.font;
 
@@ -3239,58 +3292,30 @@ void QpTableViewPrivate::correct_Style( const qp::LABEL_STYLE &stls,
 
 }
 
-QPair<qp::LABEL_STYLE,qp::LABEL_STYLE> QpTableView::get_section_style( int mdlfldNum )
-{
-    Q_D( QpTableView);
-
-    QStyleOptionViewItemV4 opt = d->viewOptionsV4();
-
-    QPair<qp::LABEL_STYLE,qp::LABEL_STYLE> pp;
-
-
-    pp.first.align = opt.displayAlignment;
-    pp.first.color = opt.palette.color( QPalette::Text );
-
-    pp.second = pp.first;
-
-    qDebug() << "get_section_style first opt.font " << opt.font;
-
-    if( d->stls.contains( mdlfldNum ))
-    {
-        d->correct_Style( d->stls[  mdlfldNum ] , opt );
-
-        pp.second.fnt = opt.font;
-        pp.second.align = opt.displayAlignment;
-        pp.second.color = opt.palette.color( QPalette::Text );
-    }
-    else
-    {
-    }
-
-    qDebug() << "get_section_style second fnt " << pp.second.fnt;
-
-
-    return pp;
-}
-
-bool QpTableView::set_section_style( int mdlfldNum, const qp::LABEL_STYLE &st )
-{
-    Q_D(QpTableView);
-
-    d->stls[ mdlfldNum ] = st;
-
-    qDebug() << "QpTableView::set_section_style : " << d->stls[ mdlfldNum ].fnt;
-
-    return true;
-}
-
-
-Qt::Alignment QpTableView::get_section_align( int mdlfldNum ) const
+const qp::CELL_STYLE QpTableView::get_section_default_style( int line, int numX ) const
 {
     Q_D( const QpTableView);
 
-    if( d->stls.contains( mdlfldNum ))
-        return d->stls.value( mdlfldNum ).align ;
+    const QStyleOptionViewItemV4 opt = d->viewOptionsV4();
+
+    qp::CELL_STYLE stl;
+    stl.font = opt.font;
+    stl.color = opt.palette.color(QPalette::Text);
+    stl.align = opt.displayAlignment;
+    return stl;
+
+}
+
+
+Qt::Alignment QpTableView::get_section_align( int line, int numX ) const
+{
+    Q_D( const QpTableView);
+
+    //    const qp::CELL cell( line, numX);
+
+    //    if( d->cell_styles.contains( cell ))
+
+    //        return d->cell_styles.value( cell ).align ;
 
     return Qt::AlignCenter;
 }

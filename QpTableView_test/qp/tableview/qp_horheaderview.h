@@ -118,8 +118,8 @@ public:
 
     bool init_sections_template( QAbstractItemModel *model, const Qp_SECTION_TMPL & matrix );
 
-    const qp::LABEL_STYLE get_label_style( int line, int numX ) const;//!!
-    void set_label_style( int line, int numX , qp::LABEL_STYLE &stl) ;//!!
+    const bool get_cell_style( int line, int numX, qp::CELL_STYLE &stl ) const;//!!
+    void set_cell_style( int line, int numX , qp::CELL_STYLE &stl) ;//!!
 
     //int logicalIndexAt(int position) const;
 

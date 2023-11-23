@@ -58,7 +58,7 @@ const bool QpHorHeaderView::debug_offset = false;
 const bool QpHorHeaderView::debug_event = false;
 const bool QpHorHeaderView::debug_size = false;
 const bool QpHorHeaderView::debug_selection = false;
-const bool QpHorHeaderView::debug_scroll = true;
+const bool QpHorHeaderView::debug_scroll = false;
 const bool QpHorHeaderView::debug_resize = false;
 const bool QpHorHeaderView::debug_init = false;
 const bool QpHorHeaderView::debug_cursor = false;
@@ -105,7 +105,7 @@ void QpHorHeaderViewPrivate::set_Style_test()
     pp.first=0;
     pp.second=0;
 
-    qp::LABEL_STYLE stl  =  label_styles.take( pp );
+    qp::CELL_STYLE stl  =  label_styles.take( pp );
 }
 
 void QpHorHeaderView::initialize()
@@ -819,6 +819,18 @@ const QRect QpHorHeaderView::cellPosition( int line, int num_x ) const
 
     rect.setCoords( left , top , right , bottom );
 
+    // -------------------------------------------------------------------
+    // this is important when x-scrolling is presents and resizing cell
+    // -------------------------------------------------------------------
+    if ( d->offset !=0 )
+    {
+        int x = rect.x() -  d->offset;
+
+        rect.moveLeft( x  );
+
+    }
+
+
     return rect;
 
 }
@@ -1083,7 +1095,7 @@ void QpHorHeaderView::resizeSection_X(int xNum, int newWidth)
 
     d->viewport->update( );
 
-    //emit geometriesChanged();
+    emit geometriesChanged();
     emit sectionResized_X( xNum );
 
     return;
@@ -1109,17 +1121,6 @@ void QpHorHeaderView::resizeSection_Y(int line, int newHeight)
 
     d->invalidateCachedSizeHint();
 
-    //    if (isSectionHidden(logical))
-    //    {
-    //        d->hiddenSectionSize.insert(logical, newSize);
-    //        return;
-    //    }
-
-    //    int visual = visualIndex(logical);
-
-    //    if (visual == -1)
-    //        return;
-
     int hh1 = row_height();
 
     QRect rect = geometry();
@@ -1128,35 +1129,17 @@ void QpHorHeaderView::resizeSection_Y(int line, int newHeight)
     QRect rectV = d->viewport->geometry();
     int hh1v = rectV.height();
 
-    qDebug() << " cursor y:"<< QCursor::pos().y();
-
-    //    if (stretchLastSection() && visual == d->lastVisibleVisualIndex())
-    //        d->lastSectionSize = newHeight;
-
-    //    if (newHeight != oldHeight)
-    //    {
-    //        d->setHeaderSectionSize(visual , newHeight );
-    //    }
+    //qDebug() << " cursor y:"<< QCursor::pos().y();
 
     d->recalculateLineHeigth_from( line , newHeight );
 
-    //    int w = d->viewport->width();
-
-    //    int h = d->viewport->height();
-
-    int hh2 = row_height();
-
-    int hh3 = rectV.height();
-
     d->viewport->update( );
 
-    //    if( delta != 0 )
-    //    {
     setMinimumHeight( row_height() - 1 );
 
     //emit geometriesChanged();
     emit sectionResized_Y( );
-    //    }
+
     return;
 
     //    int pos = sectionViewportPosition2(logical).x();
@@ -2681,6 +2664,8 @@ void QpHorHeaderView::paintEvent(QPaintEvent *e)
 
     end_x_num = qMax(tmp, end_x_num);
 
+    if ( debug_scroll) qDebug() <<  "QpHorHeaderView::paintEvent start_x_num "<< start_x_num;
+
     d->prepareSectionSelected(); // clear and resize the bit array
 
     QRect currentSectionRect;
@@ -2691,19 +2676,23 @@ void QpHorHeaderView::paintEvent(QPaintEvent *e)
 
     const int height = d->viewport->height() ;
 
+    if (debug_resize ) qDebug() << "pHorHeaderView::paintEvent start_x_num:" << start_x_num << "  end_x_num " << end_x_num;
 
     for (int xNum = start_x_num; xNum <= end_x_num; ++xNum)
     {
+        if (debug_resize ) qDebug() << "    xNum:" << xNum;
 
         for( int line = 0; line < lines_count(); ++line)
         {
+            if (debug_resize ) qDebug() << "        line:" << line;
+
             //            if (d->isVisualIndexHidden(xNum))
             //                continue;
             painter.save();
 
             logical = logicalIndex_atNum_x_line( xNum , line );
 
-            if( logical == -1)
+            if( logical == qp::UNDEFINED_FLD )
             {
                 painter.restore();
                 qDebug() << "56839580984609865";
@@ -2712,11 +2701,14 @@ void QpHorHeaderView::paintEvent(QPaintEvent *e)
             else if ( logical == qp::LABEL_FLD)
             {
                 currentSectionRect = cellPosition( line , xNum );
+
+                if (debug_resize ) qDebug() << "            LABEL_FLD rect:" << currentSectionRect;
             }
             else
             {
-
                 currentSectionRect = sectionViewportPosition2( logical );
+
+                if (debug_resize ) qDebug() << "                       rect:" << currentSectionRect;
             }
 
 
@@ -2983,8 +2975,9 @@ void QpHorHeaderView::mouseMoveEvent(QMouseEvent *e)
 
             int newSize = qMax(d->originalSize_X + delta, minimumSectionSize() );
 
+            if( debug_resize || debug_scroll) qDebug() << "-- resizeSection_X newSize " << newSize <<  "  d->firstPos_x " << d->firstPos_x << " delta " << delta;
+
             resizeSection_X( d->xNum_sizing , qMax( d->originalSize_X + delta , minimumSectionSize()));
-            //d->set_xNum_size( d->xNum_sizing , newSize );
 
             d->lastPos_x = xx;
 
@@ -3362,65 +3355,70 @@ void QpHorHeaderView::paintSection(QPainter *painter, const QRect &rect, int log
     {
         isLabel = true ;
         logicalIndex = 0;
+        //state |= QStyle::State_Sunken;
     }
-
-    if (d->clickableSections)
+    else
     {
-        if (logicalIndex == d->hover)
-            state |= QStyle::State_MouseOver;
 
-        if (logicalIndex == d->pressed) // click into section
-            state |= QStyle::State_Sunken;
-
-        else if (d->highlightSelected)
+        if (d->clickableSections)
         {
+            if (logicalIndex == d->hover)
+                state |= QStyle::State_MouseOver;
 
-            //            if ( d->sectionIntersectsSelection( logicalIndex ))
-            //            {
-            // ---------------------------------------------------
-            //            this is only for vertical and horizontal selection together
-            // ---------------------------------------------------
-            //                state |= QStyle::State_On;
-            //            }
-
-
-            if (d->isSectionSelected( logicalIndex ))
+            if (logicalIndex == d->pressed) // click into section
                 state |= QStyle::State_Sunken;
+
+            else if (d->highlightSelected)
+            {
+
+                //            if ( d->sectionIntersectsSelection( logicalIndex ))
+                //            {
+                //                state |= QStyle::State_On;
+                //            }
+
+
+                if (d->isSectionSelected( logicalIndex ))
+                    state |= QStyle::State_Sunken;
+            }
+
         }
 
+        if (isSortIndicatorShown() && sortIndicatorSection() == logicalIndex)
+        {
+            opt.sortIndicator = (sortIndicatorOrder() == Qt::AscendingOrder)
+                    ? QStyleOptionHeader::SortDown : QStyleOptionHeader::SortUp;
+        }
+
+        QVariant textAlignment = d->model->headerData(logicalIndex, Qt::Horizontal,
+                                                      Qt::TextAlignmentRole);
+
+        opt.textAlignment = Qt::Alignment( textAlignment.isValid()
+                                           ? Qt::Alignment(textAlignment.toInt())
+                                           : d->defaultAlignment);
     }
 
-    if (isSortIndicatorShown() && sortIndicatorSection() == logicalIndex)
-    {
-        opt.sortIndicator = (sortIndicatorOrder() == Qt::AscendingOrder)
-                ? QStyleOptionHeader::SortDown : QStyleOptionHeader::SortUp;
-    }
-
-    // setup the style options structure
-    QVariant textAlignment = d->model->headerData(logicalIndex, Qt::Horizontal,
-                                                  Qt::TextAlignmentRole);
 
     opt.rect = rect;
     ////opt.section = logicalIndex;  // не влияет
     opt.state |= state;
-    opt.textAlignment = Qt::Alignment( textAlignment.isValid()
-                                       ? Qt::Alignment(textAlignment.toInt())
-                                       : d->defaultAlignment);
 
     opt.iconAlignment = Qt::AlignVCenter;
 
     QPointF oldBO = painter->brushOrigin();
 
-    if( ! isLabel )
+    if( isLabel )
     {
-        opt.text = d->model->headerData(logicalIndex, Qt::Horizontal,
-                                        Qt::DisplayRole).toString();
+        opt.text = "";//d->model->headerData(logicalIndex, Qt::Horizontal, Qt::DisplayRole).toString();
+
     }
     else
     {
+        opt.text = d->model->headerData(logicalIndex, Qt::Horizontal, Qt::DisplayRole).toString();
+
         if (d->textElideMode != Qt::ElideNone)
             opt.text = opt.fontMetrics.elidedText(opt.text, d->textElideMode , rect.width() - 4);
 
+        // ------------------- icon -------------------------------
 
         QVariant variant = d->model->headerData(logicalIndex, Qt::Horizontal, Qt::DecorationRole);
 
@@ -3429,14 +3427,16 @@ void QpHorHeaderView::paintSection(QPainter *painter, const QRect &rect, int log
         if (opt.icon.isNull())
             opt.icon = qvariant_cast<QPixmap>(variant);
 
-        QVariant foregroundBrush = d->model->headerData(logicalIndex, Qt::Horizontal,
-                                                        Qt::ForegroundRole);
+        // ------------------- foregroundBrush -------------------------------
+
+        QVariant foregroundBrush = d->model->headerData(logicalIndex, Qt::Horizontal, Qt::ForegroundRole);
+
         if (foregroundBrush.canConvert<QBrush>())
         {
             opt.palette.setBrush(QPalette::ButtonText, qvariant_cast<QBrush>(foregroundBrush));
         }
 
-
+        // ------------------- backgroundBrush -------------------------------
 
         QVariant backgroundBrush = d->model->headerData(logicalIndex, Qt::Horizontal, Qt::BackgroundRole);
 
@@ -3449,9 +3449,10 @@ void QpHorHeaderView::paintSection(QPainter *painter, const QRect &rect, int log
             painter->setBrushOrigin( opt.rect.topLeft());
 
         }
-        int visual = visualIndex( logicalIndex );
 
-        //if (debug) qDebug() << "QpHorHeaderView::paintSection visual " << visual ;
+        // -------------------                -------------------------------
+
+        int visual = visualIndex( logicalIndex );
 
         Q_ASSERT(visual != -1);
 
@@ -3464,9 +3465,9 @@ void QpHorHeaderView::paintSection(QPainter *painter, const QRect &rect, int log
         else
             opt.position = QStyleOptionHeader::Middle;
         // the selected position
-        bool previousSelected = d->isSectionSelected(this->logicalIndex(visual - 1));
+        bool previousSelected = d->isSectionSelected( this->logicalIndex(visual - 1));
 
-        bool nextSelected =  d->isSectionSelected(this->logicalIndex(visual + 1));
+        bool nextSelected =  d->isSectionSelected( this->logicalIndex(visual + 1));
 
         if (previousSelected && nextSelected)
             opt.selectedPosition = QStyleOptionHeader::NextAndPreviousAreSelected;
@@ -3726,7 +3727,7 @@ void QpHorHeaderView::clear_sections_template(  )
     d->label_styles.clear();
 }
 
-void QpHorHeaderView::set_label_style( int line, int numX , qp::LABEL_STYLE &stl)
+void QpHorHeaderView::set_cell_style( int line, int numX , qp::CELL_STYLE &stl)
 {
     Q_D( QpHorHeaderView);
 
@@ -3737,21 +3738,31 @@ void QpHorHeaderView::set_label_style( int line, int numX , qp::LABEL_STYLE &stl
 
     d->label_styles[ pp ] = stl;
 
+    if ( line >=0 && line < d->visual_matrix.count())
+    {
+        if( numX>=0 && numX < d->visual_matrix [ line ].count() )
+        {
+            //if( )
+            d->visual_matrix [ line ] [ numX ];
+        }
+    }
+
 }
 
-const qp::LABEL_STYLE QpHorHeaderView::get_label_style( int line, int numX ) const
+const bool QpHorHeaderView::get_cell_style( int line, int numX, qp::CELL_STYLE &stl ) const
 {
     Q_D( const QpHorHeaderView);
 
-    qp::LABEL_STYLE style;
 
     QPair<int,int> pp (line, numX );
 
     if( d->label_styles.contains( pp ))
+    {
+        stl = d->label_styles.value( pp );
+        return true;
+    }
 
-        style = d->label_styles.value( pp );
-
-    return style;
+    return false;
 }
 
 bool QpHorHeaderView::init_sections_template( QAbstractItemModel *mdl, const Qp_SECTION_TMPL &matrix )
@@ -3919,7 +3930,7 @@ line1     0      1      3      4     5
                 qDebug() << "       String: " << var ;
 
                 QString txt = d->visual_matrix [ line ] [ num ].toString();
-                qp::LABEL_STYLE style;
+                qp::CELL_STYLE style;
 
                 if( txt.contains(">")) // align right
                 {
@@ -4635,10 +4646,10 @@ void QpHorHeaderViewPrivate::resizeSections(QpHorHeaderView::ResizeMode globalMo
                 {
 
 
-                    if( label_styles[ pp ].fnt == defFnt)
+                    if( label_styles[ pp ].font == defFnt)
                         ;//continue;
 
-                    QFontMetrics metr (  label_styles[ pp ] .fnt );
+                    QFontMetrics metr (  label_styles[ pp ] .font );
 
                     QString str2 = visual_matrix [ line ] [ xNum ].toString();
 
@@ -4652,7 +4663,7 @@ void QpHorHeaderViewPrivate::resizeSections(QpHorHeaderView::ResizeMode globalMo
 
                     ww = qMax( ww , width );
 
-                    if( debug_resize ) qDebug() << "   qMax xNum:" << xNum << " line:" << line << " ww:" <<ww << " width:" << width << "  str2:"<<str2 << "  ll:"<<ll << "  fnt:"<<label_styles[ pp ].fnt << " pixelSz:" << label_styles[ pp ].fnt.pixelSize()<<" rect " << rect;
+                    if( debug_resize ) qDebug() << "   qMax xNum:" << xNum << " line:" << line << " ww:" <<ww << " width:" << width << "  str2:"<<str2 << "  ll:"<<ll << "  fnt:"<<label_styles[ pp ].font << " pixelSz:" << label_styles[ pp ].font.pixelSize()<<" rect " << rect;
                 }
             }
             else

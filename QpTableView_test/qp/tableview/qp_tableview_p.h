@@ -70,12 +70,15 @@ public:
     static const bool debug_selection;
     mutable QBasicTimer delayed_Repaint; //!!
 
-    QHash< int , qp::LABEL_STYLE> stls; //!!
+
+    QHash< int , qp::CELL_STYLE> stls; //!!
+
+    QHash< QPair<int,int> , qp::CELL_STYLE> cell_styles; //!!
 
 
     void init( );
 
-    void correct_Style( const qp::LABEL_STYLE &stls, QStyleOptionViewItemV4 &opt ); //!
+    void correct_Style( const qp::CELL_STYLE &stls, QStyleOptionViewItemV4 &opt ); //!
 
     void trimHiddenSelections(QItemSelectionRange *range) const;
 
@@ -113,7 +116,7 @@ public:
 
     void drawCell(QPainter *painter, const QStyleOptionViewItemV4 &option, const QModelIndex &index);
 
-    void drawCellLabel(QPainter *painter, const QStyleOptionViewItemV4 &option, const QString &txt, bool rowSelected, int row, const qp::LABEL_STYLE & st);
+    void drawCellLabel(QPainter *painter, const QStyleOptionViewItemV4 &option, const QString &txt, bool rowSelected, int row);
 
     bool showGrid;
     bool showBetweenRowsBorder;

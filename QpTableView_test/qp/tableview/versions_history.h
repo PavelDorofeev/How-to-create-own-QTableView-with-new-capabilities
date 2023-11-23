@@ -27,6 +27,8 @@ Now we are including our qp files at any project and building conveniently as us
 
     repaire scroll x
 2.1.1
+    repaire resizing x when scroll x is presents
+2.1.2
 */
 
 

@@ -66,6 +66,7 @@ public:
     static const bool debug_init;
     static const bool debug_geometry;
     static const bool debug_paint_row_col;
+    static const bool debug_resize;
     static const bool debug_paint_region;
     static const bool debug_paint_border;
     static const bool debug_selection;
@@ -94,10 +95,9 @@ public:
 
     void setVerticalHeader(QpVertHeaderView *header);
 
-    QPair<qp::LABEL_STYLE,qp::LABEL_STYLE> get_section_style( int mdlfldNum ) ;
-    bool set_section_style( int mdlfldNum, const qp::LABEL_STYLE &st );
+    const qp::CELL_STYLE get_section_default_style( int line, int numX ) const;
 
-    Qt::Alignment get_section_align( int mdlfldNum ) const;
+    Qt::Alignment get_section_align( int line, int numX ) const;
     bool set_section_align( int mdlfldNum, Qt::Alignment align );//!!
 
     int rowViewportPosition(int row) const;
@@ -108,6 +108,7 @@ public:
     void setLineHeightInRow(int line, int height) const; //!
 
     int get_section_at( const QPoint & pos);
+    qp::CELL get_cell_at( const QPoint & pos);
 
     int rowHeight(int row) const;
 

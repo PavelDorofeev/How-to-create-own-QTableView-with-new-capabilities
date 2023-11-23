@@ -25,6 +25,11 @@ public:
     static QString        mid;
     static QString        btn_back;
 
+    static const QColor blue;
+    static const QColor green;
+    static const QColor red;
+    static const QColor brown;
+
     static QSettings         *reestr;
 
     static QString        em1;

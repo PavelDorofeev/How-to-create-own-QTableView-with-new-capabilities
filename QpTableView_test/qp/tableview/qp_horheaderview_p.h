@@ -109,13 +109,16 @@ public:
 
     QList < int > offsets_y; //  0,30,60,..
 
-    QList < QList< QVariant > > visual_matrix;   // lines / col
+    QList < QList< QVariant > > visual_matrix;   // lines / xNums
     // line0 : 0 1 2 2 5
     // line1 : 0 1 3 4 5
 
-    QHash < QPair<int,int> , qp::LABEL_STYLE > label_styles;   // only for label formatting
+    QHash < QPair<int,int> , qp::CELL_STYLE > label_styles;   //
 
-    QHash<int , qp::CELL_NODES > map; // int = logical index into model
+    QHash< int , qp::CELL_NODES > map; // int = logical field number  into model
+    // -2,-3,.. labels cells
+
+    QHash< QPair<int,int> , qp::CELL_NODES > matrix;
 
     void set_Style_test();
 

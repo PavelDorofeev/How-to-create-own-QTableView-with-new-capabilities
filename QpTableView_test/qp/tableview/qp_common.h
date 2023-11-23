@@ -99,25 +99,55 @@ typedef struct CELL_NODES{
 
 //};
 
-typedef struct LABEL_STYLE
+#ifndef QT_NO_DEBUG_STREAM
+Q_GUI_EXPORT QDebug operator<<(QDebug, const QColor &);
+#endif
+#ifndef QT_NO_DATASTREAM
+Q_GUI_EXPORT QDataStream &operator<<(QDataStream &, const QColor &);
+Q_GUI_EXPORT QDataStream &operator>>(QDataStream &, QColor &);
+#endif
+
+typedef struct CELL_STYLE
 {
 public:
     Qt::Alignment align;
 
-    QFont fnt;
+    QFont font;
 
     QColor color;
 
-    LABEL_STYLE()
+    CELL_STYLE()
         :
           align( Qt::AlignCenter ),
           color(QColor(Qt::gray)),
-          fnt (QFont())
+          font (QFont())
     {
 
     }
 
+
+#ifndef QT_NO_DATASTREAM
+//inline QDataStream& operator>>(QDataStream& s, CELL_STYLE& p)
+//{
+//    s >> " align " >> p.align >> " color: " >> p.color  >> " font:" >> p.fnt;
+//    return s;
+//}
+
+//inline QDataStream& operator<<(QDataStream& s, const CELL_STYLE& p)
+//{
+//    s << " align ";// << p.align << " color: " << p.color  << " font:" <<p.fnt;
+//    return s;
+//}
+#endif
+private:
+#ifndef QT_NO_DATASTREAM
+    friend Q_GUI_EXPORT QDataStream &operator<<(QDataStream &, const CELL_STYLE &);
+    friend Q_GUI_EXPORT QDataStream &operator>>(QDataStream &, CELL_STYLE &);
+#endif
+
 };
+
+
 
 typedef enum FIELD_TYPE
 {
@@ -138,8 +168,8 @@ typedef struct SECTION
     QModelIndex idx;
 
     SECTION() :
-          type(MODEL_FIELD),
-          idx(QModelIndex())
+        type(MODEL_FIELD),
+        idx(QModelIndex())
     {
 
     }
@@ -168,7 +198,78 @@ typedef struct aaa
     }
 };
 
+
+typedef struct CELL
+{
+
+    CELL() : line(qp::UNKNOWN_VALUE), xNum(qp::UNKNOWN_VALUE)
+    {
+    }
+
+    CELL( const int &line, const int &xNum):  line(line), xNum(xNum)
+    {
+    }
+
+    CELL &operator=(const CELL &other)
+    {
+        line = other.line; xNum = other.xNum; return *this;
+    }
+
+    int line;
+    int xNum;
+};
+
+Q_INLINE_TEMPLATE bool operator==(const CELL &p1, const CELL &p2)
+{
+    return p1.line == p2.line && p1.xNum == p2.xNum;
 }
+
+Q_INLINE_TEMPLATE bool operator!=(const CELL &p1, const CELL &p2)
+{
+    return !(p1 == p2);
+}
+
+Q_INLINE_TEMPLATE bool operator<(const CELL &p1, const CELL &p2)
+{
+    return p1.line < p2.line || (!(p2.line < p1.line) && p1.xNum < p2.xNum);
+}
+
+Q_INLINE_TEMPLATE bool operator>(const CELL &p1, const CELL &p2)
+{
+    return p2 < p1;
+}
+
+Q_INLINE_TEMPLATE bool operator<=(const CELL &p1, const CELL &p2)
+{
+    return !(p2 < p1);
+}
+
+Q_INLINE_TEMPLATE bool operator>=(const CELL &p1, const CELL &p2)
+{
+    return !(p1 < p2);
+}
+Q_OUTOFLINE_TEMPLATE CELL qMakePair(const int &x, const int &y)
+{
+    return CELL(x, y);
+}
+
+#ifndef QT_NO_DATASTREAM
+inline QDataStream& operator>>(QDataStream& s, CELL& p)
+{
+    s >> p.line >> p.xNum;
+    return s;
+}
+
+inline QDataStream& operator<<(QDataStream& s, const CELL& p)
+{
+    s << p.line << p.xNum;
+    return s;
+}
+#endif
+
+// ----------------------------------------------------------------------------------
+}
+
 QT_END_NAMESPACE
 
 QT_END_HEADER

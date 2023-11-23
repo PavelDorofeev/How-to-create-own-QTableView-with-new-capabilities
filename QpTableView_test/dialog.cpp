@@ -146,8 +146,8 @@ bool Dialog::init_sql_model()
 
 
 
-    qDebug() << " model2->rowCount() : " << mdl_sql->rowCount();
-    qDebug() << " model2->columnCount() : " << mdl_sql->columnCount();
+    qDebug() << " mdl_sql->rowCount() : " << mdl_sql->rowCount();
+    qDebug() << " mdl_sql->columnCount() : " << mdl_sql->columnCount();
 
 
 
@@ -167,8 +167,12 @@ void Dialog::init_StandardItemModel()
     mdl_standart->setHorizontalHeaderItem(3, new QStandardItem(QString("3333")));
     mdl_standart->setHorizontalHeaderItem(4, new QStandardItem(QString("4444")));
     mdl_standart->setHorizontalHeaderItem(5, new QStandardItem(QString("5555")));
-    //model->setHorizontalHeaderItem(6, new QStandardItem(QString("6666")));
-    //    model->setHorizontalHeaderItem(7, new QStandardItem(QString("7777")));
+    mdl_standart->setHorizontalHeaderItem(6, new QStandardItem(QString("6666")));
+    mdl_standart->setHorizontalHeaderItem(7, new QStandardItem(QString("7777")));
+    mdl_standart->setHorizontalHeaderItem(8, new QStandardItem(QString("8888")));
+    mdl_standart->setHorizontalHeaderItem(9, new QStandardItem(QString("9999")));
+    mdl_standart->setHorizontalHeaderItem(10, new QStandardItem(QString("1010")));
+    mdl_standart->setHorizontalHeaderItem(11, new QStandardItem(QString("11 11")));
 
     int colCount = mdl_standart->columnCount();
 
@@ -238,10 +242,34 @@ void Dialog::init_StandardItemModel()
 
     tableView->setModel( mdl_standart , matrix );
 
+    qp::CELL_STYLE stl;
 
+    stl.font.setPixelSize( 25 );
+    stl.font.setPointSize( -1 );
+    stl.align = Qt::AlignRight;
+
+    stl.color = appDef::green;
+    tableView->horizontalHeader()->set_cell_style( 0 , 2 , stl );
+
+    stl.font.setPixelSize( 30 );
+    stl.font.setPointSize( -1 );
+
+    stl.color = appDef::red;
+    tableView->horizontalHeader()->set_cell_style( 0 , 1 , stl );
+
+    stl.font.setPixelSize( 20 );
+    stl.font.setPointSize( -1 );
+    stl.color = appDef::blue;
+    tableView->horizontalHeader()->set_cell_style( 1 , 0 , stl );
+    tableView->horizontalHeader()->set_cell_style( 0 , 4 , stl );
+
+    stl.color = appDef::brown;
+    tableView->horizontalHeader()->set_cell_style( 1 , 3 , stl );
+    tableView->horizontalHeader()->set_cell_style( 1 , 2 , stl );
+
+    tableView->resizeColumnsToContents();
     qDebug() << " model->rowCount() : " << mdl_standart->rowCount();
     qDebug() << " model->columnCount() : " << mdl_standart->columnCount();
-    //    qDebug() << " tableView->selectionBehavior : " << tableView->selectionBehavior();
 
     ui->btn_QStandardItemModel_On->setFocus();
 }
@@ -371,23 +399,31 @@ void Dialog::slot_settinggs_edit( const QPoint& pp )
 
     qp::SECTION sect = tableView->indexAt( pp );
 
-    //QFont fnt = tableView->get_section_font( idx.column() );
+    tableView->get_section_at( pp );
 
-    QPair<qp::LABEL_STYLE,qp::LABEL_STYLE> pair = tableView->get_section_style( sect.idx.column() ) ;
+    qp::CELL cell = tableView->get_cell_at( pp );
 
-    qDebug() << "slot_bbb pair.first.fnt " << pair.first.fnt;
-    qDebug() << "        pair.second.fnt " << pair.second.fnt;
-    qDebug() << "       pair.second.color " << pair.second.color;
-    qDebug() << "       pair.first.color " << pair.first.color;
+    qp::CELL_STYLE defStl = tableView->get_section_default_style( cell.line, cell.xNum ) ;
 
-    SectionSettingsDlg dlg ( pair , this );
+    qp::CELL_STYLE stl;
+
+    if ( ! tableView->horizontalHeader()->get_cell_style( cell.line, cell.xNum , stl ) )
+        stl = defStl;
+    else
+        qDebug() << "asdasd stl " << stl.color.name() << stl.font;
+
+
+
+    QPair<qp::CELL_STYLE,qp::CELL_STYLE> pair ( stl , defStl );
+
+    SectionSettingsDlg dlg ( stl , defStl, this );
 
     if ( dlg.exec() == QDialog::Rejected)
         return;
 
     qDebug() << "slot_bbb : dlg.align: " << dlg.currStyles.align;
 
-    tableView->set_section_style( sect.idx.column() , dlg.currStyles );
+    tableView->horizontalHeader()->set_cell_style( cell.line, cell.xNum , dlg.currStyles );
 }
 
 

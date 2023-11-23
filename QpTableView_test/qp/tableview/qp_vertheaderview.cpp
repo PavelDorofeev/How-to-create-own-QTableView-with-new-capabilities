@@ -54,7 +54,7 @@
 QT_BEGIN_NAMESPACE
 
 
-const  bool QpVertHeaderView::debug_paint = true;
+const  bool QpVertHeaderView::debug_paint = false;
 const  bool QpVertHeaderView::debug_select = false;
 const  bool QpVertHeaderView::debug_init = false;
 const  bool QpVertHeaderView::debug_scroll = true;
