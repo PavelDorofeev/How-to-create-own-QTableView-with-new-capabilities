@@ -59,12 +59,12 @@ const bool QpTableView::debug_geometry = false;
 const bool QpTableView::debug_event = false;
 const bool QpTableView::debug_paint_region = false;
 const bool QpTableView::debug_paint_border = false;
-const bool QpTableView::debug_resize = true;
+const bool QpTableView::debug_resize = false;
 
 const bool QpTableView::debug_selection = false;
 const bool QpTableViewPrivate::debug_selection = false;
 
-const bool QpTableView::debug_scroll = true;
+const bool QpTableView::debug_scroll = false;
 const bool QpTableViewPrivate::debug = false;
 const bool QpTableViewPrivate::debug_init = false;
 

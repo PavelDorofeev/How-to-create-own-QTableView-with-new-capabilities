@@ -76,7 +76,7 @@ public:
     //--------------------------------------------------------
 
     static const bool debug ;
-    static const bool debug_cursor ;
+    static const bool debug_mouse ;
     static const bool debug_line_numX ;
     static const bool debug_paint ;
     static const bool debug_offset ;

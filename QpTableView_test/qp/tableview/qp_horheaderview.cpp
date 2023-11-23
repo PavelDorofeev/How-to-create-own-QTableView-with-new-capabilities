@@ -61,7 +61,7 @@ const bool QpHorHeaderView::debug_selection = false;
 const bool QpHorHeaderView::debug_scroll = false;
 const bool QpHorHeaderView::debug_resize = false;
 const bool QpHorHeaderView::debug_init = false;
-const bool QpHorHeaderView::debug_cursor = false;
+const bool QpHorHeaderView::debug_mouse = true;
 
 const int QpHorHeaderView::default_section_width = 150;
 
@@ -2184,14 +2184,8 @@ void QpHorHeaderViewPrivate::recalculate_xNumWidth( int from_xNum, int newWidth)
 
     int delta = newWidth - before_width ;
 
-    //int start = offsets_x[ from_xNum + 1  ];
 
-    //offsets_x[ from_xNum + 1  ] =  start + delta;
-
-    if(from_xNum == 3)
-        qDebug() <<"asdasasdsad";
-
-    qDebug() << "recalculate_xNumWidth: from_xNum:" << from_xNum << " before_width " << before_width << " newWidth " << newWidth;
+    if( debug_resize ) qDebug() << "recalculate_xNumWidth: from_xNum:" << from_xNum << " before_width " << before_width << " newWidth " << newWidth;
 
     for( int ii = from_xNum + 1 ; ii < offsets_x.count(); ii++)
     {
@@ -2199,7 +2193,7 @@ void QpHorHeaderViewPrivate::recalculate_xNumWidth( int from_xNum, int newWidth)
 
         offsets_x[ ii  ] =  x1;
 
-        qDebug() << "   xNum:"<<ii << x1 << " (" <<offsets_x[ ii]<<")";
+        if( debug_resize ) qDebug() << "   xNum:"<<ii << x1 << " (" <<offsets_x[ ii]<<")";
 
     }
 
@@ -2935,6 +2929,8 @@ void QpHorHeaderView::mouseMoveEvent(QMouseEvent *e)
 {
     Q_D(QpHorHeaderView);
 
+    //if ( debug_mouse ) qDebug()<< "mouseMoveEvent "<< e->x() << e->y();
+
     int xx =  e->x() ;
     int yy =  e->y() ;
 
@@ -2959,6 +2955,8 @@ void QpHorHeaderView::mouseMoveEvent(QMouseEvent *e)
     case QpHorHeaderViewPrivate::ResizeSection_X:
     {
         Q_ASSERT( d->originalSize_X != -1);
+
+        if ( debug_mouse ) qDebug()<< "mouseMoveEvent ResizeSection_X "<< e->x() << e->y();
 
         if ( d->cascadingResizing)
         {
@@ -2988,6 +2986,8 @@ void QpHorHeaderView::mouseMoveEvent(QMouseEvent *e)
     }
     case QpHorHeaderViewPrivate::ResizeSection_Y:
     {
+        if ( debug_mouse ) qDebug()<< "mouseMoveEvent ResizeSection_Y "<< e->x() << e->y();
+
         Q_ASSERT(d->originalSize_Y != -1);
 
         if ( d->cascadingResizing)
@@ -3074,27 +3074,31 @@ void QpHorHeaderView::mouseMoveEvent(QMouseEvent *e)
 
         bool hasCursor = testAttribute(Qt::WA_SetCursor);
 
+        if ( debug_mouse ) qDebug()<< "mouseMoveEvent NoState handle " << dat.handle << "  cursor:"<< cursor().shape();
+
         if ( dat.handle ) // && ( resizeMode( dat.xNum ) == Interactive))
         {
             if ( ! hasCursor )
             {
                 if( dat.moveOrientation == Qt::Horizontal )
                 {
+                    if ( debug_mouse ) qDebug()<< "   mouseMoveEvent Qt::SplitHCursor " << cursor().shape();
                     setCursor( Qt::SplitHCursor );
-                    if ( debug_cursor ) qDebug()<< "   mouseMoveEvent Qt::SplitHCursor ";
+                    if ( debug_mouse ) qDebug()<< "   mouseMoveEvent Qt::SplitHCursor " << cursor().shape();
                 }
                 else
                 {
+                    if ( debug_mouse ) qDebug()<< "   mouseMoveEvent Qt::SplitVCursor " << cursor().shape();
                     setCursor( Qt::SplitVCursor );
-                    if ( debug_cursor ) qDebug()<< "   mouseMoveEvent Qt::SplitVCursor ";
+                    if ( debug_mouse ) qDebug()<< "   mouseMoveEvent Qt::SplitVCursor " << cursor().shape();
                 }
 
             }
         }
-        else if (hasCursor)
+        else if ( hasCursor )
         {
             unsetCursor();
-            if ( debug_cursor ) qDebug()<< "   mouseMoveEvent unsetCursor ";
+            if ( debug_mouse ) qDebug()<< "   mouseMoveEvent unsetCursor " << cursor().shape();
         }
 #endif
 
@@ -4266,8 +4270,15 @@ qp::aaa QpHorHeaderViewPrivate::sectionHandleAt( const QPoint &pos)
         if( xNumLeft == qp::UNKNOWN_VALUE )
             return dat;
 
+        //qDebug()<< "1    xNumLeft " << xNumLeft;
+
+        if ( offset != 0)
+            xNumLeft -= offset;
+
+        //qDebug()<< "2    xNumLeft " << xNumLeft;
 
         int x1 = xNumLeft + grip;
+
 
         atLeft = x < x1; //
 
@@ -4278,6 +4289,10 @@ qp::aaa QpHorHeaderViewPrivate::sectionHandleAt( const QPoint &pos)
 
     if( xNumRight == qp::UNKNOWN_VALUE )
         return dat;
+
+
+    if ( offset != 0)
+        xNumRight -= offset;
 
     int x2 = xNumRight - grip ;
 
