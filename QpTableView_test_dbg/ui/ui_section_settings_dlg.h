@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'section_settings_dlg.ui'
 **
-** Created: Thu 23. Nov 18:40:59 2023
+** Created: Fri 24. Nov 18:37:43 2023
 **      by: Qt User Interface Compiler version 4.8.1
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!

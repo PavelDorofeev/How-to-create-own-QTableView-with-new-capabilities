@@ -1082,7 +1082,7 @@ void QpVertHeaderView::reset()
     // it would be correct to call clear, but some apps rely
     // on the header keeping the sections, even after calling reset
 
-    d->clear();
+    d->clear(); //!!
 
     initializeSections();
 

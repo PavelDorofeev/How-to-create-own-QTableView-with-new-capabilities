@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'dialog.ui'
 **
-** Created: Thu 23. Nov 18:40:59 2023
+** Created: Fri 24. Nov 18:37:43 2023
 **      by: Qt User Interface Compiler version 4.8.1
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -275,15 +275,15 @@ public:
          << QApplication::translate("Dialog", "ExtendedSelection", 0, QApplication::UnicodeUTF8)
          << QApplication::translate("Dialog", "ContiguousSelection", 0, QApplication::UnicodeUTF8)
         );
-        txt1->setPlainText(QApplication::translate("Dialog", "0,1,\320\235\320\220\320\233:>,2,3,5,6,8,8,9,11,11\n"
-"0,1,\320\221\320\235:>,  4,3,5,6,7,7,10,10,10", 0, QApplication::UnicodeUTF8));
+        txt1->setPlainText(QApplication::translate("Dialog", "0,1,-2,2,3,5,6,8,8,9,11,11\n"
+"0,1,-3,4,3,5,6,7,7,10,10,10", 0, QApplication::UnicodeUTF8));
         btn_init_sections->setText(QApplication::translate("Dialog", "init", 0, QApplication::UnicodeUTF8));
-        txt2->setPlainText(QApplication::translate("Dialog", "1,\320\235\320\220\320\233:,2,2,\320\264\320\260\321\202\320\260,6,8,11\n"
-"5,\320\221\320\235:,4,3,\320\262\321\200\320\265\320\274\321\217,7,9,10", 0, QApplication::UnicodeUTF8));
+        txt2->setPlainText(QApplication::translate("Dialog", "1,-2,2,2,6,8,11\n"
+"5,-3,4,3,7,9,10", 0, QApplication::UnicodeUTF8));
         btn_init_sections_2->setText(QApplication::translate("Dialog", "init", 0, QApplication::UnicodeUTF8));
-        txt3->setPlainText(QApplication::translate("Dialog", "0,2,2,5,3\n"
-"0,4,4,4,3\n"
-"0,6,7,9,9", 0, QApplication::UnicodeUTF8));
+        txt3->setPlainText(QApplication::translate("Dialog", "0,-2,2,2,5,3\n"
+"0,4,4,4,-3,3\n"
+"0,6,7,-4,9,9", 0, QApplication::UnicodeUTF8));
         btn_init_sections_3->setText(QApplication::translate("Dialog", "init", 0, QApplication::UnicodeUTF8));
         chk_grid_on->setText(QApplication::translate("Dialog", "show grid", 0, QApplication::UnicodeUTF8));
         chk_betweenRowsBorder->setText(QApplication::translate("Dialog", "show between rows border", 0, QApplication::UnicodeUTF8));

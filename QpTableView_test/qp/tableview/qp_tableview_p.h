@@ -68,6 +68,7 @@ public:
     static const bool debug;
     static const bool debug_init;
     static const bool debug_selection;
+    static const bool debug_mdl_signals;
     mutable QBasicTimer delayed_Repaint; //!!
 
 
@@ -76,7 +77,7 @@ public:
     QHash< QPair<int,int> , qp::CELL_STYLE> cell_styles; //!!
 
 
-    void init( );
+    void init( const qp::SECTIONS_TMPL matrix );
 
     void correct_Style( const qp::CELL_STYLE &stls, QStyleOptionViewItemV4 &opt ); //!
 
@@ -116,7 +117,11 @@ public:
 
     void drawCell(QPainter *painter, const QStyleOptionViewItemV4 &option, const QModelIndex &index);
 
-    void drawCellLabel(QPainter *painter, const QStyleOptionViewItemV4 &option, const QString &txt, bool rowSelected, int row);
+    void drawCellLabel(QPainter *painter,
+                       const QStyleOptionViewItemV4 &option,
+                       //const QString &txt,
+                       bool rowSelected,
+                       int row);
 
     bool showGrid;
     bool showBetweenRowsBorder;
@@ -173,10 +178,10 @@ public:
     void selectRow(int row, bool anchor);
     void selectColumn(int column, bool anchor);
 
-//    void _q_updateSpanInsertedRows(const QModelIndex &parent, int start, int end);
-//    void _q_updateSpanInsertedColumns(const QModelIndex &parent, int start, int end);
-//    void _q_updateSpanRemovedRows(const QModelIndex &parent, int start, int end);
-//    void _q_updateSpanRemovedColumns(const QModelIndex &parent, int start, int end);
+    void _q_updateSpanInsertedRows(const QModelIndex &parent, int start, int end);
+    void _q_updateSpanInsertedColumns(const QModelIndex &parent, int start, int end);
+    void _q_updateSpanRemovedRows(const QModelIndex &parent, int start, int end);
+    void _q_updateSpanRemovedColumns(const QModelIndex &parent, int start, int end);
 };
 
 QT_END_NAMESPACE

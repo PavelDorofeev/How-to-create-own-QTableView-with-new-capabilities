@@ -625,9 +625,12 @@ QpAbstractItemView::~QpAbstractItemView()
 */
 void QpAbstractItemView::setModel(QAbstractItemModel *model)
 {
-    Q_D(QpAbstractItemView);
+    Q_D( QpAbstractItemView );
+
     if (model == d->model)
         return;
+
+
     if (d->model && d->model != QAbstractItemModelPrivate::staticEmptyModel())
     {
         disconnect(d->model, SIGNAL(destroyed()),
@@ -651,17 +654,19 @@ void QpAbstractItemView::setModel(QAbstractItemModel *model)
         disconnect(d->model, SIGNAL(columnsInserted(QModelIndex,int,int)),
                    this, SLOT(_q_columnsInserted(QModelIndex,int,int)));
 
-        disconnect(d->model, SIGNAL(modelReset()), this, SLOT(reset()));
-        disconnect(d->model, SIGNAL(layoutChanged()), this, SLOT(_q_layoutChanged()));
+        Q_ASSERT(disconnect(d->model, SIGNAL(modelReset()), this, SLOT(reset()))==true);
+        Q_ASSERT(disconnect(d->model, SIGNAL(layoutChanged()), this, SLOT(_q_layoutChanged()))==true);
     }
 
     d->model = (model ? model : QAbstractItemModelPrivate::staticEmptyModel());
 
     // These asserts do basic sanity checking of the model
+
     Q_ASSERT_X(d->model->index(0,0) == d->model->index(0,0),
                "QpAbstractItemView::setModel",
                "A model should return the exact same index "
                "(including its internal id/pointer) when asked for it twice in a row.");
+
     Q_ASSERT_X(!d->model->index(0,0).parent().isValid(),
                "QpAbstractItemView::setModel",
                "The parent of a top level index should be invalid");
@@ -689,12 +694,14 @@ void QpAbstractItemView::setModel(QAbstractItemModel *model)
         connect(d->model, SIGNAL(columnsInserted(QModelIndex,int,int)),
                 this, SLOT(_q_columnsInserted(QModelIndex,int,int)));
 
-        connect(d->model, SIGNAL(modelReset()), this, SLOT(reset()));
-        connect(d->model, SIGNAL(layoutChanged()), this, SLOT(_q_layoutChanged()));
+        Q_ASSERT(connect(d->model, SIGNAL(modelReset()), this, SLOT(reset()) ) == true);
+        Q_ASSERT(connect(d->model, SIGNAL(layoutChanged()), this, SLOT(_q_layoutChanged()))== true);
     }
 
     QItemSelectionModel *selection_model = new QItemSelectionModel(d->model, this);
+
     connect(d->model, SIGNAL(destroyed()), selection_model, SLOT(deleteLater()));
+
     setSelectionModel(selection_model);
 
     reset(); // kill editors, set new root and do layout
@@ -706,6 +713,7 @@ void QpAbstractItemView::setModel(QAbstractItemModel *model)
 QAbstractItemModel *QpAbstractItemView::model() const
 {
     Q_D(const QpAbstractItemView);
+
     return (d->model == QAbstractItemModelPrivate::staticEmptyModel() ? 0 : d->model);
 }
 
@@ -1059,11 +1067,13 @@ void QpAbstractItemView::reset()
     d->currentIndexSet = false;
     setState(NoState);
     setRootIndex(QModelIndex());
+
     if (d->selectionModel)
         d->selectionModel->reset();
 #ifndef QT_NO_ACCESSIBILITY
 #ifdef Q_WS_X11
-    if (QAccessible::isActive()) {
+    if (QAccessible::isActive())
+    {
         QAccessible::queryAccessibleInterface(this)->table2Interface()->modelReset();
         QAccessible::updateAccessibility(this, 0, QAccessible::TableModelChanged);
     }
@@ -4000,7 +4010,9 @@ bool QpAbstractItemViewPrivate::shouldAutoScroll(const QPoint &pos) const
 {
     if (!autoScroll)
         return false;
+
     QRect area = static_cast<QpAbstractItemView*>(viewport)->d_func()->clipRect(); // access QWidget private by bending C++ rules
+
     return (pos.y() - area.top() < autoScrollMargin)
             || (area.bottom() - pos.y() < autoScrollMargin)
             || (pos.x() - area.left() < autoScrollMargin)
@@ -4009,7 +4021,8 @@ bool QpAbstractItemViewPrivate::shouldAutoScroll(const QPoint &pos) const
 
 void QpAbstractItemViewPrivate::doDelayedItemsLayout(int delay)
 {
-    if (!delayedPendingLayout) {
+    if ( !delayedPendingLayout )
+    {
         delayedPendingLayout = true;
         delayedLayout.start(delay, q_func());
     }

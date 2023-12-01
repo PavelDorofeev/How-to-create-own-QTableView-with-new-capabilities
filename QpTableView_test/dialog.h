@@ -30,7 +30,8 @@ public:
 
     QSqlDatabase db;
 
-    static int lbl_number;
+    //static int lbl_number;
+    void init_styles();
 
 
 private slots:
@@ -67,16 +68,19 @@ private slots:
 
     void on_cmb_SelectionBehavoir_currentIndexChanged(int index);
 
+    void on_btn_insertRow_clicked();
+
 private:
     Ui::Dialog *ui;
 
 
-    Qp_SECTION_TMPL prepare_matrix( const QPlainTextEdit & txt );
+    qp::SECTIONS_TMPL prepare_matrix( const QPlainTextEdit & txt );
 
+    QAbstractTableModel *mdl;
     QStandardItemModel * mdl_standart;
     QSqlTableModel * mdl_sql;
 
-    QpTableView *tableView;
+    QpTableView *view;
 };
 
 #endif // DIALOG_H

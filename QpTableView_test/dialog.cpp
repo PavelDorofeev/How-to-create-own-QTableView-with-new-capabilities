@@ -15,13 +15,14 @@
 #include "qp/tableview/qp_tableview.h"
 #include "section_settings_dlg.h"
 
-int Dialog::lbl_number = -2;
+//int Dialog::lbl_number = -2;
 
 Dialog::Dialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Dialog),
     mdl_sql(0),
-    mdl_standart(0)
+    mdl_standart(0),
+    mdl(0)
 {
     ui->setupUi(this);
 
@@ -29,18 +30,20 @@ Dialog::Dialog(QWidget *parent) :
 
 
 
-    tableView = new QpTableView ( this);
+    qp::SECTIONS_TMPL matrix = prepare_matrix( *ui->txt1);
+
+    view = new QpTableView ( matrix , this);
 
 
-    tableView->setGridStyle( Qt::DotLine);
-    tableView->setContextMenuPolicy( Qt::CustomContextMenu );
+    view->setGridStyle( Qt::DotLine);
+    view->setContextMenuPolicy( Qt::CustomContextMenu );
 
-    ui->for_tv->addWidget( tableView );
+    ui->for_tv->addWidget( view );
 
-    Q_ASSERT ( connect( tableView, SIGNAL( clicked(QModelIndex)),
+    Q_ASSERT ( connect( view, SIGNAL( clicked(QModelIndex)),
                         this, SLOT(slot_aaa(QModelIndex))) == true);
 
-    Q_ASSERT ( connect( tableView, SIGNAL( customContextMenuRequested(QPoint)),
+    Q_ASSERT ( connect( view, SIGNAL( customContextMenuRequested(QPoint)),
                         this, SLOT(slot_settinggs_edit(QPoint))) == true);
 
     init_StandardItemModel();
@@ -125,9 +128,51 @@ bool Dialog::init_sql_model()
     if( mdl_sql !=0 )
         delete mdl_sql;
 
+    db = QSqlDatabase::addDatabase("QSQLITE");
+
+
+    if(db.lastError().type() != QSqlError::NoError)
+    {
+        QMessageBox::warning( this,
+                              QString::fromUtf8("Ошибка открытия базы данных"),
+                              QString::fromUtf8("%1")
+                              .arg(db.lastError().text())
+                              );
+        return false;
+
+    }
+
+    if( ! QFile(appDef::DB_TEST_NAME).exists()) // будет создана новая база данных
+    {
+        QMessageBox::warning( this,
+                              QString::fromUtf8("Ошибка"),
+                              QString::fromUtf8("Не удается открыть файл базы данных  %1\n%2")
+                              .arg(appDef::DB_TEST_NAME)
+                              .arg(db.lastError().text())
+                              );
+
+        return false;
+    }
+
+    db.setDatabaseName(appDef::DB_TEST_NAME);
+
+    if ( ! db.open( ) )
+    {
+        QMessageBox::warning( this,
+                              QString::fromUtf8("Сбой программы"),
+                              QString::fromUtf8("Не удается открыть базу данных\n%1\n")
+                              .arg(db.lastError().text()));
+
+        return false;
+    }
+
+    qWarning()  << "QSqlDatabase::driverName() "<< db.driverName();
+    qWarning()  << "QSqlDatabase::databaseName() "<< db.databaseName();
+    qWarning()  << "QSqlDatabase::isOpen() "<< db.isOpen();
+
+
     mdl_sql = new QSqlTableModel( this , db);
 
-    Qp_SECTION_TMPL matrix = prepare_matrix( *ui->txt1);
 
     mdl_sql->setTable( appDef::TBL_TEST_NAME);
 
@@ -135,7 +180,7 @@ bool Dialog::init_sql_model()
     {
         QMessageBox::warning( this,
                               QString::fromUtf8("Ошибка"),
-                              QString::fromUtf8("Не удается открыть таблицу %1")
+                              QString::fromUtf8("Не удается открыть таблицу %1\n%2")
                               .arg(appDef::TBL_TEST_NAME)
                               .arg(db.lastError().text())
                               );
@@ -143,14 +188,25 @@ bool Dialog::init_sql_model()
         return false;
     }
 
-    tableView->setModel( mdl_sql , matrix );
+    view->setModel( mdl_sql );
 
+    qDebug() << "init_sql_model " <<qp::print_matrix( view->horizontalHeader()->get_matrix() ) ;
+
+    init_styles();
 
 
     qDebug() << " mdl_sql->rowCount() : " << mdl_sql->rowCount();
     qDebug() << " mdl_sql->columnCount() : " << mdl_sql->columnCount();
 
+    Q_ASSERT ( mdl_sql->select() == true);
 
+
+    view->scrollTo( mdl_sql->index( 0 , 0 )  );
+
+    qDebug() << " verticalScrollBar() value " << view->verticalScrollBar()->value() ;
+    qDebug() << "           minimum " << view->verticalScrollBar()->minimum() ;
+    qDebug() << "           maximum " << view->verticalScrollBar()->maximum() ;
+    qDebug() << "           pageStep " << view->verticalScrollBar()->pageStep() ;
 
     return true;
 }
@@ -179,7 +235,7 @@ void Dialog::init_StandardItemModel()
 
     int row = 0;
 
-    int rowCount = 5;
+    int rowCount = 10;
 
     while ( row < rowCount )
     {
@@ -219,6 +275,7 @@ void Dialog::init_StandardItemModel()
         row++;
     }
 
+    qDebug() << "mdl_standart->rowCount() " <<mdl_standart->rowCount();
     for( int row=0; row< mdl_standart->rowCount(); row++)
     {
         qDebug() << "row :" << row ;
@@ -235,60 +292,33 @@ void Dialog::init_StandardItemModel()
 
     ComboBoxDelegate *cmbd = new ComboBoxDelegate( lst , this);
 
-    tableView->setItemDelegateForColumn( 3 , cmbd );
+    view->setItemDelegateForColumn( 3 , cmbd );
 
+    qp::SECTIONS_TMPL matrix = prepare_matrix( *ui->txt1);
 
-    Qp_SECTION_TMPL matrix = prepare_matrix( *ui->txt1);
+    view->setModel( mdl_standart  );
 
+    //view->reset();
 
-    tableView->setModel( mdl_standart , matrix );
+    //view->scrollTo( mdl_standart->index( 0 , 0 )  );
 
-    qp::CELL_STYLE stl;
+    init_styles();
 
+    view->scroll(0,0);
 
-    stl.font = QApplication::font();
-    int pizxelSz = QApplication::font().pixelSize();
+    view->reset();
 
-    qDebug() << "QApplication::font() " << QApplication::font();
+    updateGeometry();
 
-    stl.font.setBold( true );
-    stl.align = Qt::AlignRight|Qt::AlignCenter;
+    update();
 
-    stl.color = appDef::green;
-    //tableView->horizontalHeader()->set_cell_style( 0 , 2 , stl );
-    tableView->horizontalHeader()->set_section_style( -2 , stl );
-    tableView->horizontalHeader()->set_section_style( 0 , stl );
-    tableView->horizontalHeader()->set_section_style( 1 , stl );
-
-    stl.font.setPixelSize( pizxelSz*appDef::sz15 );
-    //stl.font.setPointSize( -1 );
-
-    stl.color = appDef::red;
-    stl.align = Qt::AlignLeft|Qt::AlignCenter;
-    //tableView->horizontalHeader()->set_cell_style( 0 , 1 , stl );
-    tableView->horizontalHeader()->set_section_style( -3 , stl );
-    tableView->horizontalHeader()->set_section_style( 3 , stl );
-
-    stl.font.setPixelSize( pizxelSz*appDef::sz20 );
-    //stl.font.setPointSize( -1 );
-    stl.color = appDef::blue;
-    //tableView->horizontalHeader()->set_cell_style( 1 , 0 , stl );
-    //tableView->horizontalHeader()->set_cell_style( 0 , 4 , stl );
-    tableView->horizontalHeader()->set_section_style( 4 , stl );
-
-    stl.font.setPixelSize( pizxelSz*appDef::sz1 );
-    stl.color = appDef::brown;
-    //tableView->horizontalHeader()->set_cell_style( 1 , 3 , stl );
-    //tableView->horizontalHeader()->set_cell_style( 1 , 2 , stl );
-    tableView->horizontalHeader()->set_section_style( -4 , stl );
-    tableView->horizontalHeader()->set_section_style( 5 , stl );
-    tableView->horizontalHeader()->set_section_style( 6 , stl );
-
-    tableView->resizeColumnsToContents();
-    qDebug() << " model->rowCount() : " << mdl_standart->rowCount();
-    qDebug() << " model->columnCount() : " << mdl_standart->columnCount();
 
     ui->btn_QStandardItemModel_On->setFocus();
+
+    qDebug() << " verticalScrollBar() value " << view->verticalScrollBar()->value() ;
+    qDebug() << "           minimum " << view->verticalScrollBar()->minimum() ;
+    qDebug() << "           maximum " << view->verticalScrollBar()->maximum() ;
+    qDebug() << "           pageStep " << view->verticalScrollBar()->pageStep() ;
 }
 
 
@@ -302,35 +332,84 @@ void Dialog::on_btn_Update_clicked()
 
 void Dialog::on_btn_init_sections_2_clicked()
 {
-    Qp_SECTION_TMPL matrix =  prepare_matrix ( *ui->txt2);
-    tableView->init_template( matrix );
+    qp::SECTIONS_TMPL matrix =  prepare_matrix ( *ui->txt2);
+    view->init_template( matrix );
+    init_styles();
 
 }
 
 void Dialog::on_btn_init_sections_clicked()
 {
-    Qp_SECTION_TMPL matrix =  prepare_matrix ( *ui->txt1);
-    tableView->init_template( matrix );
+    qp::SECTIONS_TMPL matrix =  prepare_matrix ( *ui->txt1);
+    view->init_template( matrix );
+    init_styles();
 
 }
 
 void Dialog::on_btn_init_sections_3_clicked()
 {
-    Qp_SECTION_TMPL matrix =  prepare_matrix ( *ui->txt3);
-    tableView->init_template( matrix );
+    qp::SECTIONS_TMPL matrix =  prepare_matrix ( *ui->txt3);
+    view->init_template( matrix );
+    init_styles();
 
 }
 
 
-Qp_SECTION_TMPL Dialog::prepare_matrix( const QPlainTextEdit & txt )
+void Dialog::init_styles()
+{
+    qp::CELL_STYLE stl;
+
+
+    stl.font = QApplication::font();
+    int pizxelSz = QApplication::font().pixelSize();
+
+    qDebug() << "QApplication::font() " << QApplication::font();
+
+    stl.font.setBold( true );
+    stl.align = Qt::AlignRight|Qt::AlignCenter;
+
+    stl.color = appDef::green;
+    //tableView->horizontalHeader()->set_cell_style( 0 , 2 , stl );
+
+    view->horizontalHeader()->set_section_style( -2 , stl );
+
+    view->horizontalHeader()->set_section_style( 0 , stl );
+    view->horizontalHeader()->set_section_style( 1 , stl );
+
+    stl.font.setPixelSize( pizxelSz*appDef::sz15 );
+    //stl.font.setPointSize( -1 );
+
+    stl.color = appDef::red;
+    stl.align = Qt::AlignLeft|Qt::AlignCenter;
+    view->horizontalHeader()->set_section_style( -3 , stl );
+
+    view->horizontalHeader()->set_section_style( 3 , stl );
+
+    stl.font.setPixelSize( pizxelSz*appDef::sz20 );
+    //stl.font.setPointSize( -1 );
+    stl.color = appDef::blue;
+    //tableView->horizontalHeader()->set_cell_style( 1 , 0 , stl );
+    //tableView->horizontalHeader()->set_cell_style( 0 , 4 , stl );
+    view->horizontalHeader()->set_section_style( 4 , stl );
+
+    stl.font.setPixelSize( pizxelSz*appDef::sz1 );
+    stl.color = appDef::brown;
+    //tableView->horizontalHeader()->set_cell_style( 1 , 3 , stl );
+    //tableView->horizontalHeader()->set_cell_style( 1 , 2 , stl );
+    view->horizontalHeader()->set_section_style( -4 , stl );
+    view->horizontalHeader()->set_section_style( 5 , stl );
+    view->horizontalHeader()->set_section_style( 6 , stl );
+
+    view->resizeColumnsToContents();
+}
+
+qp::SECTIONS_TMPL Dialog::prepare_matrix( const QPlainTextEdit & txt )
 {
     QStringList lst = txt.toPlainText().split("\n");
 
     qDebug() << "prepare_matrix :\n" << txt.document()->toPlainText();
 
-    Qp_SECTION_TMPL matrix;
-
-    Dialog::lbl_number =-2;
+    qp::SECTIONS_TMPL matrix;
 
     foreach ( QString str, lst)
     {
@@ -345,24 +424,39 @@ Qp_SECTION_TMPL Dialog::prepare_matrix( const QPlainTextEdit & txt )
             qp::SECTION_D dd;
 
             bool ok_int;
-            int tt = var.toInt( &ok_int );
+
+            int int_val = var.toInt( &ok_int );
+
             if( ok_int )
             {
-                dd.type = qp::MODEL_TYPE;
-                dd.number = var.toInt();
-
+                if( int_val >=0)
+                {
+                    dd.type = qp::MODEL_TYPE;
+                    dd.number = int_val;
+                }
+                else if( int_val <= qp::LABEL_FLD )
+                {
+                    dd.type = qp::LABEL_TYPE;
+                    dd.number = int_val;
+                }
+                lst.append( dd );
             }
-            else if( var.type() == QVariant::String)
+            else
             {
-                dd.type = qp::LABEL_TYPE;
-                dd.number = Dialog::lbl_number--;
-                dd.txt = var.toString();
+                QMessageBox::warning( this,
+                                      QString::fromUtf8("Ошибка в шаблоне"),
+                                      QString::fromUtf8("Допускаются только цифры, разделенные запятыми : %1")
+                                      .arg(str)
+                                      );
+                //return false;
             }
-            lst.append( dd );
         }
 
         matrix.append( lst );
     }
+
+
+    qDebug()<<"print_matrix " << print_matrix( matrix );
 
     return matrix;
 
@@ -384,7 +478,7 @@ void Dialog::on_btn_QStandardItemModel_On_clicked()
 
 void Dialog::on_chk_grid_on_clicked(bool checked)
 {
-    tableView->setShowGrid( checked );
+    view->setShowGrid( checked );
 }
 
 void Dialog::on_btn_logFile_clicked()
@@ -416,8 +510,8 @@ void Dialog::on_cmb_SelectionMode_activated(int index)
 
 void Dialog::on_chk_betweenRowsBorder_clicked(bool checked)
 {
-    tableView->clearSelection();
-    tableView->setShowBetweenRowBorder( checked );
+    view->clearSelection();
+    view->setShowBetweenRowBorder( checked );
 }
 
 void Dialog::slot_aaa(const QModelIndex& idx)
@@ -428,18 +522,18 @@ void Dialog::slot_aaa(const QModelIndex& idx)
 void Dialog::slot_settinggs_edit( const QPoint& pp )
 {
 
-    qp::SECTION sect = tableView->indexAt( pp );
+    qp::SECTION sect = view->indexAt( pp );
 
-    tableView->get_section_at( pp );
+    view->get_section_at( pp );
 
-    qp::CELL cell = tableView->get_cell_at( pp );
+    qp::CELL cell = view->get_cell_at( pp );
 
-    qp::CELL_STYLE defStl = tableView->get_section_default_style( cell.line, cell.xNum ) ;
+    qp::CELL_STYLE defStl = view->get_section_default_style( cell.line, cell.xNum ) ;
 
     qp::CELL_STYLE stl;
 
 
-    if ( ! tableView->horizontalHeader()->get_section_style( cell.sectionNum , stl ) )
+    if ( ! view->horizontalHeader()->get_section_style( cell.sectionNum , stl ) )
         stl = defStl;
     else
         qDebug() << "asdasd stl " << stl.color.name() << stl.font;
@@ -453,20 +547,27 @@ void Dialog::slot_settinggs_edit( const QPoint& pp )
 
     qDebug() << "slot_bbb : dlg.align: " << dlg.currStyles.align;
 
-    tableView->horizontalHeader()->set_section_style( cell.sectionNum , dlg.currStyles );
+    view->horizontalHeader()->set_section_style( cell.sectionNum , dlg.currStyles );
 }
 
 
 void Dialog::on_cmb_SelectionMode_currentIndexChanged(int index)
 {
-    tableView->clearSelection();
+    view->clearSelection();
 
-    tableView->setSelectionMode( (QpAbstractItemView::SelectionMode )index);
+    view->setSelectionMode( (QpAbstractItemView::SelectionMode )index);
 }
 
 void Dialog::on_cmb_SelectionBehavoir_currentIndexChanged(int index)
 {
-    tableView->clearSelection();
+    view->clearSelection();
 
-    tableView->setSelectionBehavior( (QpAbstractItemView::SelectionBehavior )index);
+    view->setSelectionBehavior( (QpAbstractItemView::SelectionBehavior )index);
+}
+
+void Dialog::on_btn_insertRow_clicked()
+{
+    mdl_standart->insertRow(0);
+    mdl_standart->setItem( 0 , new QStandardItem( "new value"));
+
 }

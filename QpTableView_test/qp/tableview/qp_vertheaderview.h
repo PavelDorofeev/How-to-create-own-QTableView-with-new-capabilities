@@ -45,7 +45,6 @@ public:
 
     virtual ~QpVertHeaderView();
 
-    //void setHorizontalConnect( QpHorHeaderView * Horizontal);
 
     void setModel(QAbstractItemModel *model);
 
@@ -54,16 +53,20 @@ public:
     static const bool  debug_scroll;
     static const bool  debug_init;
     static const bool  debug_select;
+    static const bool  debug_mdl_signals;
     //int row_heigth() const;
 
     int is_rowSelected( int row ) const;
 
+    //void set_sectionCount( int cnt);
     //Qt::Orientation orientation() const;
     int offset() const;
     int length() const;
     QSize sizeHint() const;
     int sectionSizeHint(int logicalIndex) const;
 
+
+    const QString tblName() const;
 
     int visualIndexAt(int position) const;
     int logicalIndexAt(int position) const;
@@ -127,7 +130,6 @@ public:
     Qt::Alignment defaultAlignment() const;
     void setDefaultAlignment(Qt::Alignment alignment);
 
-    void doItemsLayout();
     bool sectionsMoved() const;
     bool sectionsHidden() const;
 
@@ -137,6 +139,7 @@ public:
 #endif
 
     void reset();
+    void doItemsLayout();
 
 public Q_SLOTS:
     void setOffset(int offset);
@@ -165,7 +168,7 @@ protected Q_SLOTS:
 
 protected:
     QpVertHeaderView(QpVertHeaderViewPrivate &dd, Qt::Orientation orientation, QWidget *parent = 0);
-    void initialize();
+    void init();
 
     void initializeSections();
     void initializeSections(int start, int end);

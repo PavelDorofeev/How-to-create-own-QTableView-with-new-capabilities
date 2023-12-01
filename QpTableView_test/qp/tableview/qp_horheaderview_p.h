@@ -84,7 +84,7 @@ public:
           sectionIndicator(0),
           globalResizeMode(QpHorHeaderView::Interactive),
           grid(0),
-          lines(0),
+//          /lines(0),
           xNum_sizing(-1),
           line_sizing(-1)
     {
@@ -103,7 +103,7 @@ public:
     static const bool debug;
     static const bool debug_selection;
     static const bool debug_resize ;
-    int lines;
+    //int lines;
 
     QList < int > offsets_x; // 0,100,50,40,90,..
 
@@ -121,8 +121,6 @@ public:
     // -2,-3,.. labels cells
 
     QHash< QPair<int,int> , qp::CELL_NODES > matrix;
-
-    void setLines(int lines);
 
     mutable int grid; // grid width
 
@@ -360,6 +358,9 @@ public:
     int contentsSections;
     int defaultSectionSize;
     int minimumSectionSize;
+
+    static const int minimumRowHeight; //!!
+
     int lastSectionSize; // $$$
     int sectionIndicatorOffset;
     Qt::Alignment defaultAlignment;

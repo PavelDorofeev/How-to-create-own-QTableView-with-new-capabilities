@@ -43,6 +43,7 @@ QT_MODULE(Gui)
 class QpHorHeaderView;
 class QpVertHeaderView;
 class QpTableViewPrivate;
+//class PblSqlRelationalTableModel;
 
 class __declspec(dllexport) QpTableView : public QpAbstractItemView
 {
@@ -54,7 +55,7 @@ class __declspec(dllexport) QpTableView : public QpAbstractItemView
     Q_PROPERTY(bool cornerButtonEnabled READ isCornerButtonEnabled WRITE setCornerButtonEnabled)
 
 public:
-    explicit QpTableView( QWidget *parent = 0 , Qp_SECTION_TMPL *matrix=0);
+    explicit QpTableView( const qp::SECTIONS_TMPL matrix, QWidget *parent = 0 );
     ~QpTableView();
 
     //static const int lines;
@@ -67,6 +68,7 @@ public:
     static const bool debug_geometry;
     static const bool debug_paint_row_col;
     static const bool debug_resize;
+    static const bool debug_mdl_signals;
     static const bool debug_paint_region;
     static const bool debug_paint_border;
     static const bool debug_selection;
@@ -79,19 +81,23 @@ public:
     void delayed_Repaint(); //!
     //void mouseMoveEvent(QMouseEvent *event);//!!
 
-    virtual void setModel(QAbstractItemModel *model, const Qp_SECTION_TMPL & matrix);
+    virtual void setModel(QAbstractItemModel *model);
 
-    void setRootIndex(const QModelIndex &index);
-    void setSelectionModel(QItemSelectionModel *selectionModel);
-    void doItemsLayout();
+    //PblSqlRelationalTableModel *Model() const ;
+
+    virtual void setSelectionModel(QItemSelectionModel *selectionModel);
+
+    static const QString mdlIsEmptyStr;
+    const QString tblName() const;
 
     QpHorHeaderView *horizontalHeader() const;
 
     QpVertHeaderView *verticalHeader() const;
 
-    bool init_template( const Qp_SECTION_TMPL &matrix );//!!
+    bool init_template( const qp::SECTIONS_TMPL &matrix );//!!
 
-    void setHorizontalHeader(QpHorHeaderView *header);
+    void setHorizontalHeader(QpHorHeaderView *header,
+                             const qp::SECTIONS_TMPL matrix);
 
     void setVerticalHeader(QpVertHeaderView *header);
 
@@ -136,6 +142,8 @@ public:
     bool showGrid() const;
     bool showBetweenRowBorder() const;
 
+    void reset();
+
     Qt::PenStyle gridStyle() const;
     void setGridStyle(Qt::PenStyle style);
 
@@ -153,6 +161,8 @@ public:
 
     qp::SECTION indexAt(const QPoint &p) const;
 
+    void doItemsLayout();
+    void setRootIndex(const QModelIndex &index);
 
     void sortByColumn(int column, Qt::SortOrder order);
 
@@ -171,7 +181,7 @@ public Q_SLOTS:
     void setShowGrid(bool show);
     void setShowBetweenRowBorder(bool show);
 
-    void slot_rowsInserted(const QModelIndex &parent, int first, int last);
+    //void slot_rowsInserted(const QModelIndex &parent, int first, int last);
 
 protected Q_SLOTS:
     void rowMoved(int row, int oldIndex, int newIndex);
@@ -184,7 +194,7 @@ protected Q_SLOTS:
     void slot_clicked( const QModelIndex & idx );
 
 protected:
-    QpTableView( QpTableViewPrivate &, Qp_SECTION_TMPL *matrix, QWidget *parent);
+    QpTableView( QpTableViewPrivate &, const qp::SECTIONS_TMPL matrix, QWidget *parent);
     void scrollContentsBy(int dx, int dy);
 
     QStyleOptionViewItem viewOptions() const;
@@ -225,10 +235,10 @@ private:
     Q_DISABLE_COPY(QpTableView)
     Q_PRIVATE_SLOT(d_func(), void _q_selectRow(int))
     Q_PRIVATE_SLOT(d_func(), void _q_selectColumn(int))
-    //    Q_PRIVATE_SLOT(d_func(), void _q_updateSpanInsertedRows(QModelIndex,int,int))
-    //    Q_PRIVATE_SLOT(d_func(), void _q_updateSpanInsertedColumns(QModelIndex,int,int))
-    //    Q_PRIVATE_SLOT(d_func(), void _q_updateSpanRemovedRows(QModelIndex,int,int))
-    //    Q_PRIVATE_SLOT(d_func(), void _q_updateSpanRemovedColumns(QModelIndex,int,int))
+    Q_PRIVATE_SLOT(d_func(), void _q_updateSpanInsertedRows(QModelIndex,int,int))
+    Q_PRIVATE_SLOT(d_func(), void _q_updateSpanInsertedColumns(QModelIndex,int,int))
+    Q_PRIVATE_SLOT(d_func(), void _q_updateSpanRemovedRows(QModelIndex,int,int))
+    Q_PRIVATE_SLOT(d_func(), void _q_updateSpanRemovedColumns(QModelIndex,int,int))
 
     int delayed_Repaint_tmr;
 

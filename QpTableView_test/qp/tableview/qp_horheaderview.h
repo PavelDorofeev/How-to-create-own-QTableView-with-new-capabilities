@@ -28,6 +28,7 @@
 #define QP_HORHEADERVIEW_H
 
 #include "qp/tableview/qp_abstractitemview.h"
+#include "qp/tableview/qp_tableview.h"
 
 #include "qp/tableview/qp_common.h"
 
@@ -42,9 +43,7 @@ QT_MODULE(Gui)
 
 class QpHorHeaderViewPrivate;
 class QStyleOptionHeader;
-
-
-typedef QList < QList< qp::SECTION_D > >  Qp_SECTION_TMPL;
+class QpTableView;
 
 
 class __declspec(dllexport) QpHorHeaderView : public QpAbstractItemView
@@ -71,7 +70,9 @@ public:
     };
 
 
-    explicit QpHorHeaderView(Qt::Orientation orientation, QWidget *parent = 0);
+    explicit QpHorHeaderView(Qt::Orientation orientation,
+                             QpTableView *prnt );
+
     virtual ~QpHorHeaderView();
 
     //--------------------------------------------------------
@@ -92,10 +93,13 @@ public:
 
     //--------------------------------------------------------
 
-    virtual void setModel(QAbstractItemModel *model , const Qp_SECTION_TMPL &matrix); //!!
+    virtual void setModel(QAbstractItemModel *model
+                          //, const Qp_SECTION_TMPL &matrix
+                          ); //!!
 
     int row_height() const; // !!
     int line_height( int line ); //!!
+    QWidget * Prnt;
 
     int lastLogicalNum( ) const;
     int leftTopVisualNumX( ) const;
@@ -108,17 +112,23 @@ public:
     QSize sizeHint() const;
     int sectionSizeHint(int logicalIndex) const;
 
+    bool test_matrix_with_model(const QAbstractItemModel *mdl) const;
+
     int visualIndexAt(int x,  int y) const;
     int visual_xNum_At(int x ) const; // !!
     int xNum_left(int xNum ) const; // !!
     int xNum_count( ) const; // !!
     int visualIndexAt_end(int x) const;
 
-    const Qp_SECTION_TMPL & get_matrix() const;
+    const qp::SECTIONS_TMPL get_matrix() const;
+    // void set_matrix( const qp::Qp_SECTION_TMPL & matrix); only init_template
+    qp::SECTION_D section_d_at_Num_x_line(int num_x, int line) const;
 
     void clear_sections_template( );
 
-    bool init_sections_template( QAbstractItemModel *model, const Qp_SECTION_TMPL & matrix );
+    bool init_sections_template( //QAbstractItemModel *model,
+                                 const qp::SECTIONS_TMPL &matrix );
+    //bool init_sections_default_template( QAbstractItemModel *mdl);
 
     const bool get_section_style( int sectionNum, qp::CELL_STYLE &stl ) const;
     void set_section_style( int sectionNum , qp::CELL_STYLE &stl);
@@ -217,7 +227,6 @@ public:
     Qt::Alignment defaultAlignment() const;
     void setDefaultAlignment(Qt::Alignment alignment);
 
-    void doItemsLayout();
     bool sectionsMoved() const;
     bool sectionsHidden() const;
 
@@ -228,6 +237,7 @@ public:
     void setLineHeightInRow( int line, int newHeight); //!!
 
     int minimumLineHeight(); // !!
+    const QString tblName();
 
 #ifndef QT_NO_DATASTREAM
     QByteArray saveState() const;
@@ -237,6 +247,7 @@ public:
     void reset();
 
 public Q_SLOTS:
+    virtual void doItemsLayout();
     void setOffset(int offset);
     void setOffsetToSectionPosition(int visualIndex);
     void setOffsetToLastSection();
@@ -264,7 +275,7 @@ protected Q_SLOTS:
     void sectionsAboutToBeRemoved(const QModelIndex &parent, int logicalFirst, int logicalLast);
 
 protected:
-    QpHorHeaderView(QpHorHeaderViewPrivate &dd, Qt::Orientation orientation, QWidget *parent = 0);
+    QpHorHeaderView(QpHorHeaderViewPrivate &dd, Qt::Orientation orientation, QpTableView *prnt );
     void initialize();
 
     void initializeSections();
@@ -304,10 +315,12 @@ protected:
     void initStyleOption(QStyleOptionHeader *option) const;
 
 private:
+
     Q_PRIVATE_SLOT(d_func(), void _q_sectionsRemoved(const QModelIndex &parent, int logicalFirst, int logicalLast))
     Q_PRIVATE_SLOT(d_func(), void _q_layoutAboutToBeChanged())
     Q_DECLARE_PRIVATE(QpHorHeaderView)
     Q_DISABLE_COPY(QpHorHeaderView)
+
 };
 
 

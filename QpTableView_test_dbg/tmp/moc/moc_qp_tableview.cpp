@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'qp_tableview.h'
 **
-** Created: Thu 23. Nov 19:00:03 2023
+** Created: Mon 27. Nov 16:28:36 2023
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,8 +23,8 @@ static const uint qt_meta_data_QpTableView[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-      24,   14, // methods
-       5,  134, // properties
+      26,   14, // methods
+       5,  144, // properties
        0,    0, // enums/sets
        0,    0, // constructors
        0,       // flags
@@ -53,15 +53,17 @@ static const uint qt_meta_data_QpTableView[] = {
      555,  512,   12,   12, 0x09,
      583,   12,   12,   12, 0x09,
      609,  605,   12,   12, 0x09,
-     635,   12,   12,   12, 0x08,
-     653,   12,   12,   12, 0x08,
+     635,  288,   12,   12, 0x08,
+     678,  288,   12,   12, 0x08,
+     720,   12,   12,   12, 0x08,
+     738,   12,   12,   12, 0x08,
 
  // properties: name, type, flags
-     679,  674, 0x01095103,
-     701,  688, 0x0009510b,
-     711,  674, 0x01095103,
-     726,  674, 0x01095103,
-     735,  674, 0x01095103,
+     764,  759, 0x01095103,
+     786,  773, 0x0009510b,
+     796,  759, 0x01095103,
+     811,  759, 0x01095103,
+     820,  759, 0x01095103,
 
        0        // eod
 };
@@ -86,10 +88,12 @@ static const char qt_meta_stringdata_QpTableView[] = {
     "rowCountChanged(int,int)\0"
     "columnCountChanged(int,int)\0"
     "linesInRowResized_Y()\0idx\0"
-    "slot_clicked(QModelIndex)\0_q_selectRow(int)\0"
-    "_q_selectColumn(int)\0bool\0showGrid\0"
-    "Qt::PenStyle\0gridStyle\0sortingEnabled\0"
-    "wordWrap\0cornerButtonEnabled\0"
+    "slot_clicked(QModelIndex)\0"
+    "_q_updateInsertedRows(QModelIndex,int,int)\0"
+    "_q_updateRemovedRows(QModelIndex,int,int)\0"
+    "_q_selectRow(int)\0_q_selectColumn(int)\0"
+    "bool\0showGrid\0Qt::PenStyle\0gridStyle\0"
+    "sortingEnabled\0wordWrap\0cornerButtonEnabled\0"
 };
 
 void QpTableView::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -120,8 +124,10 @@ void QpTableView::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id,
         case 19: _t->columnCountChanged((*reinterpret_cast< int(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
         case 20: _t->linesInRowResized_Y(); break;
         case 21: _t->slot_clicked((*reinterpret_cast< const QModelIndex(*)>(_a[1]))); break;
-        case 22: _t->d_func()->_q_selectRow((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 23: _t->d_func()->_q_selectColumn((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 22: _t->_q_updateInsertedRows((*reinterpret_cast< const QModelIndex(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2])),(*reinterpret_cast< int(*)>(_a[3]))); break;
+        case 23: _t->_q_updateRemovedRows((*reinterpret_cast< const QModelIndex(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2])),(*reinterpret_cast< int(*)>(_a[3]))); break;
+        case 24: _t->d_func()->_q_selectRow((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 25: _t->d_func()->_q_selectColumn((*reinterpret_cast< int(*)>(_a[1]))); break;
         default: ;
         }
     }
@@ -159,9 +165,9 @@ int QpTableView::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 24)
+        if (_id < 26)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 24;
+        _id -= 26;
     }
 #ifndef QT_NO_PROPERTIES
       else if (_c == QMetaObject::ReadProperty) {

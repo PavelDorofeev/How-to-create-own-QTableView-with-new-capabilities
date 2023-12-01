@@ -32,9 +32,14 @@ Now we are including our qp files at any project and building conveniently as us
     repair mouse move cursor image (shape) when scrolling x is presents
 2.1.3
 
-    add section number: for labels are < -2 and for field model number >0
+    add section number: for labels are values ( < -2 ) and for field model number values ( >0 )
     creating new containers and remove some old
 2.2.0
+    remove 'lines' parameter
+    we forget connecting the signal rowsRemoved(QModelIndex,int,int) into QpTableView for use with sql data model rows changed
+    repaire some errors with repaint vertical header on data model was changed
+    repaire some signal/slots connections into QpVerHeaderView and QpTableView
+2.3.0
 */
 
 

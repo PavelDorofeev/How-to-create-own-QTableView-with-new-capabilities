@@ -79,6 +79,7 @@ typedef struct CELL_NODES{
         return false;
     }
 
+
 };
 
 //typedef struct FONT_PARS{
@@ -116,6 +117,8 @@ public:
 
     QColor color;
 
+    //QString txt;
+
     CELL_STYLE()
         :
           align( Qt::AlignCenter ),
@@ -127,17 +130,17 @@ public:
 
 
 #ifndef QT_NO_DATASTREAM
-//inline QDataStream& operator>>(QDataStream& s, CELL_STYLE& p)
-//{
-//    s >> " align " >> p.align >> " color: " >> p.color  >> " font:" >> p.fnt;
-//    return s;
-//}
+    //inline QDataStream& operator>>(QDataStream& s, CELL_STYLE& p)
+    //{
+    //    s >> " align " >> p.align >> " color: " >> p.color  >> " font:" >> p.fnt;
+    //    return s;
+    //}
 
-//inline QDataStream& operator<<(QDataStream& s, const CELL_STYLE& p)
-//{
-//    s << " align ";// << p.align << " color: " << p.color  << " font:" <<p.fnt;
-//    return s;
-//}
+    //inline QDataStream& operator<<(QDataStream& s, const CELL_STYLE& p)
+    //{
+    //    s << " align ";// << p.align << " color: " << p.color  << " font:" <<p.fnt;
+    //    return s;
+    //}
 #endif
 private:
 #ifndef QT_NO_DATASTREAM
@@ -169,10 +172,40 @@ typedef struct SECTION_D
     int number;
     QString txt;
 
-    SECTION_D(): number (qp::UNKNOWN_VALUE),
-        type (qp::UNKNOWN_TYPE)
+    SECTION_D():
+        number (qp::UNKNOWN_VALUE),
+        type ( qp::UNKNOWN_TYPE)
+    {}
+
+    SECTION_D( const qp::SECTION_TYPE &Type,
+               const int &sectionNumber,
+               const QString &Txt=QString())
+        : type( Type ),
+          number (sectionNumber),
+          txt(Txt)
     {}
 };
+
+typedef QList < QList< qp::SECTION_D > >  SECTIONS_TMPL;
+
+inline QString print_matrix( const qp::SECTIONS_TMPL &matrix)
+{
+    QString str="   print_matrix : ";
+
+    for(int line=0;line< matrix.count(); line++)
+    {
+        QString str2;
+
+        for(int xNum=0;xNum< matrix[ line] .count(); xNum++)
+        {
+            str2.append(",")
+                    .append( QString::number(matrix[ line] [ xNum].number) );
+        }
+
+        str+= "\n"+str2;
+    }
+    return str;
+}
 
 
 typedef struct SECTION

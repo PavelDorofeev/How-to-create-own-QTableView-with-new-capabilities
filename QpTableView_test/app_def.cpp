@@ -11,7 +11,7 @@ const char * const appDef::PROGRAM_NAME                                 = "QpTab
 
 const QString appDef::REESTR_ORGANIZATION_NAME           = "BIT Ltd";
 const QString appDef::REESTR_APPLICATION_NAME           = "BIT Sale";
-const QString appDef::TBL_TEST_NAME                     = "goods";
+const QString appDef::TBL_TEST_NAME                     = "receipts";
 const QString appDef::DB_TEST_NAME                     = "test_db.db";
 
 const QColor appDef::blue = QColor("#7a86d3");//67, 101, 255);

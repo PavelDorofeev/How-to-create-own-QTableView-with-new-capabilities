@@ -114,7 +114,7 @@ public:
     ~QpAbstractItemView();
 
     virtual void setModel(QAbstractItemModel *model);
-    QAbstractItemModel *model() const;
+    virtual QAbstractItemModel *model() const; //!!
 
     virtual void setSelectionModel(QItemSelectionModel *selectionModel);
     QItemSelectionModel *selectionModel() const;

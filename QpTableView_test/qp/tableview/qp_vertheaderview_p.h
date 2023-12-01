@@ -48,6 +48,7 @@ public:
     static const  bool debug ;
     static const  bool debug_size ;
     static const  bool debug_select ;
+    static const  bool debug_mdl_signals;
 
     QpVertHeaderViewPrivate( const QpHorHeaderView &Horizontal ) //!!
         : state(NoState),
@@ -63,7 +64,7 @@ public:
           pressed(-1),
           hover(-1),
           length(0),
-          section_Count(0),
+          sectionCount(0),
           movableSections(false),
           clickableSections(false),
           highlightSelected(false),
@@ -72,7 +73,7 @@ public:
           resizeRecursionBlock(false),
           stretchSections(0),
           contentsSections(0),
-          minimumSectionSize(-1),
+          //minimumSectionSize(-1),
           lastSectionSize(0),
           sectionIndicatorOffset(0),
           sectionIndicator(0),
@@ -121,8 +122,8 @@ public:
     {
         if (!selectionModel || !selectionModel->hasSelection())
             sectionSelected.clear();
-        else if (sectionSelected.count() != section_Count * 2)
-            sectionSelected.fill(false, section_Count * 2);
+        else if (sectionSelected.count() != sectionCount * 2)
+            sectionSelected.fill(false, sectionCount * 2);
         else sectionSelected.fill(false);
     }
 
@@ -172,13 +173,13 @@ public:
 
     inline void initializeIndexMapping() const
     {
-        if (visualIndices.count() != section_Count
-            || logicalIndices.count() != section_Count)
+        if (visualIndices.count() != sectionCount
+            || logicalIndices.count() != sectionCount)
         {
-            visualIndices.resize(section_Count);
-            logicalIndices.resize(section_Count);
+            visualIndices.resize(sectionCount);
+            logicalIndices.resize(sectionCount);
 
-            for (int s = 0; s < section_Count; ++s)
+            for (int s = 0; s < sectionCount; ++s)
             {
                 visualIndices[s] = s;
                 logicalIndices[s] = s;
@@ -188,7 +189,7 @@ public:
 
     inline void clearCascadingSections()
     {
-        firstCascadingSection = section_Count;
+        firstCascadingSection = sectionCount;
         lastCascadingSection = 0;
         cascadingSectionSize.clear();
     }
@@ -262,7 +263,7 @@ public:
     int hover;
 
     int length;
-    int section_Count;
+    int sectionCount;
     bool movableSections;
     bool clickableSections;
     bool highlightSelected;
@@ -272,7 +273,7 @@ public:
     int stretchSections;
     int contentsSections;
     int defaultSectionSize;
-    int minimumSectionSize;
+    //int minimumSectionSize;
     int lastSectionSize; // $$$
     int sectionIndicatorOffset;
     Qt::Alignment defaultAlignment;

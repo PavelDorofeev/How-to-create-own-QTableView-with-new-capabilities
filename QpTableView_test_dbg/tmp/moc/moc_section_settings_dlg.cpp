@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'section_settings_dlg.h'
 **
-** Created: Thu 23. Nov 18:41:02 2023
+** Created: Fri 24. Nov 18:37:45 2023
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!
