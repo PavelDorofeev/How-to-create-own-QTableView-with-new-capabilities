@@ -58,7 +58,7 @@ class __declspec(dllexport) QpHorHeaderView : public QpAbstractItemView
     Q_PROPERTY(Qt::Alignment defaultAlignment READ defaultAlignment WRITE setDefaultAlignment)
     Q_ENUMS(ResizeMode)
 
-public:
+    public:
 
     enum ResizeMode
     {
@@ -138,8 +138,8 @@ public:
 
     //int logicalIndexAt(int position) const;
 
-//    inline int logicalIndexAt(int x, int y) const;
-//    inline int logicalIndexAt(const QPoint &pos) const;
+    //    inline int logicalIndexAt(int x, int y) const;
+    //    inline int logicalIndexAt(const QPoint &pos) const;
 
     virtual int sectionSize(int logicalIndex) const;
 
@@ -246,7 +246,7 @@ public:
 
     void reset();
 
-public Q_SLOTS:
+    public Q_SLOTS:
     virtual void doItemsLayout();
     void setOffset(int offset);
     void setOffsetToSectionPosition(int visualIndex);
@@ -267,6 +267,7 @@ Q_SIGNALS:
     void sortIndicatorChanged(int logicalIndex, Qt::SortOrder order);
     void sectionResized_Y();
     void sectionResized_X( int xNum_from);
+    void sig_sectionsTmplChanged();
 
 protected Q_SLOTS:
     void updateSection(int logicalIndex);
@@ -274,7 +275,7 @@ protected Q_SLOTS:
     void sectionsInserted(const QModelIndex &parent, int logicalFirst, int logicalLast);
     void sectionsAboutToBeRemoved(const QModelIndex &parent, int logicalFirst, int logicalLast);
 
-protected:
+    protected:
     QpHorHeaderView(QpHorHeaderViewPrivate &dd, Qt::Orientation orientation, QpTableView *prnt );
     void initialize();
 
@@ -314,7 +315,7 @@ protected:
     QRegion visualRegionForSelection(const QItemSelection &selection) const;
     void initStyleOption(QStyleOptionHeader *option) const;
 
-private:
+    private:
 
     Q_PRIVATE_SLOT(d_func(), void _q_sectionsRemoved(const QModelIndex &parent, int logicalFirst, int logicalLast))
     Q_PRIVATE_SLOT(d_func(), void _q_layoutAboutToBeChanged())

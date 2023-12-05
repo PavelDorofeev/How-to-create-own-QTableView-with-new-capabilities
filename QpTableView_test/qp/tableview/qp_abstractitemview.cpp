@@ -39,6 +39,7 @@
 #include <qtooltip.h>
 #include <qdatetime.h>
 #include <qlineedit.h>
+#include <QDebug>
 #include <qspinbox.h>
 #include <qstyleditemdelegate.h>
 #include "qp/tableview/qp_abstractitemview_p.h"
@@ -50,6 +51,9 @@
 #include <private/qsoftkeymanager_p.h>
 
 QT_BEGIN_NAMESPACE
+
+const bool QpAbstractItemView::debug_timers = true;
+const bool QpAbstractItemViewPrivate::debug_timers = true;
 
 QpAbstractItemViewPrivate::QpAbstractItemViewPrivate()
     :
@@ -1056,11 +1060,15 @@ QModelIndex QpAbstractItemView::currentIndex() const
 void QpAbstractItemView::reset()
 {
     Q_D(QpAbstractItemView);
+
     d->delayedReset.stop(); //make sure we stop the timer
-    foreach (const QpEditorInfo &info, d->indexEditorHash) {
+
+    foreach (const QpEditorInfo &info, d->indexEditorHash)
+    {
         if (info.widget)
             d->releaseEditor(info.widget.data());
     }
+
     d->editorIndexHash.clear();
     d->indexEditorHash.clear();
     d->persistent.clear();
@@ -1070,6 +1078,7 @@ void QpAbstractItemView::reset()
 
     if (d->selectionModel)
         d->selectionModel->reset();
+
 #ifndef QT_NO_ACCESSIBILITY
 #ifdef Q_WS_X11
     if (QAccessible::isActive())
@@ -2424,53 +2433,81 @@ void QpAbstractItemView::keyPressEvent(QKeyEvent *event)
         event->accept();
 }
 
-/*!
-    This function is called with the given \a event when a resize event is sent to
-    the widget.
 
-    \sa QWidget::resizeEvent()
-*/
 void QpAbstractItemView::resizeEvent(QResizeEvent *event)
 {
     QAbstractScrollArea::resizeEvent(event);
     updateGeometries();
 }
 
-/*!
-  This function is called with the given \a event when a timer event is sent
-  to the widget.
-
-  \sa QObject::timerEvent()
-*/
 void QpAbstractItemView::timerEvent(QTimerEvent *event)
 {
     Q_D(QpAbstractItemView);
+
     if (event->timerId() == d->fetchMoreTimer.timerId())
+    {
+        if( debug_timers ) qDebug()<< "QpAbstractItemView::timerEvent fetchMoreTimer  d->fetchMore()";
         d->fetchMore();
+    }
     else if (event->timerId() == d->delayedReset.timerId())
+    {
+        if( debug_timers ) qDebug()<< "QpAbstractItemView::timerEvent delayedReset reset()";
         reset();
+    }
     else if (event->timerId() == d->autoScrollTimer.timerId())
+    {
+        if( debug_timers ) qDebug()<< "QpAbstractItemView::timerEvent autoScrollTimer doAutoScroll()";
         doAutoScroll();
+    }
+
     else if (event->timerId() == d->updateTimer.timerId())
+    {
+        if( debug_timers ) qDebug()<< "QpAbstractItemView::timerEvent updateTimer updateDirtyRegion()";
+
         d->updateDirtyRegion();
-    else if (event->timerId() == d->delayedEditing.timerId()) {
+    }
+    else if (event->timerId() == d->delayedEditing.timerId())
+    {
+        if( debug_timers ) qDebug()<< "QpAbstractItemView::timerEvent delayedEditing  edit(currentIndex())";
         d->delayedEditing.stop();
         edit(currentIndex());
-    } else if (event->timerId() == d->delayedLayout.timerId()) {
+    }
+    else if (event->timerId() == d->delayedLayout.timerId())
+    {
+        if( debug_timers ) qDebug()<< "QpAbstractItemView::timerEvent d->delayedLayout ";
+
         d->delayedLayout.stop();
-        if (isVisible()) {
+
+        if (isVisible())
+        {
             d->interruptDelayedItemsLayout();
+
+            if( debug_timers ) qDebug()<< "QpAbstractItemView::timerEvent  doItemsLayout() ";
+
             doItemsLayout();
+
             const QModelIndex current = currentIndex();
-            if (current.isValid() && d->state == QpAbstractItemView::EditingState)
+
+            if ( current.isValid() && d->state == QpAbstractItemView::EditingState )
+            {
+                if( debug_timers ) qDebug()<< "QpAbstractItemView::timerEvent  scrollTo(current"<<current<<") ";
                 scrollTo(current);
+            }
         }
-    } else if (event->timerId() == d->delayedAutoScroll.timerId()) {
+    }
+    else if (event->timerId() == d->delayedAutoScroll.timerId())
+    {
+        if ( debug_timers ) qDebug()<< "QpAbstractItemView::timerEvent delayedAutoScroll";
+
         d->delayedAutoScroll.stop();
         //end of the timer: if the current item is still the same as the one when the mouse press occurred
         //we only get here if there was no double click
         if (d->pressedIndex.isValid() && d->pressedIndex == currentIndex())
+        {
+            if ( debug_timers ) qDebug()<< "QpAbstractItemView::timerEvent scrollTo(d->pressedIndex:"<<d->pressedIndex<<")";
+
             scrollTo(d->pressedIndex);
+        }
     }
 }
 

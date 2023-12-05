@@ -113,6 +113,8 @@ public:
     explicit QpAbstractItemView(QWidget *parent = 0);
     ~QpAbstractItemView();
 
+    static const bool debug_timers;
+
     virtual void setModel(QAbstractItemModel *model);
     virtual QAbstractItemModel *model() const; //!!
 

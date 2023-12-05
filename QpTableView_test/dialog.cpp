@@ -276,6 +276,7 @@ void Dialog::init_StandardItemModel()
     }
 
     qDebug() << "mdl_standart->rowCount() " <<mdl_standart->rowCount();
+
     for( int row=0; row< mdl_standart->rowCount(); row++)
     {
         qDebug() << "row :" << row ;
@@ -311,7 +312,6 @@ void Dialog::init_StandardItemModel()
     updateGeometry();
 
     update();
-
 
     ui->btn_QStandardItemModel_On->setFocus();
 

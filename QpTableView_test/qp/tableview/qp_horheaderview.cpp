@@ -4388,6 +4388,8 @@ line1     0      1      3      4     5
     if ( debug_init ) qDebug() << "d->map.count() " << d->map.count();
 
 
+    emit sig_sectionsTmplChanged(); // !!
+
     return true;
 
 }

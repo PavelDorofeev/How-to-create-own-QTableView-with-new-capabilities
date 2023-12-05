@@ -68,8 +68,8 @@ public:
 
     const QString tblName() const;
 
-    int visualIndexAt(int position) const;
-    int logicalIndexAt(int position) const;
+    int visualIndexAt_Y(int y) const;
+    int logicalIndexAt(int y) const;
 
     inline int logicalIndexAt(int x, int y) const;
     inline int logicalIndexAt(const QPoint &pos) const;
@@ -165,6 +165,7 @@ protected Q_SLOTS:
     void resizeSections();
     void sectionsInserted(const QModelIndex &parent, int logicalFirst, int logicalLast);
     void sectionsAboutToBeRemoved(const QModelIndex &parent, int logicalFirst, int logicalLast);
+    void slot_sectionsTmplChanged( );
 
 protected:
     QpVertHeaderView(QpVertHeaderViewPrivate &dd, Qt::Orientation orientation, QWidget *parent = 0);

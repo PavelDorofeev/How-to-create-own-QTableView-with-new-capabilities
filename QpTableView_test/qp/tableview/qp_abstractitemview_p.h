@@ -53,6 +53,8 @@ public:
     QpAbstractItemViewPrivate();
     virtual ~QpAbstractItemViewPrivate();
 
+    static const bool debug_timers;
+
     void init();
 
     virtual void _q_rowsRemoved(const QModelIndex &parent, int start, int end);

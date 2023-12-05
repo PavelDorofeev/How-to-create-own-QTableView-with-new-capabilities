@@ -80,6 +80,9 @@ QpVertHeaderView::QpVertHeaderView( const QpHorHeaderView &Horizontal,
     d->setDefaultValues( );
 
     init();
+
+    Q_ASSERT ( connect ( &Horizontal , SIGNAL(sig_sectionsTmplChanged()),
+                         this , SLOT( slot_sectionsTmplChanged() ) ) == true) ;
 }
 
 
@@ -332,13 +335,14 @@ int QpVertHeaderView::sectionSizeHint(int logicalIndex) const
 }
 
 
-int QpVertHeaderView::visualIndexAt( int y ) const
+int QpVertHeaderView::visualIndexAt_Y( int y ) const
 {
     // y - coordinate in viewport
 
     Q_D(const QpVertHeaderView);
 
     int yy = y;
+
     d->executePostedLayout();
     d->executePostedResize();
 
@@ -346,9 +350,12 @@ int QpVertHeaderView::visualIndexAt( int y ) const
 
     const int sectionCount = d->sectionCount;
 
+
+    if( debug_paint ) qDebug() << "QpVertHeaderView::visualIndexAt_Y(y:"<<y<<") + d->offset:"<<d->offset<<" = yy:" <<yy;
+
     if (sectionCount < 1)
     {
-        if( debug_paint ) qDebug() << "???? count < 1 QpVertHeaderView::visualIndexAt(position:" << y<<")=" << -1;
+        if( debug_paint ) qDebug() << "???? sectionCount < 1 QpVertHeaderView::visualIndexAt_Y(y:" << y<<")=" << -1;
         return qp::UNKNOWN_VALUE;
     }
 
@@ -359,9 +366,9 @@ int QpVertHeaderView::visualIndexAt( int y ) const
         return qp::UNKNOWN_VALUE;
     }
 
-    if ( yy > d->hrzntl.row_height() * sectionCount )
+    if ( yy > d->length )
     {
-        if( debug_paint ) qDebug() << "???? vposition > d->length "<< yy <<">" <<d->length<< " QpVertHeaderView::visualIndexAt(position:" << y<<")=" << -1;
+        if( debug_paint ) qDebug() << "???? yy:"<<yy<<" > d->length:"<< d->length << " sectionCount:"<<sectionCount << " QpVertHeaderView::visualIndexAt_Y(y:" << y<<"[yy:"<<yy<<"])=" << -1 ;
 
         return qp::UNKNOWN_VALUE;
     }
@@ -370,13 +377,13 @@ int QpVertHeaderView::visualIndexAt( int y ) const
 
     if (visual < 0)
     {
-        if( debug_paint ) qDebug() << "???? visual < 0 QpVertHeaderView::visualIndexAt(position:" << y<<")=" << -1 << " length" << length()<< " d->sectionCount" <<d->sectionCount;
+        if( debug_paint ) qDebug() << "???? visual < 0 QpVertHeaderView::visualIndexAt_Y(y:" << y<<"[yy:"<<yy<<"])=" << visual << " length" << length()<< " d->sectionCount" <<d->sectionCount;
 
         d->headerVisualIndexAt( yy );
         return qp::UNKNOWN_VALUE;
     }
 
-    if( debug_paint ) qDebug() << "QpVertHeaderView::visualIndexAt("<<y<<")="<<visual<<"   sectionCount " << d->sectionCount << " length" <<d->length << "  offset" <<offset();
+    if( debug_paint ) qDebug() << "     return_visual:"<<visual<<" sectionCount:" << d->sectionCount << " d->lengthlength" <<d->length << "  d->offset" <<d->offset;
 
     return visual;
 }
@@ -384,7 +391,7 @@ int QpVertHeaderView::visualIndexAt( int y ) const
 
 int QpVertHeaderView::logicalIndexAt(int position) const
 {
-    const int visual = visualIndexAt(position);
+    const int visual = visualIndexAt_Y(position);
 
     if (visual > -1)
         return logicalIndex(visual);
@@ -1076,17 +1083,21 @@ void QpVertHeaderView::reset()
 {
     Q_D(QpVertHeaderView);
 
-    if(debug_init) qDebug() << "QpVertHeaderView::reset() section_Count " << d->sectionCount;
+    if(debug_init) qDebug() << "1 QpVertHeaderView::reset() section_Count " << d->sectionCount << " d->length" << d->length;
 
     QpAbstractItemView::reset();
     // it would be correct to call clear, but some apps rely
     // on the header keeping the sections, even after calling reset
 
-    d->clear();
+    if(debug_init) qDebug() << "2 QpVertHeaderView::reset() section_Count " << d->sectionCount << " d->length" << d->length;
+
+    d->clear(); //!!
+
+    if(debug_init) qDebug() << "3 QpVertHeaderView::reset() section_Count " << d->sectionCount << " d->length" << d->length;
 
     initializeSections();
 
-    if(debug_init) qDebug() << "QpVertHeaderView::reset() section_Count " << d->sectionCount << " length"<<length();
+    if(debug_init) qDebug() << "4 QpVertHeaderView::reset() section_Count " << d->sectionCount << " length"<<length();
 
 }
 
@@ -1153,6 +1164,20 @@ void QpVertHeaderView::resizeSections()
         d->resizeSections(Interactive, false); // no global resize mode
 }
 
+void QpVertHeaderView::slot_sectionsTmplChanged()
+{
+
+    Q_D(QpVertHeaderView);
+
+    int rowH = d->hrzntl.row_height();
+
+    d->length = rowH * d->sectionCount; // !!!!
+
+    if( debug_init ) qDebug() << "QpVertHeaderView::slot_sectionsTmplChanged() d->length:"<< d->length <<" rowH:" << rowH <<" d->sectionCount:"<<d->sectionCount;
+
+    //initializeSections();
+
+}
 
 void QpVertHeaderView::sectionsInserted( const QModelIndex &parent,
                                          int logicalFirst,
@@ -1209,22 +1234,22 @@ void QpVertHeaderView::sectionsInserted( const QModelIndex &parent,
         //QpVertHeaderViewPrivate::SectionSpan span(insertLength, insertCount, d->globalResizeMode);
         //d->sectionSpans.append(span);
     }
-//    else if ((d->sectionSpans.at(insertAt).sectionSize() == d->defaultSectionSize)
-//               && d->sectionSpans.at(insertAt).resizeMode == d->globalResizeMode)
-//    {
-//        // add the new sections to an existing span
-//        int insertLength = d->sectionSpans.at(insertAt).sectionSize() * insertCount;
-//        d->length += insertLength;
-//        d->sectionSpans[insertAt].size += insertLength;
-//        d->sectionSpans[insertAt].count += insertCount;
-//    }
+    //    else if ((d->sectionSpans.at(insertAt).sectionSize() == d->defaultSectionSize)
+    //               && d->sectionSpans.at(insertAt).resizeMode == d->globalResizeMode)
+    //    {
+    //        // add the new sections to an existing span
+    //        int insertLength = d->sectionSpans.at(insertAt).sectionSize() * insertCount;
+    //        d->length += insertLength;
+    //        d->sectionSpans[insertAt].size += insertLength;
+    //        d->sectionSpans[insertAt].count += insertCount;
+    //    }
     else
     {
         // separate them out into their own span
-//        int insertLength = d->defaultSectionSize * insertCount;
-//        d->length += insertLength;
-//        QpVertHeaderViewPrivate::SectionSpan span(insertLength, insertCount, d->globalResizeMode);
-//        d->sectionSpans.insert(insertAt, span);
+        //        int insertLength = d->defaultSectionSize * insertCount;
+        //        d->length += insertLength;
+        //        QpVertHeaderViewPrivate::SectionSpan span(insertLength, insertCount, d->globalResizeMode);
+        //        d->sectionSpans.insert(insertAt, span);
     }
 
     // update sorting column
@@ -1505,52 +1530,51 @@ void QpVertHeaderView::initializeSections()
 {
     Q_D(QpVertHeaderView);
 
-    const int oldCount = d->sectionCount;
-    const int newCount = d->modelSectionCount();
+    slot_sectionsTmplChanged();
 
-    if( tblName() == "goods")
-    {
-        qDebug() << "QpVertHeaderView::initializeSections() oldCount: " << oldCount << "  newCount:"<<newCount << " tblName()"<<tblName();
-    }
+    const int viewSectionCnt = d->sectionCount;
+    const int mdlSectionCnt = d->modelSectionCount();
 
+    if(debug_init)  qDebug() << "QpVertHeaderView::initializeSections() d->sectionCount " << d->sectionCount<< "  length:" << d->length;
 
-    if(debug_init)  qDebug() << "QpVertHeaderView::initializeSections() d->sectionCount " << d->sectionCount;
-
-    if ( newCount <= 0)
+    if ( mdlSectionCnt <= 0 )
     {
         d->clear();
 
-        emit sectionCountChanged(oldCount, 0);
+        emit sectionCountChanged(viewSectionCnt, 0);
 
     }
-    else if ( newCount != oldCount )
+    else if ( mdlSectionCnt != viewSectionCnt )
     {
-        if( tblName() == "goods")
-            if(debug_init)  qDebug() << "   newCount != oldCount" << newCount <<oldCount;
+        if(debug_init)  qDebug() << "   newCount != oldCount   newCount:" << mdlSectionCnt << " oldCount:"<< viewSectionCnt;
 
-        const int min = qBound(0, oldCount, newCount - 1);
+        int start_section =0;
 
-        initializeSections(min, newCount - 1);
+        if( mdlSectionCnt < viewSectionCnt) // it was a switching to other model or select  with filter
+        {
+            start_section = 0;
+        }
+        else
+        {
+            start_section = qBound(0, viewSectionCnt, mdlSectionCnt - 1);
+        }
 
-        if(debug_init)  qDebug() << "   newCount != oldCount" << newCount <<oldCount;
+        initializeSections( start_section, mdlSectionCnt - 1);
 
-//        if (stretchLastSection()) // we've already gotten the size hint
-//            d->lastSectionSize = sectionSize(logicalIndex(d->sectionCount - 1));
+
+        //        if (stretchLastSection()) // we've already gotten the size hint
+        //            d->lastSectionSize = sectionSize(logicalIndex(d->sectionCount - 1));
 
         //make sure we update the hidden sections
 
-        if (newCount < oldCount)
-            d->updateHiddenSections(0, newCount-1);
+        if (mdlSectionCnt < viewSectionCnt)
+            d->updateHiddenSections(0, mdlSectionCnt-1);
 
         if(debug_init)qDebug() <<tblName()<<" QpVertHeaderView::initializeSections() verticalScrollBar()->maximum()" << verticalScrollBar()->maximum() << "d->sectionCount:" << d->sectionCount << " length" << length();
 
     }
 
 }
-
-/*!
-    \internal
-*/
 
 void QpVertHeaderView::initializeSections(int start, int end)
 {
@@ -1559,7 +1583,7 @@ void QpVertHeaderView::initializeSections(int start, int end)
     Q_ASSERT(start >= 0);
     Q_ASSERT(end >= 0);
 
-    qDebug() << "QpVertHeaderView::initializeSections(int "<<start<< ", int "<<end<<") d->sectionCount "<<d->sectionCount;
+    if( debug_init ) qDebug() << "QpVertHeaderView::initializeSections(start:"<<start<< ", end:"<<end<<") d->sectionCount "<<d->sectionCount << " d->length" <<d->length;
 
     d->invalidateCachedSizeHint();
 
@@ -1569,68 +1593,68 @@ void QpVertHeaderView::initializeSections(int start, int end)
 
         //d->removeSectionsFromSpans(newCount, d->sectionCount);
 
-        if (!d->hiddenSectionSize.isEmpty())
-        {
-            if (d->sectionCount - newCount > d->hiddenSectionSize.count())
-            {
-                for (int i = end + 1; i < d->sectionCount; ++i)
-                    d->hiddenSectionSize.remove(i);
-            }
-            else
-            {
-                QHash<int, int>::iterator it = d->hiddenSectionSize.begin();
+        //        if (!d->hiddenSectionSize.isEmpty())
+        //        {
+        //            if (d->sectionCount - newCount > d->hiddenSectionSize.count())
+        //            {
+        //                for (int i = end + 1; i < d->sectionCount; ++i)
+        //                    d->hiddenSectionSize.remove(i);
+        //            }
+        //            else
+        //            {
+        //                QHash<int, int>::iterator it = d->hiddenSectionSize.begin();
 
-                while (it != d->hiddenSectionSize.end())
-                {
-                    if (it.key() > end)
-                        it = d->hiddenSectionSize.erase(it);
-                    else
-                        ++it;
-                }
-            }
-        }
+        //                while (it != d->hiddenSectionSize.end())
+        //                {
+        //                    if (it.key() > end)
+        //                        it = d->hiddenSectionSize.erase(it);
+        //                    else
+        //                        ++it;
+        //                }
+        //            }
+        //        }
     }
 
     int oldCount = d->sectionCount;
     d->sectionCount = end + 1;
 
-    if( tblName() == "goods" && oldCount != d->sectionCount)
+    if( oldCount != d->sectionCount)
     {
-        qDebug() << "CHANGED   d->sectionCount was: " << oldCount << "  new:"<<d->sectionCount << " tblName()"<<tblName() << " QpVertHeaderView::initializeSections(..)";
+        if( debug_init ) qDebug() << "CHANGED   d->sectionCount was: " << oldCount << "  new:"<<d->sectionCount << " tblName()"<<tblName() << " QpVertHeaderView::initializeSections(..)";
     }
 
 
-    if (!d->logicalIndices.isEmpty())
-    {
-        if (oldCount <= d->sectionCount)
-        {
-            d->logicalIndices.resize(d->sectionCount);
-            d->visualIndices.resize(d->sectionCount);
+    //    if (!d->logicalIndices.isEmpty())
+    //    {
+    //        if (oldCount <= d->sectionCount)
+    //        {
+    //            d->logicalIndices.resize(d->sectionCount);
+    //            d->visualIndices.resize(d->sectionCount);
 
-            for (int i = oldCount; i < d->sectionCount; ++i)
-            {
-                d->logicalIndices[i] = i;
-                d->visualIndices[i] = i;
-            }
-        }
-        else
-        {
-            int j = 0;
-            for (int i = 0; i < oldCount; ++i)
-            {
-                int v = d->logicalIndices.at(i);
+    //            for (int i = oldCount; i < d->sectionCount; ++i)
+    //            {
+    //                d->logicalIndices[i] = i;
+    //                d->visualIndices[i] = i;
+    //            }
+    //        }
+    //        else
+    //        {
+    //            int j = 0;
+    //            for (int i = 0; i < oldCount; ++i)
+    //            {
+    //                int v = d->logicalIndices.at(i);
 
-                if (v < d->sectionCount)
-                {
-                    d->logicalIndices[j] = v;
-                    d->visualIndices[v] = j;
-                    j++;
-                }
-            }
-            d->logicalIndices.resize(d->sectionCount);
-            d->visualIndices.resize(d->sectionCount);
-        }
-    }
+    //                if (v < d->sectionCount)
+    //                {
+    //                    d->logicalIndices[j] = v;
+    //                    d->visualIndices[v] = j;
+    //                    j++;
+    //                }
+    //            }
+    //            d->logicalIndices.resize(d->sectionCount);
+    //            d->visualIndices.resize(d->sectionCount);
+    //        }
+    //    }
 
     if (d->globalResizeMode == Stretch)
         d->stretchSections = d->sectionCount;
@@ -1646,12 +1670,12 @@ void QpVertHeaderView::initializeSections(int start, int end)
 
     //d->length = (end - start + 1) * d->defaultSectionSize;
     int hh = d->hrzntl.row_height();
-    d->length = (end - start + 1) * hh;
 
-    if( tblName() == "goods")
-    {
-        qDebug() << "   start " << start <<" end " <<end<< "  d->length:"<<d->length;
-    }
+    int ll = d->length;
+    //d->length = (end - start + 1) * hh;
+
+    if( debug_init ) qDebug() << "CHANGED!  length was:"<< ll<<" d->length:" << d->length<< " row_height" << d->hrzntl.row_height() << "  start " << start <<" end " <<end;
+
 
     //Q_ASSERT(d->headerLength() == d->length);
 
@@ -1660,10 +1684,6 @@ void QpVertHeaderView::initializeSections(int start, int end)
 
     d->viewport->update();
 }
-
-/*!
-  \reimp
-*/
 
 void QpVertHeaderView::currentChanged(const QModelIndex &current, const QModelIndex &old)
 {
@@ -1743,16 +1763,22 @@ void QpVertHeaderView::paintEvent(QPaintEvent *e)
 
 
     QPainter painter(d->viewport);
-    const QPoint offset = d->scrollDelayOffset;
+
+    const QPoint scrollDelayOffset_QPoint = d->scrollDelayOffset;
+
     QRect translatedEventRect = e->rect();
-    translatedEventRect.translate(offset);
+
+    if ( debug_paint ) qDebug() << "QpVertHeaderView::paintEvent top" << e->rect()<< " d->offset"<< d->offset << " d->scrollDelayOffset"<< d->scrollDelayOffset << " d->sectionCount:"<<d->sectionCount<< " d->length:"<<d->length << " scrollDelayOffset_QPoint:"<<scrollDelayOffset_QPoint;
+
+    translatedEventRect.translate(scrollDelayOffset_QPoint);
+    //qDebug() << "translatedEventRect 2 "<<translatedEventRect;
 
 
     int row_start = qp::UNKNOWN_VALUE;
     int row_end = qp::UNKNOWN_VALUE;
 
-    row_start = visualIndexAt( translatedEventRect.top() );
-    row_end = visualIndexAt( translatedEventRect.bottom() );
+    row_start = visualIndexAt_Y( translatedEventRect.top() );
+    row_end = visualIndexAt_Y( translatedEventRect.bottom() );
 
 
     row_start = (row_start == qp::UNKNOWN_VALUE ? 0 : row_start);
@@ -1763,7 +1789,7 @@ void QpVertHeaderView::paintEvent(QPaintEvent *e)
     row_start = qMin(row_start, row_end);
     row_end = qMax(tmp, row_end);
 
-    if ( debug_paint ) qDebug() << "QpVertHeaderView::paintEvent " << tblName() << " offset"<<offset
+    if ( debug_paint ) qDebug() << "QpVertHeaderView::paintEvent " << tblName() << " offset"<<scrollDelayOffset_QPoint
                                 <<" row_start" << row_start <<" row_end"<< row_end << " e->rect()"<<e->rect()
                                << " d->sectionCount" <<d->sectionCount<< " d->length" <<d->length;
 
@@ -1785,11 +1811,11 @@ void QpVertHeaderView::paintEvent(QPaintEvent *e)
 
         logical = logicalIndex(row);
 
-        if ( debug_paint ) qDebug() << "    paintSection row: " << row;
-
         currentSectionRect.setRect(0, sectionViewportPosition(logical), width, sectionSize(logical));
 
-        currentSectionRect.translate(offset);
+        if ( debug_paint ) qDebug() << "    paintSection row: " << row << " logical:"<<logical;
+
+        currentSectionRect.translate(scrollDelayOffset_QPoint);
 
         QVariant variant = d->model->headerData(logical, Qt::Vertical, Qt::FontRole);
 
@@ -1932,7 +1958,7 @@ void QpVertHeaderView::mouseMoveEvent(QMouseEvent *e)
     case QpVertHeaderViewPrivate::MoveSection: {
         if (qAbs(pos - d->firstPos) >= QApplication::startDragDistance()
                 || !d->sectionIndicator->isHidden()) {
-            int visual = visualIndexAt(pos);
+            int visual = visualIndexAt_Y(pos);
             if (visual == -1)
                 return;
             int posThreshold = d->headerSectionPosition_Y(visual) + d->headerSectionSize(visual) / 2;
@@ -2577,7 +2603,7 @@ QRegion QpVertHeaderView::visualRegionForSelection(const QItemSelection &selecti
 int QpVertHeaderViewPrivate::sectionHandleAt(int position)
 {
     Q_Q(QpVertHeaderView);
-    int visual = q->visualIndexAt(position);
+    int visual = q->visualIndexAt_Y(position);
     if (visual == -1)
         return -1;
     int log = logicalIndex(visual);

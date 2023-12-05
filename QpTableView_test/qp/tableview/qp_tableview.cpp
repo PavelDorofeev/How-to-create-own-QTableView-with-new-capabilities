@@ -386,40 +386,40 @@ void QpTableView::setModel (QAbstractItemModel *model )
     if (d->model && d->model != QAbstractItemModelPrivate::staticEmptyModel())
     {
         Q_ASSERT ( disconnect(d->model, SIGNAL(rowsInserted(QModelIndex,int,int)),
-                   this, SLOT(_q_updateSpanInsertedRows(QModelIndex,int,int))) == true);
+                              this, SLOT(_q_updateSpanInsertedRows(QModelIndex,int,int))) == true);
 
         Q_ASSERT ( disconnect(d->model, SIGNAL(columnsInserted(QModelIndex,int,int)),
-                   this, SLOT(_q_updateSpanInsertedColumns(QModelIndex,int,int))) == true);
+                              this, SLOT(_q_updateSpanInsertedColumns(QModelIndex,int,int))) == true);
 
         Q_ASSERT ( disconnect(d->model, SIGNAL(rowsRemoved(QModelIndex,int,int)),
-                   this, SLOT(_q_updateSpanRemovedRows(QModelIndex,int,int))) == true);
+                              this, SLOT(_q_updateSpanRemovedRows(QModelIndex,int,int))) == true);
 
         Q_ASSERT ( disconnect(d->model, SIGNAL(columnsRemoved(QModelIndex,int,int)),
-                   this, SLOT(_q_updateSpanRemovedColumns(QModelIndex,int,int))) == true);
+                              this, SLOT(_q_updateSpanRemovedColumns(QModelIndex,int,int))) == true);
     }
     if (model)
     { //and connect to the new one
         qDebug() << "QpTableView::setModel";
 
         Q_ASSERT ( connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)),
-                this, SLOT(_q_updateSpanInsertedRows(QModelIndex,int,int))) == true);
+                           this, SLOT(_q_updateSpanInsertedRows(QModelIndex,int,int))) == true);
 
         Q_ASSERT ( connect(model, SIGNAL(columnsInserted(QModelIndex,int,int)),
-                this, SLOT(_q_updateSpanInsertedColumns(QModelIndex,int,int))) == true);
+                           this, SLOT(_q_updateSpanInsertedColumns(QModelIndex,int,int))) == true);
 
         Q_ASSERT ( connect(model, SIGNAL(rowsRemoved(QModelIndex,int,int)),
-                this, SLOT(_q_updateSpanRemovedRows(QModelIndex,int,int))) == true);
+                           this, SLOT(_q_updateSpanRemovedRows(QModelIndex,int,int))) == true);
 
         Q_ASSERT ( connect(model, SIGNAL(columnsRemoved(QModelIndex,int,int)),
-                this, SLOT(_q_updateSpanRemovedColumns(QModelIndex,int,int))) == true);
+                           this, SLOT(_q_updateSpanRemovedColumns(QModelIndex,int,int))) == true);
     }
 
     d->horizontalHeader->setModel( model ); // !!
 
-
     d->verticalHeader->setModel( model );
 
     QpAbstractItemView::setModel(model);
+
 }
 
 
@@ -778,9 +778,9 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
     if( debug_paint_region ) qDebug() << "-----------------------------------------------";
 
-    int firstVisualRow = qMax( verticalHeader->visualIndexAt( 0 ) , 0);
+    int firstVisualRow = qMax( verticalHeader->visualIndexAt_Y( 0 ) , 0);
 
-    int lastVisualRow = verticalHeader->visualIndexAt(verticalHeader->viewport()->height() );
+    int lastVisualRow = verticalHeader->visualIndexAt_Y(verticalHeader->viewport()->height() );
 
     if (lastVisualRow == -1)
         lastVisualRow = d->model->rowCount(d->root) - 1;
@@ -865,7 +865,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
 
         // get the vertical start and end visual sections and if alternate color
-        int row_bottom = verticalHeader->visualIndexAt( dirtyArea.bottom() );
+        int row_bottom = verticalHeader->visualIndexAt_Y( dirtyArea.bottom() );
 
         if (row_bottom == -1)
         {
@@ -877,7 +877,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
         bool alternateBase = false;
 
-        row_top = verticalHeader->visualIndexAt( dirtyArea.top() );
+        row_top = verticalHeader->visualIndexAt_Y( dirtyArea.top() );
 
         if (row_top == -1 || row_top > row_bottom)
             continue;
@@ -2170,9 +2170,9 @@ int QpTableView::sizeHintForColumn(int column) const
 
     ensurePolished();
 
-    int top = qMax(0, d->verticalHeader->visualIndexAt(0));
+    int top = qMax(0, d->verticalHeader->visualIndexAt_Y(0));
 
-    int bottom = d->verticalHeader->visualIndexAt(d->viewport->height());
+    int bottom = d->verticalHeader->visualIndexAt_Y(d->viewport->height());
 
     if (!isVisible() || bottom == -1) // the table don't have enough rows to fill the viewport
         bottom = d->model->rowCount(d->root) - 1;
@@ -2783,9 +2783,9 @@ void QpTableView::linesInRowResized_Y()
 
     verticalHeader()->setDefaultSectionSize( hh );
 
-    int firstVisualRow = qMax(verticalHeader()->visualIndexAt( 0 ) , 0);
+    int firstVisualRow = qMax(verticalHeader()->visualIndexAt_Y( 0 ) , 0);
 
-    int lastVisualRow = verticalHeader()->visualIndexAt(verticalHeader()->viewport()->height() );
+    int lastVisualRow = verticalHeader()->visualIndexAt_Y(verticalHeader()->viewport()->height() );
 
     for( int row = firstVisualRow; row<=lastVisualRow; row++ )
         d->rowsToUpdate.append(row);
@@ -3006,6 +3006,7 @@ void QpTableView::showColumn(int column)
 
 void QpTableView::reset()
 {
+    qDebug() << "QpAbstractItemView::reset() " << tblName();
     QpAbstractItemView::reset();
     //verticalHeader()->reset();
 }
@@ -3417,11 +3418,11 @@ bool QpTableView::init_template( const qp::SECTIONS_TMPL &matrix )
     {
 
         //horizontalHeader()->updateGeometry();
-        //verticalHeader()->updateGeometry(); !!! not here
+        //verticalHeader()->initializeSections();
         //updateGeometry(); //!!
 
+
         delayed_Repaint();//!!
-        //doItemsLayout();
 
         return true;
     }

@@ -40,6 +40,8 @@ Now we are including our qp files at any project and building conveniently as us
     repaire some errors with repaint vertical header on data model was changed
     repaire some signal/slots connections into QpVerHeaderView and QpTableView
 2.3.0
+    add QpHorHeaderView::sectionsTmplChanged() signal for connecting to QpVertHeaderView::slot_sectionsTmplChanged() slot that do QpVertHeaderView::initializeSections()
+2.4.0
 */
 
 
