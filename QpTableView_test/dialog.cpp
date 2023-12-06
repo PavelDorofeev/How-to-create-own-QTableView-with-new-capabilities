@@ -203,11 +203,14 @@ bool Dialog::init_sql_model()
 
     view->scrollTo( mdl_sql->index( 0 , 0 )  );
 
-    qDebug() << " verticalScrollBar() value " << view->verticalScrollBar()->value() ;
-    qDebug() << "           minimum " << view->verticalScrollBar()->minimum() ;
-    qDebug() << "           maximum " << view->verticalScrollBar()->maximum() ;
-    qDebug() << "           pageStep " << view->verticalScrollBar()->pageStep() ;
+    //    qDebug() << " verticalScrollBar() value " << view->verticalScrollBar()->value() ;
+    //    qDebug() << "           minimum " << view->verticalScrollBar()->minimum() ;
+    //    qDebug() << "           maximum " << view->verticalScrollBar()->maximum() ;
+    //    qDebug() << "           pageStep " << view->verticalScrollBar()->pageStep() ;
 
+    mdl = (QAbstractTableModel*)(mdl_sql);
+
+    Q_ASSERT(mdl);
     return true;
 }
 
@@ -319,6 +322,10 @@ void Dialog::init_StandardItemModel()
     qDebug() << "           minimum " << view->verticalScrollBar()->minimum() ;
     qDebug() << "           maximum " << view->verticalScrollBar()->maximum() ;
     qDebug() << "           pageStep " << view->verticalScrollBar()->pageStep() ;
+
+    mdl = (QAbstractTableModel*)(mdl_standart);
+
+    Q_ASSERT(mdl);
 }
 
 
@@ -468,11 +475,13 @@ void Dialog::on_btn_sqltableModel_On_clicked()
     init_sql_db();
 
     init_sql_model();
+
 }
 
 void Dialog::on_btn_QStandardItemModel_On_clicked()
 {
     init_StandardItemModel();
+
 }
 
 
@@ -570,4 +579,9 @@ void Dialog::on_btn_insertRow_clicked()
     mdl_standart->insertRow(0);
     mdl_standart->setItem( 0 , new QStandardItem( "new value"));
 
+}
+
+void Dialog::on_btn_resize1_clicked()
+{
+    view->resizeSectionsByHeaderData();
 }

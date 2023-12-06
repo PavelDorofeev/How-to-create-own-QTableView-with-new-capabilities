@@ -201,7 +201,7 @@ public:
         //return visualIndices.isEmpty() ? logicalIndex : visualIndices.at(logicalIndex);
     }
 
-    inline void setDefaultValues(Qt::Orientation o)
+    inline void setDefaultValues()
     {
         defaultSectionSize = 100;
 

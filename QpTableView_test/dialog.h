@@ -70,6 +70,8 @@ private slots:
 
     void on_btn_insertRow_clicked();
 
+    void on_btn_resize1_clicked();
+
 private:
     Ui::Dialog *ui;
 

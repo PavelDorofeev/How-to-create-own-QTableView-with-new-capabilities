@@ -88,7 +88,9 @@ public:
     virtual void setSelectionModel(QItemSelectionModel *selectionModel);
 
     static const QString mdlIsEmptyStr;
-    const QString tblName() const;
+    QString tblName() const;
+
+    void resizeSectionsByHeaderData();
 
     QpHorHeaderView *horizontalHeader() const;
 
@@ -241,6 +243,7 @@ private:
     Q_PRIVATE_SLOT(d_func(), void _q_updateSpanRemovedColumns(QModelIndex,int,int))
 
     int delayed_Repaint_tmr;
+    //int delayed_Repaint_tmr2;
 
 };
 

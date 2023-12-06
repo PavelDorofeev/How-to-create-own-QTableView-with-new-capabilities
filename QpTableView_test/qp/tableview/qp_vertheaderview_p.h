@@ -73,7 +73,7 @@ public:
           resizeRecursionBlock(false),
           stretchSections(0),
           contentsSections(0),
-          //minimumSectionSize(-1),
+          minimumSectionSize(-1),
           lastSectionSize(0),
           sectionIndicatorOffset(0),
           sectionIndicator(0),
@@ -84,6 +84,7 @@ public:
     // ------------------------------------------------------
     const QpHorHeaderView &hrzntl; //!!
     int headerSectionPosition_Y(int visual) const;
+    static const int default_section_height;
     //------------------------------------------------------
 
     int lastVisibleVisualIndex() const;
@@ -134,20 +135,17 @@ public:
 
     inline int logicalIndex(int visualIndex) const
     {
-        return logicalIndices.isEmpty() ? visualIndex : logicalIndices.at(visualIndex);
+        //return logicalIndices.isEmpty() ? visualIndex : logicalIndices.at(visualIndex);
+        return  visualIndex ;
     }
 
     inline int visualIndex(int logicalIndex) const
     {
-        return visualIndices.isEmpty() ? logicalIndex : visualIndices.at(logicalIndex);
+        //return visualIndices.isEmpty() ? logicalIndex : visualIndices.at(logicalIndex);
+        return logicalIndex;
     }
 
-    inline void setDefaultValues()
-    { //!!
-        defaultSectionSize = qMax(q_func()->minimumSectionSize(), 55);
-
-        defaultAlignment = Qt::AlignLeft|Qt::AlignVCenter;
-    }
+    void setDefaultValues();
 
     inline bool isVisualIndexHidden(int visual) const
     {
@@ -174,7 +172,7 @@ public:
     inline void initializeIndexMapping() const
     {
         if (visualIndices.count() != sectionCount
-            || logicalIndices.count() != sectionCount)
+                || logicalIndices.count() != sectionCount)
         {
             visualIndices.resize(sectionCount);
             logicalIndices.resize(sectionCount);
@@ -273,7 +271,7 @@ public:
     int stretchSections;
     int contentsSections;
     int defaultSectionSize;
-    //int minimumSectionSize;
+    int minimumSectionSize;
     int lastSectionSize; // $$$
     int sectionIndicatorOffset;
     Qt::Alignment defaultAlignment;
@@ -299,47 +297,47 @@ public:
 #endif
     };
 
-//    //QVector<SectionSpan> sectionSpans;
+    //    //QVector<SectionSpan> sectionSpans;
 
-//    void createSectionSpan(int start, int end, int size, QpVertHeaderView::ResizeMode mode);
-//    void removeSectionsFromSpans(int start, int end);
-//    void resizeSectionSpan(int visualIndex, int oldSize, int newSize);
+    //    void createSectionSpan(int start, int end, int size, QpVertHeaderView::ResizeMode mode);
+    //    void removeSectionsFromSpans(int start, int end);
+    //    void resizeSectionSpan(int visualIndex, int oldSize, int newSize);
     void setDefaultSectionSize(int size);
 
     inline int headerSectionCount() const
     { // for debugging
         int count = 0;
-//        for (int i = 0; i < sectionSpans.count(); ++i)
-//            count += sectionSpans.at(i).count;
+        //        for (int i = 0; i < sectionSpans.count(); ++i)
+        //            count += sectionSpans.at(i).count;
         return count;
     }
 
     inline int headerLength() const { // for debugging
         int len = 0;
-//        for (int i = 0; i < sectionSpans.count(); ++i)
-//            len += sectionSpans.at(i).size;
+        //        for (int i = 0; i < sectionSpans.count(); ++i)
+        //            len += sectionSpans.at(i).size;
         return len;
     }
 
-//    inline void removeSpans(const QList<int> &spans) {
-//        for (int i = spans.count() - 1; i >= 0; --i) {
-//            length -= sectionSpans.at(spans.at(i)).size;
-//            sectionSpans.remove(spans.at(i));
-//        }
-//    }
+    //    inline void removeSpans(const QList<int> &spans) {
+    //        for (int i = spans.count() - 1; i >= 0; --i) {
+    //            length -= sectionSpans.at(spans.at(i)).size;
+    //            sectionSpans.remove(spans.at(i));
+    //        }
+    //    }
 
-//    inline int sectionSpanIndex(int visual) const {
-//        int section_start = 0;
-//        for (int i = 0; i < sectionSpans.count(); ++i) {
-//            int section_end = section_start + sectionSpans.at(i).count - 1;
-//            if (visual >= section_start && visual <= section_end)
-//                return i;
-//            section_start = section_end + 1;
-//        }
-//        return -1;
-//    }
+    //    inline int sectionSpanIndex(int visual) const {
+    //        int section_start = 0;
+    //        for (int i = 0; i < sectionSpans.count(); ++i) {
+    //            int section_end = section_start + sectionSpans.at(i).count - 1;
+    //            if (visual >= section_start && visual <= section_end)
+    //                return i;
+    //            section_start = section_end + 1;
+    //        }
+    //        return -1;
+    //    }
 
-    int headerSectionSize(int visual) const;
+    int headerSectionHeight(int visual) const;
     int headerSectionPosition(int visual) const;
     int headerVisualIndexAt(int position) const;
 

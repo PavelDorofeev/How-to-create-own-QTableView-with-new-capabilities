@@ -40,7 +40,7 @@ public:
     };
 
     explicit QpVertHeaderView( const QpHorHeaderView &Horizontal,
-                          Qt::Orientation orientation,
+                          //Qt::Orientation orientation,
                           QWidget *parent = 0);
 
     virtual ~QpVertHeaderView();
@@ -66,7 +66,7 @@ public:
     int sectionSizeHint(int logicalIndex) const;
 
 
-    const QString tblName() const;
+    QString tblName() const;
 
     int visualIndexAt_Y(int y) const;
     int logicalIndexAt(int y) const;
@@ -146,6 +146,7 @@ public Q_SLOTS:
     void setOffsetToSectionPosition(int visualIndex);
     void setOffsetToLastSection();
     void headerDataChanged(Qt::Orientation orientation, int logicalFirst, int logicalLast);
+    void slot_sectionsTmplChanged( );
 
 Q_SIGNALS:
     void sectionMoved(int logicalIndex, int oldVisualIndex, int newVisualIndex);
@@ -165,10 +166,11 @@ protected Q_SLOTS:
     void resizeSections();
     void sectionsInserted(const QModelIndex &parent, int logicalFirst, int logicalLast);
     void sectionsAboutToBeRemoved(const QModelIndex &parent, int logicalFirst, int logicalLast);
-    void slot_sectionsTmplChanged( );
 
 protected:
-    QpVertHeaderView(QpVertHeaderViewPrivate &dd, Qt::Orientation orientation, QWidget *parent = 0);
+    QpVertHeaderView(QpVertHeaderViewPrivate &dd,
+                     //Qt::Orientation orientation,
+                     QWidget *parent = 0);
     void init();
 
     void initializeSections();

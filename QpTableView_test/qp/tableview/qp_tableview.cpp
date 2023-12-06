@@ -62,14 +62,14 @@ const bool QpTableView::debug_event = false;
 const bool QpTableView::debug_paint_region = false;
 const bool QpTableView::debug_paint_border = false;
 const bool QpTableView::debug_resize = false;
-const bool QpTableView::debug_mdl_signals = true;
+const bool QpTableView::debug_mdl_signals = false;
 const bool QpTableView::debug_selection = false;
-const bool QpTableView::debug_scroll = true;
+const bool QpTableView::debug_scroll = false;
 
-const bool QpTableViewPrivate::debug_mdl_signals = true;
+const bool QpTableViewPrivate::debug_mdl_signals = false;
 const bool QpTableViewPrivate::debug = false;
 const bool QpTableViewPrivate::debug_selection = false;
-const bool QpTableViewPrivate::debug_init = true;
+const bool QpTableViewPrivate::debug_init = false;
 
 const int QpTableView::correct_width_minus_1 = -1;
 const int QpTableView::correct_height_minus_1 = -1;
@@ -101,24 +101,35 @@ public:
     }
 };
 
+void QpTableView::resizeSectionsByHeaderData()
+{
+    horizontalHeader()->resizeSectionsByHeaderData( model() );
+
+    //updateGeometry();
+
+    delayed_Repaint();
+
+    //delayed_Repaint2();
+
+}
+
 void QpTableViewPrivate::init( const qp::SECTIONS_TMPL matrix )
 {
     Q_Q(QpTableView);
 
-    if ( debug_init ) qDebug() << "QpTableViewPrivate::init()" ;
+    if ( debug_init ) qDebug() << "QpTableViewPrivate::init(matrix)" ;
 
     q->setEditTriggers( editTriggers |QpAbstractItemView::AnyKeyPressed);
 
-    QpHorHeaderView *horizontal = new QpHorHeaderView( Qt::Horizontal, q);
+    QpHorHeaderView *horizontal = new QpHorHeaderView( q );
 
     horizontal->setClickable(true);
     horizontal->setHighlightSections(true);
 
-    qDebug() << "QpTableViewPrivate::init " << qp::print_matrix( matrix );
 
     q->setHorizontalHeader( horizontal , matrix );
 
-    QpVertHeaderView *vertical = new QpVertHeaderView( *horizontal, Qt::Vertical, q);
+    QpVertHeaderView *vertical = new QpVertHeaderView( *horizontal,  q);
     vertical->setClickable(true);
     vertical->setHighlightSections(true);
 
@@ -809,7 +820,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
     int sz = num_y_cnt * num_x_cnt ;
 
-    int lgcl_max_num = horizontalHeader->lastLogicalNum() + 1;
+    int lgcl_max_num = horizontalHeader->lastLogical() + 1;
 
     QBitArray drawn( sz );
 
@@ -1062,7 +1073,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
                         if ( ! index.isValid())
                         {
-                            qDebug() << tblName()<< " ! index.isValid() index " << index <<  d->model->data( index).toString() << "  line " << line << " logicalIndex " << sectionNum << " numX " << numX;
+                            qDebug() << tblName()<< " ! index.isValid() index(row:"<<row<< ",sectionNum:"<<sectionNum<<")" << " numX " << numX;
                             continue;
                         }
 
@@ -1373,10 +1384,10 @@ QModelIndex QpTableView::moveCursor(CursorAction cursorAction, Qt::KeyboardModif
     if ( ! current.isValid())
     {
         int row = 0;
-        int column = 0;
+        int column = horizontalHeader()->firstNotLabel_logicalNum();
 
-        while (column < right && isColumnHidden(d->logicalColumn(column)))
-            ++column;
+//        while (column < right && isColumnHidden(d->logicalColumn(column)))
+//            ++column;
 
         while (isRowHidden(d->logicalRow(row)) && row < bottom)
             ++row;
@@ -1387,7 +1398,10 @@ QModelIndex QpTableView::moveCursor(CursorAction cursorAction, Qt::KeyboardModif
     }
 
     // Update visual cursor if current index has changed.
-    QPoint visualCurrent(d->visualColumn(current.column()), d->visualRow(current.row()));
+    int column = horizontalHeader()->firstNotLabel_logicalNum();
+
+    QPoint visualCurrent( d->visualColumn( column) , d->visualRow(current.row())) ;
+
     if (visualCurrent != d->visualCursor)
     {
         d->visualCursor = visualCurrent;
@@ -2349,7 +2363,7 @@ int QpTableView::columnAt( int x , int y) const
 
 //}
 
-const QString QpTableView::tblName() const
+QString QpTableView::tblName() const
 {
     Q_D(const QpTableView);
 
@@ -2781,7 +2795,9 @@ void QpTableView::linesInRowResized_Y()
 
     int hh = horizontalHeader()->row_height();
 
-    verticalHeader()->setDefaultSectionSize( hh );
+    verticalHeader()->slot_sectionsTmplChanged();
+
+    //verticalHeader()->setDefaultSectionSize( hh );
 
     int firstVisualRow = qMax(verticalHeader()->visualIndexAt_Y( 0 ) , 0);
 
@@ -2893,16 +2909,27 @@ void QpTableView::timerEvent(QTimerEvent *event)
         d->verticalHeader->viewport()->updateGeometry();
         d->verticalHeader->viewport()->update();
 
-        qDebug() << "offset:"<< verticalHeader()->offset() ;
+        qDebug() << "d->horizontalHeader->viewport()->geometry()"<< d->horizontalHeader->viewport()->geometry() ;
+        qDebug() << "d->verticalHeader->viewport()->geometry()"<< d->verticalHeader->viewport()->geometry() ;
+        qDebug() << "d->viewport()->geometry()"<< d->viewport->geometry() ;
 
         //verticalHeader()->setOffset( 100 );
 
         //qDebug() << "offset:"<< verticalHeader()->offset() ;
 
-        updateGeometries();
-        update();
+        //delayed_tv_update();
+
+        updateGeometries(); // !! for tableView (not for headers)
+
+        QRegion reg_tv( d->viewport->rect());
+
+        qDebug() << "delayed_Repaint2 reg_tv "<< reg_tv;
+
+        setDirtyRegion( reg_tv );
+
 
     }
+
 
     QpAbstractItemView::timerEvent(event);
 }
@@ -3156,7 +3183,7 @@ void QpTableViewPrivate::selectRow(int row, bool anchor)
         if(! tl.isValid())
             qDebug() <<"fasddsafdsfdsfd";
 
-        int lastLgclIdx = horizontalHeader->lastLogicalNum();
+        int lastLgclIdx = horizontalHeader->lastLogical();
 
         QModelIndex br = model->index(qMax(rowSectionAnchor, row), lastLgclIdx , root); //!!
 
@@ -3416,11 +3443,12 @@ bool QpTableView::init_template( const qp::SECTIONS_TMPL &matrix )
 
     if( horizontalHeader()->init_sections_template( matrix ) )
     {
-
+        //verticalHeader()->slot_sectionsTmplChanged();
         //horizontalHeader()->updateGeometry();
         //verticalHeader()->initializeSections();
         //updateGeometry(); //!!
 
+        //reset();
 
         delayed_Repaint();//!!
 

@@ -53,7 +53,7 @@ QT_BEGIN_NAMESPACE
 
 
 const bool QpHorHeaderView::debug = false;
-const bool QpHorHeaderView::debug_line_numX = true;
+const bool QpHorHeaderView::debug_line_numX = false;
 const bool QpHorHeaderView::debug_paint = false;
 const bool QpHorHeaderView::debug_offset = false;
 const bool QpHorHeaderView::debug_event = false;
@@ -64,17 +64,18 @@ const bool QpHorHeaderView::debug_resize = false;
 const bool QpHorHeaderView::debug_init = false;
 const bool QpHorHeaderView::debug_mouse = false;
 
-const int QpHorHeaderViewPrivate::minimumRowHeight = 50;
 
 const int QpHorHeaderView::default_section_width = 150;
+
+const int QpHorHeaderViewPrivate::minimumRowHeight = 50;
 
 const bool QpHorHeaderViewPrivate::debug = false;
 const bool QpHorHeaderViewPrivate::debug_resize = false;
 
 const int qp::CELL_NODES::NODE_UNDEFINED  = -1;
 
-QpHorHeaderView::QpHorHeaderView(Qt::Orientation orientation,
-                                 QpTableView *prnt)
+QpHorHeaderView::QpHorHeaderView( //Qt::Orientation orientation,
+                                  QpTableView *prnt)
     :
       QpAbstractItemView(*new QpHorHeaderViewPrivate,
                          (QWidget *)prnt),
@@ -83,13 +84,13 @@ QpHorHeaderView::QpHorHeaderView(Qt::Orientation orientation,
 {
     Q_D(QpHorHeaderView);
 
-    d->setDefaultValues(orientation);
+    d->setDefaultValues();
 
-    initialize();
+    init();
 }
 
 QpHorHeaderView::QpHorHeaderView(QpHorHeaderViewPrivate &dd,
-                                 Qt::Orientation orientation,
+                                 //Qt::Orientation orientation,
                                  QpTableView *prnt)
     :
       QpAbstractItemView(dd,
@@ -98,9 +99,9 @@ QpHorHeaderView::QpHorHeaderView(QpHorHeaderViewPrivate &dd,
 {
     Q_D(QpHorHeaderView);
 
-    d->setDefaultValues(orientation);
+    d->setDefaultValues();
 
-    initialize();
+    init();
 }
 
 
@@ -109,7 +110,7 @@ QpHorHeaderView::~QpHorHeaderView()
 }
 
 
-void QpHorHeaderView::initialize()
+void QpHorHeaderView::init()
 {
     Q_D(QpHorHeaderView);
 
@@ -123,6 +124,53 @@ void QpHorHeaderView::initialize()
     d->textElideMode = Qt::ElideNone;
 
     delete d->itemDelegate;
+
+}
+
+void QpHorHeaderView::resizeSectionsByHeaderData(const QAbstractItemModel *mdl)
+{
+    Q_D( QpHorHeaderView );
+
+    if( ! mdl )
+        return;
+
+    QFontMetrics  mtr = fontMetrics();
+
+    int margin = style()->pixelMetric(QStyle::PM_HeaderMargin, 0, this);
+
+    QHash<int, int> lst;
+
+    for( int line=0; line < d->visual_matrix.count(); line++)
+    {
+        int numX_cnt = d->visual_matrix[ line ].count();
+
+        for( int numX=0; numX <numX_cnt; numX++)
+        {
+
+            int logical = d->visual_matrix[ line ] [ numX ].number;
+
+            if( logical == qp::LABEL_FLD)
+                continue;
+
+            QString str = mdl->headerData( logical , Qt::Horizontal).toString();
+
+            int ww = mtr.width( str );
+
+            int old = lst[ logical ];
+            int newW = qMax ( old , ww + margin*2);
+            lst[ logical ] =  newW;
+        }
+    }
+
+    foreach ( int logical, lst.keys())
+    {
+        int numX = d->get_nodes( logical ).left;
+        int ww = lst[ logical ];
+        //d->offsets_x[ numX ] = ww;
+        d->recalculate_xNumWidth( numX , ww);
+    }
+
+    updateGeometries();
 
 }
 
@@ -142,7 +190,7 @@ const qp::SECTIONS_TMPL QpHorHeaderView::get_matrix() const
 
 //}
 
-const QString QpHorHeaderView::tblName()
+QString QpHorHeaderView::tblName() const
 {
     QpTableView* tv = qobject_cast<QpTableView*>(Prnt);
 
@@ -486,7 +534,7 @@ void QpHorHeaderView::setModel(QAbstractItemModel *model
 
     d->state = QpHorHeaderViewPrivate::NoState;
 
-//    qDebug() << qp::print_matrix( get_matrix() );
+    //    qDebug() << qp::print_matrix( get_matrix() );
 
     initializeSections();
 }
@@ -1269,7 +1317,7 @@ int QpHorHeaderView::leftTopVisualNumX( ) const
 //    return br_lgcl;
 //}
 
-int QpHorHeaderView::lastLogicalNum( ) const
+int QpHorHeaderView::lastLogical( ) const
 {
     Q_D(const QpHorHeaderView);
 
@@ -1295,68 +1343,35 @@ int QpHorHeaderView::lastLogicalNum( ) const
     return max_key;
 }
 
+const int QpHorHeaderView::firstNotLabel_logicalNum( ) const
+{
+    Q_D(const QpHorHeaderView);
+
+    int lines_cnt = d->visual_matrix.count();
+
+    if ( lines_cnt <= 0 )
+        return qp::UNDEFINED_FLD;
+
+    int numX_cnt = d->visual_matrix[ 0 ].count();
+
+    if ( numX_cnt <= 0 )
+        return qp::UNDEFINED_FLD;
+
+    int numX = 0;
+
+    while ( numX < numX_cnt -1  && d->visual_matrix[ 0 ] [ numX ].number == qp::LABEL_FLD )
+    {
+        numX++;
+    }
+
+    int firstLgcl = d->visual_matrix[ 0 ] [ numX ].number ;
+
+    return firstLgcl;
+}
 
 
 
 
-//void QpHorHeaderView::resizeSection(int logical, int newSize)
-//{
-//    Q_D(QpHorHeaderView);
-
-//    if( debug ) qDebug()<<"QpHorHeaderView::resizeSection logical " << logical << "  newSize " << newSize;
-
-//    if (logical < 0 || logical >= count())
-//        return;
-
-//    if (isSectionHidden(logical))
-//    {
-//        d->hiddenSectionSize.insert(logical, newSize);
-//        return;
-//    }
-
-//    int visual = visualIndex(logical);
-
-//    if (visual == -1)
-//        return;
-
-//    int oldSize = d->headerSectionSize( visual );
-
-//    if (oldSize == newSize)
-//        return;
-
-//    d->executePostedLayout();
-
-//    d->invalidateCachedSizeHint();
-
-//    if (stretchLastSection() && visual == d->lastVisibleVisualIndex())
-//        d->lastSectionSize = newSize;
-
-//    if (newSize != oldSize)
-//    {
-//        //        d->createSectionSpan(visual, visual, size, d->headerSectionResizeMode(visual));
-//        d->setHeaderSectionSize(visual , newSize );
-//    }
-
-//    int w = d->viewport->width();
-
-//    int h = d->viewport->height();
-
-//    //int pos = sectionViewportPosition2(logical).x();
-
-//    int pos = left_common_border_x( logical );
-
-//    QRect rect = QRect(pos, 0, w - pos, h);
-
-//    if (d->hasAutoResizeSections())
-//    {
-//        d->doDelayedResizeSections();
-//        rect = d->viewport->rect();
-//    }
-
-//    d->viewport->update(rect.normalized());
-
-//    emit sectionResized(logical, oldSize, newSize);
-//}
 
 void QpHorHeaderView::resizeSection_X(int xNum, int newWidth)
 {
@@ -3912,6 +3927,7 @@ int QpHorHeaderView::verticalOffset() const
 void QpHorHeaderView::updateGeometries()
 {
     Q_D(QpHorHeaderView);
+
     d->layoutChildren();
 
     if (d->hasAutoResizeSections())
@@ -4352,7 +4368,7 @@ line1     0      1      3      4     5
     if ( debug_init )qDebug() << "init map : ";
 
 
-    int lastLogical_Num = lastLogicalNum();
+    int lastLogical_Num = lastLogical();
 
     d->sectionHidden.resize( lastLogical_Num );
 
@@ -4603,7 +4619,7 @@ QRegion QpHorHeaderView::visualRegionForSelection(const QItemSelection &selectio
     if (logicalLeft < 0  || logicalLeft >= count() ||
             logicalRight < 0 || logicalRight >= count())
     {
-        qDebug() << "???? QpHorHeaderView::visualRegionForSelection count() " << count() << "  logicalLeft " << logicalLeft ;
+        qDebug() << tblName() <<" ???? QpHorHeaderView::visualRegionForSelection count() " << count() << "  logicalLeft " << logicalLeft ;
         return QRegion();
     }
 
@@ -4618,7 +4634,7 @@ QRegion QpHorHeaderView::visualRegionForSelection(const QItemSelection &selectio
 
     QRect rect( leftPos, 0, rightPos - leftPos, hh);
 
-    if ( debug_selection ) qDebug() << "QpHorHeaderView::visualRegionForSelection selection:" << selection << "  rect: "<<rect;
+    if ( debug_selection ) qDebug() << tblName()<< " QpHorHeaderView::visualRegionForSelection selection:" << selection << "  rect: "<<rect;
 
     return rect;
 
@@ -5393,31 +5409,8 @@ void QpHorHeaderViewPrivate::cascadingResize(int visual, int newSize)
 void QpHorHeaderViewPrivate::setDefaultSectionSize(int size)
 {
     Q_Q(QpHorHeaderView);
+
     defaultSectionSize = size;
-    //int currentVisualIndex = 0;
-
-
-    //    for (int i = 0; i < sectionSpans.count(); ++i)
-    //    {
-    //        QpHorHeaderViewPrivate::SectionSpan &span = sectionSpans[i];
-
-    //        if (span.size > 0)
-    //        {
-    //            //we resize it if it is not hidden (ie size > 0)
-    //            const int newSize = span.count * size;
-
-    //            if (newSize != span.size)
-    //            {
-    //                length += newSize - span.size; //the whole length is changed
-    //                const int oldSectionSize = span.sectionSize();
-    //                span.size = span.count * size;
-    //                for (int i = currentVisualIndex; i < currentVisualIndex + span.count; ++i) {
-    //                    emit q->sectionResized(logicalIndex(i), oldSectionSize, size);
-    //                }
-    //            }
-    //        }
-    //        currentVisualIndex += span.count;
-    //    }
 }
 
 

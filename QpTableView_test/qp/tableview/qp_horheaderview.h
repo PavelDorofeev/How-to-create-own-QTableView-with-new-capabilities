@@ -70,7 +70,7 @@ class __declspec(dllexport) QpHorHeaderView : public QpAbstractItemView
     };
 
 
-    explicit QpHorHeaderView(Qt::Orientation orientation,
+    explicit QpHorHeaderView(//Qt::Orientation orientation,
                              QpTableView *prnt );
 
     virtual ~QpHorHeaderView();
@@ -101,7 +101,8 @@ class __declspec(dllexport) QpHorHeaderView : public QpAbstractItemView
     int line_height( int line ); //!!
     QWidget * Prnt;
 
-    int lastLogicalNum( ) const;
+    int lastLogical( ) const;
+    const int firstNotLabel_logicalNum( ) const;
     int leftTopVisualNumX( ) const;
     //void recalculate_xNumWidth( int xNum, int newWidth);
     int get_section_number( int line , int xNum ) const;
@@ -140,6 +141,9 @@ class __declspec(dllexport) QpHorHeaderView : public QpAbstractItemView
 
     //    inline int logicalIndexAt(int x, int y) const;
     //    inline int logicalIndexAt(const QPoint &pos) const;
+
+
+    void resizeSectionsByHeaderData(const QAbstractItemModel *mdl);
 
     virtual int sectionSize(int logicalIndex) const;
 
@@ -237,7 +241,7 @@ class __declspec(dllexport) QpHorHeaderView : public QpAbstractItemView
     void setLineHeightInRow( int line, int newHeight); //!!
 
     int minimumLineHeight(); // !!
-    const QString tblName();
+    QString tblName() const ;
 
 #ifndef QT_NO_DATASTREAM
     QByteArray saveState() const;
@@ -276,8 +280,10 @@ protected Q_SLOTS:
     void sectionsAboutToBeRemoved(const QModelIndex &parent, int logicalFirst, int logicalLast);
 
     protected:
-    QpHorHeaderView(QpHorHeaderViewPrivate &dd, Qt::Orientation orientation, QpTableView *prnt );
-    void initialize();
+    QpHorHeaderView(QpHorHeaderViewPrivate &dd,
+                    //Qt::Orientation orientation,
+                    QpTableView *prnt );
+    void init();
 
     void initializeSections();
     void initializeSections(int start, int end);

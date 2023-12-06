@@ -54,27 +54,28 @@
 QT_BEGIN_NAMESPACE
 
 
+const int QpVertHeaderViewPrivate::default_section_height = 50;
+
 const  bool QpVertHeaderView::debug_paint = true;
 const  bool QpVertHeaderView::debug_select = false;
 const  bool QpVertHeaderView::debug_init = true;
-const  bool QpVertHeaderView::debug_scroll = true;
-const  bool QpVertHeaderView::debug_size = false;
+const  bool QpVertHeaderView::debug_scroll = false;
+const  bool QpVertHeaderView::debug_size = true;
 const  bool QpVertHeaderView::debug_mdl_signals = true;
 
 const  bool QpVertHeaderViewPrivate::debug_select = false;
 const  bool QpVertHeaderViewPrivate::debug = false;
-const  bool QpVertHeaderViewPrivate::debug_size = false;
+const  bool QpVertHeaderViewPrivate::debug_size = true;
 const  bool QpVertHeaderViewPrivate::debug_mdl_signals = true;
 
 
 QpVertHeaderView::QpVertHeaderView( const QpHorHeaderView &Horizontal,
-                                    Qt::Orientation orientation,
+                                    //Qt::Orientation orientation,
                                     QWidget *parent)
     :
       QpAbstractItemView(*new QpVertHeaderViewPrivate( Horizontal), parent)
 {
     Q_D(QpVertHeaderView);
-
 
 
     d->setDefaultValues( );
@@ -87,7 +88,7 @@ QpVertHeaderView::QpVertHeaderView( const QpHorHeaderView &Horizontal,
 
 
 QpVertHeaderView::QpVertHeaderView(QpVertHeaderViewPrivate &dd,
-                                   Qt::Orientation orientation,
+                                   //Qt::Orientation orientation,
                                    QWidget *parent)
     : QpAbstractItemView(dd, parent)
 {
@@ -329,9 +330,13 @@ int QpVertHeaderView::sectionSizeHint(int logicalIndex) const
 
     int hint = size.height();
 
-    if ( debug_size )  qDebug() << "QpVertHeaderView::sectionSizeHint("<<logicalIndex << ") = " << qMax(minimumSectionSize(), hint);
 
-    return qMax(minimumSectionSize(), hint);
+    int res = qMax( minimumSectionSize() , hint);
+
+    if ( debug_size )
+        qDebug() << "QpVertHeaderView::sectionSizeHint(logicalIndex:"<<logicalIndex << ") = " << res ;
+
+    return res;
 }
 
 
@@ -351,11 +356,11 @@ int QpVertHeaderView::visualIndexAt_Y( int y ) const
     const int sectionCount = d->sectionCount;
 
 
-    if( debug_paint ) qDebug() << "QpVertHeaderView::visualIndexAt_Y(y:"<<y<<") + d->offset:"<<d->offset<<" = yy:" <<yy;
+    if( debug_paint ) qDebug() << tblName() << "QpVertHeaderView::visualIndexAt_Y(y:"<<y<<") + d->offset:"<<d->offset<<" = yy:" <<yy;
 
     if (sectionCount < 1)
     {
-        if( debug_paint ) qDebug() << "???? sectionCount < 1 QpVertHeaderView::visualIndexAt_Y(y:" << y<<")=" << -1;
+        if( debug_paint ) qDebug() << tblName() <<" ???? sectionCount < 1 QpVertHeaderView::visualIndexAt_Y(y:" << y<<")=" << -1;
         return qp::UNKNOWN_VALUE;
     }
 
@@ -365,10 +370,10 @@ int QpVertHeaderView::visualIndexAt_Y( int y ) const
     {
         return qp::UNKNOWN_VALUE;
     }
-
+    int ll = d->length;
     if ( yy > d->length )
     {
-        if( debug_paint ) qDebug() << "???? yy:"<<yy<<" > d->length:"<< d->length << " sectionCount:"<<sectionCount << " QpVertHeaderView::visualIndexAt_Y(y:" << y<<"[yy:"<<yy<<"])=" << -1 ;
+        if( debug_paint ) qDebug() << tblName() <<" ???? yy:"<<yy<<" > d->length:"<< d->length << " sectionCount:"<<sectionCount << " QpVertHeaderView::visualIndexAt_Y(y:" << y<<"[yy:"<<yy<<"])=" << -1 ;
 
         return qp::UNKNOWN_VALUE;
     }
@@ -377,13 +382,13 @@ int QpVertHeaderView::visualIndexAt_Y( int y ) const
 
     if (visual < 0)
     {
-        if( debug_paint ) qDebug() << "???? visual < 0 QpVertHeaderView::visualIndexAt_Y(y:" << y<<"[yy:"<<yy<<"])=" << visual << " length" << length()<< " d->sectionCount" <<d->sectionCount;
+        if( debug_paint ) qDebug() << tblName() <<" ???? visual < 0 QpVertHeaderView::visualIndexAt_Y(y:" << y<<"[yy:"<<yy<<"])=" << visual << " length" << length()<< " d->sectionCount" <<d->sectionCount;
 
         d->headerVisualIndexAt( yy );
         return qp::UNKNOWN_VALUE;
     }
 
-    if( debug_paint ) qDebug() << "     return_visual:"<<visual<<" sectionCount:" << d->sectionCount << " d->lengthlength" <<d->length << "  d->offset" <<d->offset;
+    if( debug_paint ) qDebug() << tblName() <<"     return_visual:"<<visual<<" sectionCount:" << d->sectionCount << " d->lengthlength" <<d->length << "  d->offset" <<d->offset;
 
     return visual;
 }
@@ -658,7 +663,7 @@ void QpVertHeaderView::setSectionHidden(int logicalIndex, bool hide)
 
     if (hide)
     {
-        int size = d->headerSectionSize(visual);
+        int size = d->headerSectionHeight(visual);
 
         if (!d->hasAutoResizeSections())
             resizeSection(logicalIndex, 0);
@@ -739,7 +744,7 @@ int QpVertHeaderView::logicalIndex(int visualIndex) const
     Q_D(const QpVertHeaderView);
 
     if (visualIndex < 0 || visualIndex >= d->sectionCount)
-        return -1;
+        return qp::UNDEFINED_FLD;
 
     return d->logicalIndex(visualIndex);
 }
@@ -963,16 +968,32 @@ int QpVertHeaderView::minimumSectionSize() const
 
     //Q_ASSERT (d->hrzntl != 0);
 
-    int height = d->hrzntl.row_height();
+    int margin = style()->pixelMetric(QStyle::PM_HeaderMargin, 0, this);
 
-    return height;
+    int min_height = margin *2; //d->minimumSectionSize; //d->hrzntl.row_height();
 
+    return min_height;
+
+}
+
+void QpVertHeaderViewPrivate::setDefaultValues() //!!
+{
+    const int defH = hrzntl.row_height();
+
+    defaultSectionSize = qMax( minimumSectionSize , default_section_height );
+
+    defaultAlignment = Qt::AlignLeft|Qt::AlignVCenter;
+
+    qDebug() << "QpVertHeaderViewPrivate::setDefaultValues() defaultSectionSize:"<<defaultSectionSize;
 }
 
 void QpVertHeaderView::setMinimumSectionSize(int size)
 {
     Q_D(QpVertHeaderView);
-    ////d->minimumSectionSize = size;
+
+    if ( debug_size )qDebug() << "QpVertHeaderView::setMinimumSectionSize(size:"<<size<<")";
+
+    d->minimumSectionSize = size;
 }
 
 
@@ -1129,7 +1150,7 @@ void QpVertHeaderView::headerDataChanged(Qt::Orientation orientation, int logica
     d->executePostedResize();
     const int first = d->headerSectionPosition_Y(firstVisualIndex),
             last = d->headerSectionPosition_Y(lastVisualIndex)
-            + d->headerSectionSize(lastVisualIndex);
+            + d->headerSectionHeight(lastVisualIndex);
 
 
     d->viewport->update(0, first, d->viewport->width(), last - first);
@@ -1174,8 +1195,6 @@ void QpVertHeaderView::slot_sectionsTmplChanged()
     d->length = rowH * d->sectionCount; // !!!!
 
     if( debug_init ) qDebug() << "QpVertHeaderView::slot_sectionsTmplChanged() d->length:"<< d->length <<" rowH:" << rowH <<" d->sectionCount:"<<d->sectionCount;
-
-    //initializeSections();
 
 }
 
@@ -1368,6 +1387,7 @@ void QpVertHeaderViewPrivate::updateHiddenSections(int logicalFirst, int logical
         for (int j = 0, k = 0; j < sectionHidden.size(); ++j)
         {
             const int logical = logicalIndex(j);
+
             if (logical < logicalFirst || logical > logicalLast)
             {
                 newSectionHidden[k++] = sectionHidden[j];
@@ -1778,20 +1798,19 @@ void QpVertHeaderView::paintEvent(QPaintEvent *e)
     int row_end = qp::UNKNOWN_VALUE;
 
     row_start = visualIndexAt_Y( translatedEventRect.top() );
-    row_end = visualIndexAt_Y( translatedEventRect.bottom() );
 
+    int btm = translatedEventRect.bottom();
+    row_end = visualIndexAt_Y( btm );
 
     row_start = (row_start == qp::UNKNOWN_VALUE ? 0 : row_start);
     row_end = (row_end == qp::UNKNOWN_VALUE ? count() - 1 : row_end);
 
-    int tmp = row_start;
-
     row_start = qMin(row_start, row_end);
-    row_end = qMax(tmp, row_end);
+    row_end = qMax(row_start, row_end);
 
     if ( debug_paint ) qDebug() << "QpVertHeaderView::paintEvent " << tblName() << " offset"<<scrollDelayOffset_QPoint
                                 <<" row_start" << row_start <<" row_end"<< row_end << " e->rect()"<<e->rect()
-                               << " d->sectionCount" <<d->sectionCount<< " d->length" <<d->length;
+                               << " d->sectionCount" <<d->sectionCount<< " d->length" <<d->length << " btm:"<<btm;
 
     d->prepareSectionSelected(); // clear and resize the bit array
 
@@ -1804,16 +1823,27 @@ void QpVertHeaderView::paintEvent(QPaintEvent *e)
 
     for (int row = row_start; row <= row_end; ++row)
     {
-        if (d->isVisualIndexHidden(row))
+        if ( d->isVisualIndexHidden(row) )
             continue;
 
         painter.save();
 
-        logical = logicalIndex(row);
+        logical = logicalIndex( row );
+
+        //Q_ASSERT( logical >= 0 );
+
+        if( logical < 0 )
+        {
+            qDebug() << tblName()<<" ???? ERROR QpVertHeaderView::paintEvent row_end:"<< row_end<<" > d->sectionCount:"<<d->sectionCount;
+
+            int row_end2 = visualIndexAt_Y( btm );
+
+            continue;
+        }
 
         currentSectionRect.setRect(0, sectionViewportPosition(logical), width, sectionSize(logical));
 
-        if ( debug_paint ) qDebug() << "    paintSection row: " << row << " logical:"<<logical;
+        if ( debug_paint ) qDebug() << "    paintSection row: " << row << " logical:"<<logical<< " currentSectionRect:"<<currentSectionRect;
 
         currentSectionRect.translate(scrollDelayOffset_QPoint);
 
@@ -1947,7 +1977,7 @@ void QpVertHeaderView::mouseMoveEvent(QMouseEvent *e)
         if (d->cascadingResizing) {
             int delta = pos - d->lastPos;
             int visual = visualIndex(d->section);
-            d->cascadingResize(visual, d->headerSectionSize(visual) + delta);
+            d->cascadingResize(visual, d->headerSectionHeight(visual) + delta);
         } else {
             int delta = pos - d->firstPos;
             resizeSection(d->section, qMax(d->originalSize + delta, minimumSectionSize()));
@@ -1961,7 +1991,7 @@ void QpVertHeaderView::mouseMoveEvent(QMouseEvent *e)
             int visual = visualIndexAt_Y(pos);
             if (visual == -1)
                 return;
-            int posThreshold = d->headerSectionPosition_Y(visual) + d->headerSectionSize(visual) / 2;
+            int posThreshold = d->headerSectionPosition_Y(visual) + d->headerSectionHeight(visual) / 2;
             int moving = visualIndex(d->section);
             if (visual < moving) {
                 if (pos < posThreshold)
@@ -2287,10 +2317,11 @@ void QpVertHeaderView::paintSection(QPainter *painter, const QRect &rect, int ro
 
     }
 
-    if( debug_paint ) qDebug() << "QpVertHeaderView::paintSection row " << row << " opt "<<opt;
+    int visual = visualIndex(row);
+
+    if( debug_paint ) qDebug() << "QpVertHeaderView::paintSection row " << row << opt.text << " visual:"<<visual<<" opt "<<opt;
 
     // the section position
-    int visual = visualIndex(row);
 
     Q_ASSERT(visual != -1);
 
@@ -2809,14 +2840,14 @@ void QpVertHeaderViewPrivate::resizeSections(QpVertHeaderView::ResizeMode global
 
         if (resizeMode == QpVertHeaderView::Stretch) {
             ++numberOfStretchedSections;
-            section_sizes.append(headerSectionSize(i));
+            section_sizes.append(headerSectionHeight(i));
             continue;
         }
 
         // because it isn't stretch, determine its width and remove that from lengthToStrech
         int sectionSize = 0;
         if (resizeMode == QpVertHeaderView::Interactive || resizeMode == QpVertHeaderView::Fixed) {
-            sectionSize = headerSectionSize(i);
+            sectionSize = headerSectionHeight(i);
         } else { // resizeMode == QpVertHeaderView::ResizeToContents
             int logicalIndex = q->logicalIndex(i);
             sectionSize = qMax(viewSectionSizeHint(logicalIndex),
@@ -2843,7 +2874,7 @@ void QpVertHeaderViewPrivate::resizeSections(QpVertHeaderView::ResizeMode global
     // resize each section along the total length
     for (int i = 0; i < sectionCount; ++i)
     {
-        int oldSectionLength = headerSectionSize(i);
+        int oldSectionLength = headerSectionHeight(i);
         int newSectionLength = -1;
 
         QpVertHeaderView::ResizeMode newSectionResizeMode = headerSectionResizeMode(i);
@@ -3095,7 +3126,7 @@ void QpVertHeaderViewPrivate::setDefaultSectionSize(int size)
 //    emit q->sectionResized(logicalIndex(visualIndex), oldSize, newSize);
 //}
 
-int QpVertHeaderViewPrivate::headerSectionSize(int visual) const
+int QpVertHeaderViewPrivate::headerSectionHeight(int visual) const
 {
 
     return hrzntl.row_height();
@@ -3110,13 +3141,13 @@ int QpVertHeaderViewPrivate::headerSectionPosition_Y(int visual) const
 
 }
 
-int QpVertHeaderViewPrivate::headerVisualIndexAt(int y) const
+int QpVertHeaderViewPrivate::headerVisualIndexAt(int yy) const
 {
     Q_Q(const QpVertHeaderView);
 
     // y - coordinate from 0 ( mot from viewport)
 
-    if( y > length)
+    if( yy > length)
         return  qp::UNKNOWN_VALUE;
 
     int height = hrzntl.row_height();
@@ -3126,7 +3157,7 @@ int QpVertHeaderViewPrivate::headerVisualIndexAt(int y) const
 
     Q_ASSERT( height != 0 );
 
-    int row = y / height;// defaultSectionSize;
+    int row = yy / height;// defaultSectionSize;
 
 
     return row;
@@ -3208,7 +3239,7 @@ void QpVertHeaderViewPrivate::write(QDataStream &out) const
     out << stretchSections;
     out << contentsSections;
     out << defaultSectionSize;
-    //out << minimumSectionSize;
+    out << minimumSectionSize;
 
     out << int(defaultAlignment);
     out << int(globalResizeMode);
@@ -3244,7 +3275,7 @@ bool QpVertHeaderViewPrivate::read(QDataStream &in)
     in >> stretchSections;
     in >> contentsSections;
     in >> defaultSectionSize;
-    //in >> minimumSectionSize;
+    in >> minimumSectionSize;
 
     in >> align;
     defaultAlignment = Qt::Alignment(align);
@@ -3257,7 +3288,7 @@ bool QpVertHeaderViewPrivate::read(QDataStream &in)
     return true;
 }
 
-const QString QpVertHeaderView::tblName() const
+QString QpVertHeaderView::tblName() const
 {
     QpTableView* tv = qobject_cast<QpTableView*>(parent());
 

@@ -42,6 +42,9 @@ Now we are including our qp files at any project and building conveniently as us
 2.3.0
     add QpHorHeaderView::sectionsTmplChanged() signal for connecting to QpVertHeaderView::slot_sectionsTmplChanged() slot that do QpVertHeaderView::initializeSections()
 2.4.0
+    reparing some error
+    repainting after sections template lines number changed
+2.4.1
 */
 
 

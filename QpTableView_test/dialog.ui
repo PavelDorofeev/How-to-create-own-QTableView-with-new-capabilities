@@ -228,8 +228,7 @@
             </size>
            </property>
            <property name="plainText">
-            <string>1,-2,2,2,6,8,11
-5,-3,4,3,7,9,10</string>
+            <string>1,-2,2,2,6,8,11</string>
            </property>
           </widget>
          </item>
@@ -356,11 +355,11 @@
         </layout>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_6">
+        <layout class="QFormLayout" name="formLayout">
          <property name="margin">
           <number>5</number>
          </property>
-         <item>
+         <item row="0" column="0">
           <widget class="QCheckBox" name="chk_grid_on">
            <property name="text">
             <string>show grid</string>
@@ -370,24 +369,31 @@
            </property>
           </widget>
          </item>
-         <item>
+         <item row="1" column="0">
           <widget class="QCheckBox" name="chk_betweenRowsBorder">
            <property name="text">
             <string>show between rows border</string>
            </property>
           </widget>
          </item>
-         <item>
+         <item row="0" column="1">
           <widget class="QPushButton" name="btn_logFile">
            <property name="text">
             <string>log file</string>
            </property>
           </widget>
          </item>
-         <item>
+         <item row="1" column="1">
           <widget class="QPushButton" name="btn_insertRow">
            <property name="text">
             <string>insert row</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QPushButton" name="btn_resize1">
+           <property name="text">
+            <string>resize1</string>
            </property>
           </widget>
          </item>
