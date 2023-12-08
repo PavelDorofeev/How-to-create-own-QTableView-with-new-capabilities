@@ -44,7 +44,10 @@ Now we are including our qp files at any project and building conveniently as us
 2.4.0
     reparing some error
     repainting after sections template lines number changed
+    add method resizeSectionsByHeaderData (working for one line horizontal header)
 2.4.1
+    repaire errors into method QpVertHeaderView::sectionsInserted
+2.4.2
 */
 
 

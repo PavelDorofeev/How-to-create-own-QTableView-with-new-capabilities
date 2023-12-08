@@ -53,6 +53,7 @@ public:
     static const bool  debug_scroll;
     static const bool  debug_init;
     static const bool  debug_select;
+    static const bool  debug_visualIndexAt_Y;
     static const bool  debug_mdl_signals;
     //int row_heigth() const;
 

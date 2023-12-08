@@ -56,16 +56,17 @@ QT_BEGIN_NAMESPACE
 
 const int QpVertHeaderViewPrivate::default_section_height = 50;
 
-const  bool QpVertHeaderView::debug_paint = true;
+const  bool QpVertHeaderView::debug_paint = false;
 const  bool QpVertHeaderView::debug_select = false;
+const  bool QpVertHeaderView::debug_visualIndexAt_Y = true;
 const  bool QpVertHeaderView::debug_init = true;
 const  bool QpVertHeaderView::debug_scroll = false;
-const  bool QpVertHeaderView::debug_size = true;
+const  bool QpVertHeaderView::debug_size = false;
 const  bool QpVertHeaderView::debug_mdl_signals = true;
 
 const  bool QpVertHeaderViewPrivate::debug_select = false;
 const  bool QpVertHeaderViewPrivate::debug = false;
-const  bool QpVertHeaderViewPrivate::debug_size = true;
+const  bool QpVertHeaderViewPrivate::debug_size = false;
 const  bool QpVertHeaderViewPrivate::debug_mdl_signals = true;
 
 
@@ -355,12 +356,10 @@ int QpVertHeaderView::visualIndexAt_Y( int y ) const
 
     const int sectionCount = d->sectionCount;
 
-
-    if( debug_paint ) qDebug() << tblName() << "QpVertHeaderView::visualIndexAt_Y(y:"<<y<<") + d->offset:"<<d->offset<<" = yy:" <<yy;
-
-    if (sectionCount < 1)
+    if ( sectionCount < 1)
     {
-        if( debug_paint ) qDebug() << tblName() <<" ???? sectionCount < 1 QpVertHeaderView::visualIndexAt_Y(y:" << y<<")=" << -1;
+        if( debug_visualIndexAt_Y ) qDebug() << tblName() <<" ???? sectionCount < 1 QpVertHeaderView::visualIndexAt_Y(y:" << y<<")=" << -1;
+
         return qp::UNKNOWN_VALUE;
     }
 
@@ -371,9 +370,10 @@ int QpVertHeaderView::visualIndexAt_Y( int y ) const
         return qp::UNKNOWN_VALUE;
     }
     int ll = d->length;
+
     if ( yy > d->length )
     {
-        if( debug_paint ) qDebug() << tblName() <<" ???? yy:"<<yy<<" > d->length:"<< d->length << " sectionCount:"<<sectionCount << " QpVertHeaderView::visualIndexAt_Y(y:" << y<<"[yy:"<<yy<<"])=" << -1 ;
+        if( debug_visualIndexAt_Y ) qDebug() << tblName() <<"???? QpVertHeaderView::visualIndexAt_Y((y:" << y<<"[yy:"<<yy<<"])) (d->offset:"<<d->offset<<"d->sectionCount:" << d->sectionCount << " d->length:" <<d->length << " return_visual:"<<qp::UNKNOWN_VALUE;
 
         return qp::UNKNOWN_VALUE;
     }
@@ -382,13 +382,12 @@ int QpVertHeaderView::visualIndexAt_Y( int y ) const
 
     if (visual < 0)
     {
-        if( debug_paint ) qDebug() << tblName() <<" ???? visual < 0 QpVertHeaderView::visualIndexAt_Y(y:" << y<<"[yy:"<<yy<<"])=" << visual << " length" << length()<< " d->sectionCount" <<d->sectionCount;
+        if( debug_visualIndexAt_Y ) qDebug() << tblName() <<"???? QpVertHeaderView::visualIndexAt_Y((y:" << y<<"[yy:"<<yy<<"])) (d->offset:"<<d->offset<<"d->sectionCount:" << d->sectionCount << " d->length:" <<d->length << " return_visual:"<<qp::UNKNOWN_VALUE;
 
-        d->headerVisualIndexAt( yy );
         return qp::UNKNOWN_VALUE;
     }
 
-    if( debug_paint ) qDebug() << tblName() <<"     return_visual:"<<visual<<" sectionCount:" << d->sectionCount << " d->lengthlength" <<d->length << "  d->offset" <<d->offset;
+    if( debug_visualIndexAt_Y ) qDebug() << tblName() <<"     QpVertHeaderView::visualIndexAt_Y((y:" << y<<"[yy:"<<yy<<"])) (d->offset:"<<d->offset<<"d->sectionCount:" << d->sectionCount << " d->length:" <<d->length << " return_visual:"<<visual;
 
     return visual;
 }
@@ -1208,10 +1207,6 @@ void QpVertHeaderView::sectionsInserted( const QModelIndex &parent,
     if( debug_mdl_signals ) qDebug() << tblName() <<" QpVertHeaderView::sectionsInserted( logicalFirst"<<logicalFirst<<", logicalLast"<< logicalLast<<") d->sectionCount"<<d->sectionCount<<" d->length"<<d->length;
 
 
-    //int insertCount = logicalLast - logicalFirst + 1;
-
-    //    d->sectionCount += insertCount;
-
     int rowH = d->hrzntl.row_height();
 
     if( rowH == qp::UNKNOWN_VALUE)
@@ -1220,10 +1215,6 @@ void QpVertHeaderView::sectionsInserted( const QModelIndex &parent,
         return ;
     }
 
-    //int insertLength = rowH * insertCount;
-
-
-    //d->length += insertLength;
 
     if (parent != d->root)
         return; // we only handle changes in the top level
@@ -1232,11 +1223,6 @@ void QpVertHeaderView::sectionsInserted( const QModelIndex &parent,
 
     d->invalidateCachedSizeHint();
 
-    //    // add the new sections
-    //    int insertAt = 0;
-    //    for (int spanStart = 0; insertAt < d->sectionSpans.count() && spanStart < logicalFirst; ++insertAt)
-    //        spanStart += d->sectionSpans.at(insertAt).count;
-
     int insertCount = logicalLast - logicalFirst + 1;
 
     d->sectionCount += insertCount;
@@ -1244,11 +1230,14 @@ void QpVertHeaderView::sectionsInserted( const QModelIndex &parent,
 
     if ( 1==1)//d->sectionSpans.isEmpty() || insertAt >= d->sectionSpans.count())
     {
-        int insertLength = d->defaultSectionSize * insertCount;
+        int rowHeight = d->hrzntl.row_height();
+
+        int insertLength = rowHeight * insertCount;
+
         d->length += insertLength;
 
         if( insertLength !=0 )
-            if( debug_mdl_signals ) qDebug() << tblName() << "CHANGED! d->length  was:" << d->length << " new:" << d->length + insertLength << " d->sectionCount" << d->sectionCount<<" d->length" << d->length;
+            if( debug_mdl_signals ) qDebug() << tblName() << "QpVertHeaderView::sectionsInserted CHANGED! d->length  was:" << d->length << " new:" << d->length + insertLength << " d->sectionCount" << d->sectionCount<<" d->length" << d->length;
 
         //QpVertHeaderViewPrivate::SectionSpan span(insertLength, insertCount, d->globalResizeMode);
         //d->sectionSpans.append(span);
@@ -1603,7 +1592,7 @@ void QpVertHeaderView::initializeSections(int start, int end)
     Q_ASSERT(start >= 0);
     Q_ASSERT(end >= 0);
 
-    if( debug_init ) qDebug() << "QpVertHeaderView::initializeSections(start:"<<start<< ", end:"<<end<<") d->sectionCount "<<d->sectionCount << " d->length" <<d->length;
+    //if( debug_init ) qDebug() << "QpVertHeaderView::initializeSections(start:"<<start<< ", end:"<<end<<") d->sectionCount "<<d->sectionCount << " d->length" <<d->length;
 
     d->invalidateCachedSizeHint();
 
@@ -1692,9 +1681,9 @@ void QpVertHeaderView::initializeSections(int start, int end)
     int hh = d->hrzntl.row_height();
 
     int ll = d->length;
-    //d->length = (end - start + 1) * hh;
+    d->length = (end - start + 1) * hh;
 
-    if( debug_init ) qDebug() << "CHANGED!  length was:"<< ll<<" d->length:" << d->length<< " row_height" << d->hrzntl.row_height() << "  start " << start <<" end " <<end;
+    if( debug_init && ll != d->length ) qDebug() << "QpVertHeaderView::initializeSections(start:"<<start<< ", end:"<<end<<") CHANGED!  length was:"<< ll<<" d->length:" << d->length<< " d->hrzntl.row_height():" << d->hrzntl.row_height() << "  start " << start <<" end " <<end;
 
 
     //Q_ASSERT(d->headerLength() == d->length);

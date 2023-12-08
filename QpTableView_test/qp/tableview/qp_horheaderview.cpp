@@ -134,41 +134,101 @@ void QpHorHeaderView::resizeSectionsByHeaderData(const QAbstractItemModel *mdl)
     if( ! mdl )
         return;
 
-    QFontMetrics  mtr = fontMetrics();
+    if( d->visual_matrix.count() <=0 )
+        return;
+
+    if( d->visual_matrix[ 0 ].count() == 0 )
+        return;
+
 
     int margin = style()->pixelMetric(QStyle::PM_HeaderMargin, 0, this);
 
-    QHash<int, int> lst;
+    QHash< QPair<int,int>, int> lst;
 
-    for( int line=0; line < d->visual_matrix.count(); line++)
+    QHash< int, int> res;
+
+    int numX_cnt = d->visual_matrix[ 0 ].count();
+
+    for( int numX=0; numX <numX_cnt; numX++)
     {
-        int numX_cnt = d->visual_matrix[ line ].count();
+        int max_width = margin * 2;
 
-        for( int numX=0; numX <numX_cnt; numX++)
+        for( int line=0; line < d->visual_matrix.count(); line++)
         {
+            QPair<int,int> pp( line , numX);
+
+            QFontMetrics  mtr = fontMetrics();
 
             int logical = d->visual_matrix[ line ] [ numX ].number;
 
-            if( logical == qp::LABEL_FLD)
+            if( d->sections_styles.contains( logical ))
+            {
+                mtr = QFontMetrics(  d->sections_styles[ logical ].font );
+            }
+
+            if( logical <= qp::LABEL_FLD)
+            {
+                QString txt = d->visual_matrix [ line ] [ numX ].txt;
+                int ww = mtr.width( txt )+ margin *2;
+                lst[ pp ] = ww;
+                max_width = qMax ( max_width , ww );
+                //qDebug() << "label " << txt<< "  sz:" << ww;
                 continue;
 
-            QString str = mdl->headerData( logical , Qt::Horizontal).toString();
+            }
+            else
+            {
 
-            int ww = mtr.width( str );
+                QString str = mdl->headerData( logical , Qt::Horizontal).toString();
 
-            int old = lst[ logical ];
-            int newW = qMax ( old , ww + margin*2);
-            lst[ logical ] =  newW;
+                int ww = mtr.width( str ) + margin *2;
+
+                qp::CELL_NODES nodes =d->get_nodes( logical );
+
+                // calculate left already detected cell size
+                for( int left=nodes.left; left < numX; left++)
+                {
+                    QPair<int,int> pp2( line , left);
+
+                    ww -= lst [ pp2 ];
+                }
+
+                if( ww >0 )
+                {
+                    int sz = ww / ( nodes.right - numX +1 );
+
+                    for( int right=numX; right < nodes.right; right++)
+                    {
+                        QPair<int,int> pp3( line , right);
+                        lst [ pp3 ] = sz;
+                    }
+
+                    max_width = qMax ( max_width , sz );
+                }
+            }
         }
+
+
+        // set for this numX width = max_width;
+        res [ numX ] = max_width;
+
     }
 
-    foreach ( int logical, lst.keys())
+    for (int numX = 0; numX <res.count(); numX++)
     {
-        int numX = d->get_nodes( logical ).left;
-        int ww = lst[ logical ];
-        //d->offsets_x[ numX ] = ww;
-        d->recalculate_xNumWidth( numX , ww);
+        int ww = res [ numX ];
+        d->recalculate_xNumWidth( numX , ww );
+
     }
+
+    qDebug() << "d->offsets_x:";
+
+    for (int numX = 0; numX < d->offsets_x.count() -1 ; numX++)
+    {
+        qDebug() << "   "<<numX <<":"<< d->offsets_x[ numX ];
+
+    }
+
 
     updateGeometries();
 
@@ -214,7 +274,7 @@ bool QpHorHeaderView::test_matrix_with_model(const QAbstractItemModel *mdl) cons
         return false;
 
     if( matrix.count() == 0 )
-        return false;
+        return true;
 
 
     int mdlColCnt = mdl->columnCount(); // this important for own model
@@ -481,7 +541,7 @@ void QpHorHeaderView::setModel(QAbstractItemModel *model
     {
         QMessageBox::warning( 0,
                               "error",
-                              QString("setModel: data model is wrong for current section template (table:%1)")
+                              QString(" setModel: data model is wrong for current sections template,\n (table:%1)")
                               .arg( tblName() )
                               );
         //return;
@@ -4028,17 +4088,17 @@ void QpHorHeaderView::clear_sections_template(  )
     d->offsets_y.clear();
     d->sectionHidden.clear();
     //d->label_styles.clear();
-    d->label_styles2.clear();
+    d->sections_styles.clear();
 }
 
 void QpHorHeaderView::set_section_style( int sectionNum , qp::CELL_STYLE &stl)
 {
     Q_D( QpHorHeaderView);
 
-    if( d->label_styles2.contains( sectionNum ))
-        d->label_styles2.take( sectionNum);
+    if( d->sections_styles.contains( sectionNum ))
+        d->sections_styles.take( sectionNum);
 
-    d->label_styles2[ sectionNum ] = stl;
+    d->sections_styles[ sectionNum ] = stl;
 
 
 }
@@ -4047,9 +4107,9 @@ const bool QpHorHeaderView::get_section_style( int sectionNum, qp::CELL_STYLE &s
 {
     Q_D( const QpHorHeaderView);
 
-    if( d->label_styles2.contains( sectionNum ))
+    if( d->sections_styles.contains( sectionNum ))
     {
-        stl = d->label_styles2.value( sectionNum );
+        stl = d->sections_styles.value( sectionNum );
         return true;
     }
 
@@ -4229,18 +4289,18 @@ line1     0      1      3      4     5
 
                 qp::SECTION_D dd = d->visual_matrix[ line ] [ num ];
 
-                if ( ! d->label_styles2.contains( dd.number ) )
+                if ( ! d->sections_styles.contains( dd.number ) )
                 {
                     line++;
                     continue;
                 }
 
 
-                qp::CELL_STYLE stl = d->label_styles2[ dd.number ];
+                qp::CELL_STYLE stl = d->sections_styles[ dd.number ];
 
                 qp::CELL_STYLE style;
 
-                d->label_styles2.insert( dd.number, style );
+                d->sections_styles.insert( dd.number, style );
 
                 line++;
                 continue;
@@ -5057,17 +5117,17 @@ void QpHorHeaderViewPrivate::resizeSections(QpHorHeaderView::ResizeMode globalMo
 
             int sectionNumber = dd.number;
 
-            QFontMetrics metr (  label_styles2[ sectionNumber ] .font );
+            QFontMetrics metr (  sections_styles[ sectionNumber ] .font );
 
             if( dd.type == qp::LABEL_TYPE )
             {
 
                 int margin = q->style()->pixelMetric(QStyle::PM_HeaderMargin, 0, q);
 
-                if( label_styles2.contains( sectionNumber ))
+                if( sections_styles.contains( sectionNumber ))
                 {
 
-                    qp::CELL_STYLE stl = label_styles2 [ sectionNumber ];
+                    qp::CELL_STYLE stl = sections_styles [ sectionNumber ];
 
 
                     int width = margin *2 ;
@@ -5273,7 +5333,7 @@ void QpHorHeaderViewPrivate::clear()
         sectionSelected.clear();
         sectionHidden.clear();
         hiddenSectionSize.clear();
-        label_styles2.clear();
+        sections_styles.clear();
     }
 }
 

@@ -30,10 +30,13 @@ Dialog::Dialog(QWidget *parent) :
 
 
 
-    qp::SECTIONS_TMPL matrix = prepare_matrix( *ui->txt1);
+    qp::SECTIONS_TMPL matrix = prepare_matrix( *ui->txt2);
+
 
     view = new QpTableView ( matrix , this);
 
+    //view->set
+    //line1 << qp::SECTION_D( qp::LABEL_TYPE, Receipts_Dlg::cash , "НАЛ:");
 
     view->setGridStyle( Qt::DotLine);
     view->setContextMenuPolicy( Qt::CustomContextMenu );
@@ -310,11 +313,11 @@ void Dialog::init_StandardItemModel()
 
     view->scroll(0,0);
 
-    view->reset();
+    //view->reset();
 
-    updateGeometry();
+    //updateGeometry();
 
-    update();
+    //update();
 
     ui->btn_QStandardItemModel_On->setFocus();
 
@@ -418,6 +421,8 @@ qp::SECTIONS_TMPL Dialog::prepare_matrix( const QPlainTextEdit & txt )
 
     qp::SECTIONS_TMPL matrix;
 
+    int count_lbl = qp::LABEL_FLD;
+
     foreach ( QString str, lst)
     {
         QStringList lst1 = str.split(",");
@@ -445,6 +450,8 @@ qp::SECTIONS_TMPL Dialog::prepare_matrix( const QPlainTextEdit & txt )
                 {
                     dd.type = qp::LABEL_TYPE;
                     dd.number = int_val;
+                    dd.txt = QString("LABEL(%1):")
+                            .arg( count_lbl-- );
                 }
                 lst.append( dd );
             }

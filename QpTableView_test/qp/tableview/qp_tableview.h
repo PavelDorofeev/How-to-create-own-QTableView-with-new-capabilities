@@ -66,7 +66,8 @@ public:
     static const bool debug_event;
     static const bool debug_init;
     static const bool debug_geometry;
-    static const bool debug_paint_row_col;
+    static const bool debug_row_col_cnt_short;
+    static const bool debug_row_col_cnt_full;
     static const bool debug_resize;
     static const bool debug_mdl_signals;
     static const bool debug_paint_region;

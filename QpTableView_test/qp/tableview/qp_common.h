@@ -117,8 +117,6 @@ public:
 
     QColor color;
 
-    //QString txt;
-
     CELL_STYLE()
         :
           align( Qt::AlignCenter ),

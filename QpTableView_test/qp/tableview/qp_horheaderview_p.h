@@ -113,9 +113,7 @@ public:
     // line0 : 0 1 2 2 5
     // line1 : 0 1 3 4 5
 
-    //QHash < QPair<int,int> , qp::CELL_STYLE > label_styles;   //
-
-    QHash < int , qp::CELL_STYLE > label_styles2;   // int:sectionNumber
+    QHash < int , qp::CELL_STYLE > sections_styles;   // int:sectionNumber
 
     QHash< int , qp::CELL_NODES > map; // int:sectionNumber field number into model (>=0) or label number (< -1)
     // -2,-3,.. labels cells

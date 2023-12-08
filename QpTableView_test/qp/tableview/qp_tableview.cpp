@@ -56,17 +56,18 @@ const int QpTableView::defaultRowHeight = 30;
 const bool QpTableView::debug = false;
 const bool QpTableView::debug_init = true;
 const bool QpTableView::debug_paint = false;
-const bool QpTableView::debug_paint_row_col = false;
+const bool QpTableView::debug_row_col_cnt_short = true;
+const bool QpTableView::debug_row_col_cnt_full = false;
 const bool QpTableView::debug_geometry = false;
 const bool QpTableView::debug_event = false;
-const bool QpTableView::debug_paint_region = false;
+const bool QpTableView::debug_paint_region = true;
 const bool QpTableView::debug_paint_border = false;
 const bool QpTableView::debug_resize = false;
-const bool QpTableView::debug_mdl_signals = false;
+const bool QpTableView::debug_mdl_signals = true;
 const bool QpTableView::debug_selection = false;
 const bool QpTableView::debug_scroll = false;
 
-const bool QpTableViewPrivate::debug_mdl_signals = false;
+const bool QpTableViewPrivate::debug_mdl_signals = true;
 const bool QpTableViewPrivate::debug = false;
 const bool QpTableViewPrivate::debug_selection = false;
 const bool QpTableViewPrivate::debug_init = false;
@@ -733,6 +734,9 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
     QPainter painter( d->viewport );
 
+    int viewportHeight = d->viewport->height();
+    int rowHeight = d->horizontalHeader->row_height();
+
     const QPoint offset = d->scrollDelayOffset;
 
     const bool showGrid = d->showGrid;
@@ -767,7 +771,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
     uint y = len_y - verticalHeader->offset() - 1;
 
 
-    if (  debug_paint_region)  qDebug() << "event->region():" << event->region();
+    //if (  debug_paint_region)  qDebug() << "event->region():" << event->region();
 
 
     const QRegion region = event->region().translated(offset);
@@ -791,7 +795,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
     int firstVisualRow = qMax( verticalHeader->visualIndexAt_Y( 0 ) , 0);
 
-    int lastVisualRow = verticalHeader->visualIndexAt_Y(verticalHeader->viewport()->height() );
+    int lastVisualRow = verticalHeader->visualIndexAt_Y( viewportHeight );
 
     if (lastVisualRow == -1)
         lastVisualRow = d->model->rowCount(d->root) - 1;
@@ -849,11 +853,13 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
     // -------------------------------------------------------------------------------
 
+
+
     for (int i = 0; i < rects.size(); ++i)
     {
         QRect dirtyArea = rects.at(i);
 
-        if( debug_paint_region ) qDebug() << "dirtyArea rect: " << dirtyArea << "  firstVisualRow:" << firstVisualRow;
+        if( debug_paint_region ) qDebug() << "dirtyArea rect: " << dirtyArea << "  firstVisualRow:" << firstVisualRow << " lastVisualRow:"<<lastVisualRow << " viewportHeight:"<<viewportHeight  << " rowHeight:"<<rowHeight ;
 
         dirtyArea.setBottom( qMin(dirtyArea.bottom(), int( y )));
 
@@ -876,7 +882,8 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
 
         // get the vertical start and end visual sections and if alternate color
-        int row_bottom = verticalHeader->visualIndexAt_Y( dirtyArea.bottom() );
+        int drtBtm = dirtyArea.bottom();
+        int row_bottom = verticalHeader->visualIndexAt_Y( drtBtm );
 
         if (row_bottom == -1)
         {
@@ -884,18 +891,18 @@ void QpTableView::paintEvent(QPaintEvent *event)
             row_bottom = btm;
         }
 
-        int row_top = 0;
-
         bool alternateBase = false;
 
-        row_top = verticalHeader->visualIndexAt_Y( dirtyArea.top() );
+        int drtTop = dirtyArea.top();
+        int row_top = verticalHeader->visualIndexAt_Y( drtTop );
+
+        if( debug_scroll)  qDebug() << "QpTableView::paintEvent left_num " << left_num << "  right_num " << right_num ;
+        if( debug_scroll)  qDebug() << "QpTableView::paintEvent row_top " << row_top << "  row_bottom " << row_bottom << "  drtTop:"<<drtTop << "  drtBtm:"<<drtBtm;
 
         if (row_top == -1 || row_top > row_bottom)
             continue;
 
 
-        if( debug_scroll)  qDebug() << "QpTableView::paintEvent left_num " << left_num << "  right_num " << right_num;
-        if( debug_scroll)  qDebug() << "QpTableView::paintEvent row_top " << row_top << "  row_bottom " << row_bottom;
 
         //----------------------------------------------------
         //              Paint each row item
@@ -914,7 +921,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
             //                      rows
             // --------------------------------------------------------------------
 
-            if( debug_paint_row_col ) qDebug()<< "    row:"<<row<<" row_top:"<<row_top << " row_bottom:"<<row_bottom<< " row - row_top  : " << row - row_top  ;
+            if( debug_row_col_cnt_short | debug_row_col_cnt_full ) qDebug()<< "    row:"<<row<<" row_top:"<<row_top << " row_bottom:"<<row_bottom<< " row - row_top  : " << row - row_top  ;
 
             for ( int line = 0 ; line < lines_count; ++line)
             {
@@ -925,7 +932,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
 
                 int rowY = rowViewportPosition( row );
 
-                if( debug_paint_row_col ) qDebug()<< "        line:"<< line; ;
+                if( debug_row_col_cnt_full ) qDebug()<< "        line:"<< line; ;
 
                 rowY += offset.y();
 
@@ -997,9 +1004,9 @@ void QpTableView::paintEvent(QPaintEvent *event)
                             if ( debug_paint ) qDebug() <<"        rowSelected " << rowSel << " row "<< row;
                         }
 
-                        if( debug_paint_row_col ) qDebug() << "               numX:"  << numX << "  label : "<< var.number;
+                        if( debug_row_col_cnt_full ) qDebug() << "               numX:"  << numX << "  label : "<< var.number;
 
-                        if( debug_paint_row_col )
+                        if( debug_row_col_cnt_full )
                             qDebug() << "                   option.rect " << option.rect;
 
 
@@ -1077,7 +1084,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
                             continue;
                         }
 
-                        if( debug_paint_row_col ) qDebug() << "               numX:"  << numX << "  col : "<<sectionNum;
+                        if( debug_row_col_cnt_full ) qDebug() << "               numX:"  << numX << "  col : "<<sectionNum;
                         rect.moveTop( rowY + y1 );
 
                         option.rect = rect ;
@@ -1092,7 +1099,7 @@ void QpTableView::paintEvent(QPaintEvent *event)
                                 option.features &= ~QStyleOptionViewItemV2::Alternate;
                         }
 
-                        if( debug_paint_row_col )
+                        if( debug_row_col_cnt_full )
                             qDebug() << "                   option.rect " << option.rect <<  d->model->data( index).toString();
 
 
